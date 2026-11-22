@@ -6,7 +6,7 @@
 //  5. it takes payment to its own registered wallet.
 // Any failure = walk away, with the reason.
 import { AccountAddress } from '@concordium/web-sdk';
-import { client } from '../../spike/chain.ts';
+import { client } from '../chain/chain.ts';
 import { agentOf, checkBadge } from '../registry/mcp.ts';
 
 export const BUSINESS_IDP_NAME = 'Global FinReg';
@@ -17,6 +17,7 @@ export type ShopVerdict = {
   name?: string;
   owner?: string;
   payTo?: string;
+  ageGated?: boolean; // the verified card sells something only for 18+
   reasons: string[]; // why we refused (empty when ok)
   passed: string[]; // what we checked and saw pass
 };
@@ -60,6 +61,7 @@ export async function checkShop(tokenId: string, expectedName?: string): Promise
   if (agent.agent_uri && badge.badge_valid) {
     const card = await (await fetch(agent.agent_uri)).json();
     v.name = card.name;
+    v.ageGated = (card.skills ?? []).some((k: any) => (k.tags ?? []).includes('age-gated'));
     if (expectedName && card.name !== expectedName) v.reasons.push(`card is "${card.name}", not "${expectedName}"`);
     else if (expectedName) v.passed.push(`card names "${card.name}"`);
   }
