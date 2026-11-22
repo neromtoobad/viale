@@ -1,0 +1,25 @@
+{
+  "network": "Concordium testnet",
+  "date": "2026-11-22",
+  "registry": { "cis8004": "<12802,0>", "mcp": "https://agent-registry-mcp.concordium.com/mcp" },
+  "runs": [
+    {
+      "what": "registered agent #1406 (planted impostor 'The Bottle Shop', owned by Viale's personal-ID account 3bV1C2…6zX)",
+      "script": "src/registry/register.ts registerAgent",
+      "tx": "17497c96091d73a9bf0540ea28b319753606692daf19073c696231b0edf78598"
+    },
+    {
+      "what": "pinned card https://viale.nerom.site/agents/1406.json with sha256 2b74e6ff…af23 (served bytes hash-checked before pinning)",
+      "script": "src/registry/publish-cards.ts --pin",
+      "tx": "39ece79db3745b1cbd3a745d2fd2ab45b5a994591234dd4391a52550e7e99d54"
+    },
+    {
+      "what": "shop check on #1406: Active ✓, badge valid ✓, name matches ✓, owner holds only a personal identity ✗ → WALK AWAY",
+      "script": "src/errand/shop-check.ts 1406 'The Bottle Shop'"
+    },
+    {
+      "what": "shop check on another team's agent #1010 (ClientScope): badge valid, owner identity provider 3 (personal) → WALK AWAY",
+      "script": "src/errand/shop-check.ts 1010 'ClientScope Work Agent'"
+    }
+  ]
+}
