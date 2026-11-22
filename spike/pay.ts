@@ -1,15 +1,15 @@
 // Spike 2: the errand agent pays a shop in EUDemo over x402 (exact scheme, V1 sponsored transfer).
 // Viale's facilitator checks the payment, adds its sponsor signature and pays the CCD fee,
-// so the agent never holds CCD. Then both sides' receipt is anchored (spike/anchor.ts).
+// so the agent never holds CCD. Then both sides' receipt is anchored (src/chain/anchor.ts).
 // Usage: node spike/pay.ts <shopAddress> [amount EUDemo, default 1.24]
 import { ExactConcordiumScheme as ClientScheme } from '@x402/concordium/exact/client';
 import { ExactConcordiumScheme as FacilitatorScheme } from '@x402/concordium/exact/facilitator';
 import { CONCORDIUM_TESTNET_CAIP2, toConcordiumFacilitatorSigner } from '@x402/concordium';
 import type { PaymentPayload, PaymentRequirements } from '@x402/core/types';
 import { AccountAddress } from '@concordium/web-sdk';
-import { GRPC_HOST, GRPC_PORT, client, txUrl } from './chain.ts';
-import { agentWallet, sponsorWallet } from './keys.ts';
-import { anchorReceipt } from './anchor.ts';
+import { GRPC_HOST, GRPC_PORT, client, txUrl } from '../src/chain/chain.ts';
+import { agentWallet, sponsorWallet } from '../src/chain/keys.ts';
+import { anchorReceipt } from '../src/chain/anchor.ts';
 
 const TOKEN = 'EUDemo';
 const DECIMALS = 6;

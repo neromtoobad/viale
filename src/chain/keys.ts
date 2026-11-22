@@ -15,6 +15,18 @@ function readEnv(): Record<string, string> {
   return out;
 }
 
+/** A setting from the environment, else from keys.env (outside the repo). */
+export function setting(name: string): string | undefined {
+  return process.env[name] || readEnv()[name] || undefined;
+}
+
+/** Claude API key for the errand agent: env var first, then keys.env. */
+export function loadAnthropicKey(): string {
+  const key = process.env.ANTHROPIC_API_KEY || readEnv().ANTHROPIC_API_KEY;
+  if (!key) throw new Error(`No ANTHROPIC_API_KEY: add it to ${path.join(dir, 'keys.env')}`);
+  return key;
+}
+
 function keyFor(address: string): string {
   const env = readEnv();
   if (env.AGENT_ADDRESS === address && /^[0-9a-f]{64}$/.test(env.AGENT_PRIVATE_KEY ?? '')) return env.AGENT_PRIVATE_KEY;

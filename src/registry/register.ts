@@ -2,8 +2,8 @@
 // The registry MCP builds the parameter (it holds no keys); the shop's own account signs and pays.
 // Note: sponsored contract updates fail on testnet, so the owner pays its own CCD fee here.
 import { AccountAddress, ContractAddress, CcdAmount, Energy, Parameter, ReceiveName, Transaction, TransactionHash } from '@concordium/web-sdk';
-import { client, txUrl } from '../../spike/chain.ts';
-import type { Wallet } from '../../spike/keys.ts';
+import { client, txUrl } from '../chain/chain.ts';
+import type { Wallet } from '../chain/keys.ts';
 import { callTool } from './mcp.ts';
 
 type Built = { contract_address: { index: number; subindex: number }; receive_name: string; parameter_hex: string; suggested_energy: number };

@@ -1,6 +1,6 @@
 // Reads a register-data transaction back from the chain and checks it holds the expected Viale digest.
 import { TransactionHash } from '@concordium/web-sdk';
-import { client } from './chain.ts';
+import { client } from '../src/chain/chain.ts';
 
 const [hash, digest] = process.argv.slice(2);
 const status = await client().getBlockItemStatus(TransactionHash.fromHexString(hash));

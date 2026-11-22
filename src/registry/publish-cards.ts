@@ -6,7 +6,7 @@ import crypto from 'node:crypto';
 import { SHOPS, cardUrl } from '../street/shops.ts';
 import { buildCard, setCard } from './register.ts';
 import { agentOf } from './mcp.ts';
-import { sponsorWallet, type Wallet } from '../../spike/keys.ts';
+import { sponsorWallet, type Wallet } from '../chain/keys.ts';
 
 const pin = process.argv.includes('--pin');
 const walletFor = (owner: string): Wallet => {

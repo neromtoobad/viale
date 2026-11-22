@@ -1,4 +1,4 @@
-// Spike 1: anchor a receipt hash on Concordium testnet with a register-data transaction.
+// Anchor a receipt hash on Concordium testnet with a register-data transaction.
 // Personal data stays off chain: we anchor sha256(receipt || nonce) and keep receipt + nonce locally.
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -19,13 +19,15 @@ export async function anchorReceipt(receipt: object) {
   const digest = receiptDigest(receipt, nonce);
   const { nonce: accountNonce } = await grpc.getNextAccountNonce(viale.address);
 
-  const tx = Transaction.registerData({ data: new DataBlob(Buffer.concat([MAGIC, digest])) })
+  const bytes = Buffer.concat([MAGIC, digest]);
+  const tx = Transaction.registerData({ data: new DataBlob(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.length) as ArrayBuffer) })
     .addMetadata({ sender: viale.address, nonce: accountNonce })
     .build();
   const finalized = await Transaction.signAndFinalize(tx, viale.signer);
   const hash = await grpc.sendTransaction(finalized);
   const outcome = await grpc.waitForTransactionFinalization(hash);
-  const ok = outcome.summary.type === 'accountTransaction' && outcome.summary.transactionType !== 'failed';
+  const s = outcome.summary as any;
+  const ok = s?.type === 'accountTransaction' && s.transactionType !== 'failed';
   return { hash: TransactionHash.toHexString(hash), digest: digest.toString('hex'), nonce: nonce.toString('hex'), ok, block: outcome.blockHash.toString() };
 }
 
