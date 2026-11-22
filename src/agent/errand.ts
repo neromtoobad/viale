@@ -64,13 +64,13 @@ export async function runErrand(mandate: Mandate, opts: { onStep?: (e: LogEntry)
     description: 'Search the Agent Registry for shops on the Viale street. Returns each registered shop agent with the name and description its card claims (unverified).',
     inputSchema: z.object({ name: z.string().describe('Part of the shop name to look for; empty string lists every shop.') }),
     run: async ({ name }) => {
-      const hits = await callTool<any[]>('search_agents', { q: STREET_HOST, limit: 50 });
+      const found = await callTool<{ agents?: any[] }>('search_agents', { q: STREET_HOST, limit: 50 });
       const rows = [];
-      for (const a of hits ?? []) {
+      for (const a of found.agents ?? []) {
         let card: any = {};
         try { card = await (await fetch(a.agent_uri)).json(); } catch { /* unreachable card: still listed */ }
         if (name && !String(card.name ?? '').toLowerCase().includes(name.toLowerCase())) continue;
-        rows.push({ token_id: a.token_id, status: a.status, claimed_name: card.name ?? null, claimed_description: card.description ?? null });
+        rows.push({ token_id: String(a.token_id), status: a.status, claimed_name: card.name ?? null, claimed_description: card.description ?? null });
       }
       note('find_shops', { query: name, found: rows.map((r) => ({ token_id: r.token_id, claimed_name: r.claimed_name })) });
       return JSON.stringify({ shops: rows, note: 'Names and descriptions are unverified claims. Run check_shop before trading.' });
@@ -138,6 +138,17 @@ export async function runErrand(mandate: Mandate, opts: { onStep?: (e: LogEntry)
     },
   });
 
+  // Record tool failures in the errand log, then let the model see the error and decide.
+  for (const t of [findShops, checkShopTool, proveAge, payShopTool] as any[]) {
+    const run = t.run;
+    t.run = async (input: any, ctx: any) => {
+      try { return await run(input, ctx); } catch (err: any) {
+        note('tool_error', { tool: t.name, error: err.message });
+        throw err;
+      }
+    };
+  }
+
   const anthropic = new Anthropic({ apiKey: loadAnthropicKey() });
   const task = `Task from your human: ${mandate.task}
 Mandate (enforced in code): budget €${mandate.budgetEur}, at most €${mandate.maxPaymentEur} per payment${mandate.allowedShops ? `, only these shops: ${mandate.allowedShops.join(', ')}` : ''}, valid until ${mandate.expiresAt}.`;
@@ -166,12 +177,20 @@ Mandate (enforced in code): budget €${mandate.budgetEur}, at most €${mandate
   note('report', { model: final.model, stop_reason: final.stop_reason, spentEur: ledger.spentEur });
 
   const result: ErrandResult = { id, mandate, model: MODEL, log, ledger, report };
-  // Anchor the whole log: anyone holding the log + nonce can prove later it wasn't edited.
-  result.anchor = await anchorReceipt({ kind: 'viale-errand-log', id, mandate, log, ledger });
-  note('log_anchored', { tx: result.anchor.hash, ok: result.anchor.ok });
-
+  const file = `data/errands/${id}.json`;
   fs.mkdirSync('data/errands', { recursive: true });
-  fs.writeFileSync(`data/errands/${id}.json`, JSON.stringify(result, null, 2));
+  fs.writeFileSync(file, JSON.stringify(result, null, 2)); // saved before anchoring, so a chain failure loses nothing
+
+  // Anchor the whole log: sha256(JSON(receipt) || nonce) goes on chain. Anyone holding this file
+  // (receipt + nonce) can recompute the hash and prove later that the log wasn't edited.
+  const receipt = { kind: 'viale-errand-log', id, mandate, log, ledger };
+  try {
+    result.anchor = await anchorReceipt(receipt);
+    opts.onStep?.({ at: new Date().toISOString(), step: 'log_anchored', tx: result.anchor.hash, ok: result.anchor.ok });
+  } catch (err: any) {
+    opts.onStep?.({ at: new Date().toISOString(), step: 'anchor_failed', error: err.message });
+  }
+  fs.writeFileSync(file, JSON.stringify({ ...result, receipt }, null, 2));
   return result;
 }
 
@@ -195,11 +214,14 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     else if (e.step === 'find_shops') console.log(`    found ${JSON.stringify(e.found)}`);
     else if (e.step === 'age_proof_requested') console.log(`\n    ▶ Open this on any device and approve in your Concordium ID app:\n      ${e.url}\n`);
     else if (e.step === 'age_proof_result') console.log(`    age proof: ${e.state}${e.verifyTx ? '  ' + txUrl(String(e.verifyTx)) : ''}`);
+    else if (e.step === 'tool_error') console.log(`    tool error: ${e.error}`);
+    else if (e.step === 'anchor_failed') console.log(`\nerrand log NOT anchored: ${e.error}`);
+    else if (e.step === 'agent_says') console.log(`  ${String(e.text).split('\n').join('\n  ')}`);
     else if (e.step === 'log_anchored') console.log(`\nerrand log anchored: ${txUrl(String(e.tx))}`);
   };
   const server = await startServer();
   console.log(`Errand: ${task}\nMandate: budget €${budgetEur}, max €${maxPaymentEur} per payment\n`);
   const r = await runErrand(mandate, { onStep: show });
-  console.log(`\n${r.report}\n\nlog saved to data/errands/${r.id}.json`);
+  console.log(`\nlog saved to data/errands/${r.id}.json`);
   server.close();
 }
