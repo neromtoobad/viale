@@ -1,0 +1,22 @@
+# Concordium's credential verification service (Verify & Access). It creates proof requests,
+# checks the ZK presentations the ID app returns, and anchors both on testnet.
+# The key file is Viale's sponsor account, kept outside the repo (~/.viale-keys/verifier.export).
+services:
+  concordium-verifier:
+    image: concordium/credential-verification-service:0.3.1
+    platform: linux/amd64
+    container_name: viale-verifier
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8000:8000"
+      - "127.0.0.1:8001:8001"
+    environment:
+      CREDENTIAL_VERIFICATION_SERVICE_NODE_GRPC_ENDPOINT: "https://grpc.testnet.concordium.com:20000"
+      CREDENTIAL_VERIFICATION_SERVICE_API_ADDRESS: "0.0.0.0:8000"
+      CREDENTIAL_VERIFICATION_SERVICE_MONITORING_ADDRESS: "0.0.0.0:8001"
+      CREDENTIAL_VERIFICATION_SERVICE_LOG_LEVEL: "info"
+      CREDENTIAL_VERIFICATION_SERVICE_ACCOUNT: "/keys/verifier.export"
+      CREDENTIAL_VERIFICATION_SERVICE_TRANSACTION_EXPIRY: "60"
+      CREDENTIAL_VERIFICATION_ANCHOR_WAIT_FOR_FINALIZATION_TIMEOUT: "20000"
+    volumes:
+      - ${VIALE_KEYS_DIR:-${HOME}/.viale-keys}/verifier.export:/keys/verifier.export:ro
