@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prove you're 18+ · Viale</title>
+<link rel="icon" href="/brand/viale-favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#1E2B4A">
+<link rel="stylesheet" href="/prove/app.css">
+<style>
+  :root { --bg:#F6F1E7; --text:#1E2B4A; --muted:#5b6475; --line:#e3ded3; --accent:#2a4d8f; --ok:#2f6b3f; --bad:#9a2f2f; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif; }
+  main { max-width:520px; margin:0 auto; padding:48px 16px 64px; }
+  header img { height:32px; width:auto; display:block; margin-bottom:40px; }
+  .who { color:var(--muted); margin:0 0 6px; font-size:15px; }
+  h1 { font-size:26px; line-height:1.25; margin:0 0 16px; font-weight:650; }
+  p { margin:0 0 16px; color:var(--muted); }
+  .facts { border-top:1px solid var(--line); margin:24px 0; padding:0; list-style:none; }
+  .facts li { padding:12px 0; border-bottom:1px solid var(--line); }
+  .facts b { color:var(--text); font-weight:600; }
+  button { appearance:none; border:0; border-radius:10px; background:var(--text); color:#fff; font:600 16px/1 inherit; padding:16px 20px; width:100%; cursor:pointer; }
+  button:hover { background:#2a3a60; }
+  #status { margin-top:20px; color:var(--text); min-height:1.5em; }
+  body[data-state=verified] #status { color:var(--ok); font-weight:600; }
+  body[data-state=failed] #status { color:var(--bad); }
+  #links { display:flex; flex-direction:column; gap:6px; margin-top:12px; }
+  #links a { color:var(--accent); font-size:15px; }
+</style>
+</head>
+<body>
+<main>
+  <header><img src="/brand/viale-lockup.svg" alt="Viale" width="153" height="32"></header>
+  <p class="who">Your errand agent is at <b id="shop">a shop</b></p>
+  <h1 id="question">The shop asks: is the person behind this agent 18 or older?</h1>
+  <ul class="facts">
+    <li><b>What the shop learns:</b> yes, you are 18 or older. Not your birthday, name or ID number.</li>
+    <li><b>How:</b> your Concordium ID app makes a zero-knowledge proof on your phone. You approve it there.</li>
+    <li><b>Record:</b> the request and the result are each written to Concordium testnet, so the shop can show it checked.</li>
+  </ul>
+  <button id="go" type="button">Prove with Concordium ID</button>
+  <p id="status" role="status" aria-live="polite"></p>
+  <div id="links"></div>
+</main>
+<script type="module" src="/prove/app.js"></script>
+</body>
+</html>
