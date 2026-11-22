@@ -1,0 +1,42 @@
+// Loads test-account keys from outside the repo (default ~/.viale-keys). Never logs a key.
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { AccountAddress, buildBasicAccountSigner, type AccountSigner } from '@concordium/web-sdk';
+
+const dir = process.env.VIALE_KEYS_DIR ?? path.join(os.homedir(), '.viale-keys');
+
+function readEnv(): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const line of fs.readFileSync(path.join(dir, 'keys.env'), 'utf8').split('\n')) {
+    const m = line.match(/^([A-Z_]+)=(.*)$/);
+    if (m) out[m[1]] = m[2].trim();
+  }
+  return out;
+}
+
+function keyFor(address: string): string {
+  const env = readEnv();
+  if (env.AGENT_ADDRESS === address && /^[0-9a-f]{64}$/.test(env.AGENT_PRIVATE_KEY ?? '')) return env.AGENT_PRIVATE_KEY;
+  const accounts: { address: string; signKey: string }[] = JSON.parse(fs.readFileSync(path.join(dir, 'accounts.json'), 'utf8'));
+  const hit = accounts.find((a) => a.address === address);
+  if (!hit) throw new Error(`No key for ${address} in ${dir}`);
+  return hit.signKey;
+}
+
+export type Wallet = { address: AccountAddress.Type; signer: AccountSigner; signKeyHex: string };
+
+function wallet(address: string): Wallet {
+  const signKeyHex = keyFor(address);
+  return { address: AccountAddress.fromBase58(address), signer: buildBasicAccountSigner(signKeyHex), signKeyHex };
+}
+
+/** The errand agent: pays shops in EUDemo, holds no CCD. */
+export function agentWallet(): Wallet {
+  return wallet(readEnv().AGENT_ADDRESS);
+}
+
+/** Viale's own account: sponsors fees and anchors receipts. */
+export function sponsorWallet(): Wallet {
+  return wallet(readEnv().SPONSOR_ADDRESS);
+}
