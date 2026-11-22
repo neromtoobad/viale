@@ -1,0 +1,17 @@
+{
+  "name": "viale",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "spike:anchor": "node spike/anchor.ts",
+    "spike:pay": "node spike/pay.ts"
+  },
+  "dependencies": {
+    "@concordium/web-sdk": "^12.0.3",
+    "@x402/concordium": "^2.32.0",
+    "@x402/core": "^2.32.0"
+  }
+}
