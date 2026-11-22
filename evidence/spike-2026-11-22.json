@@ -1,0 +1,28 @@
+{
+  "network": "Concordium testnet (ccd:4221332d34e1694168c2a0c0b3fd0f27)",
+  "date": "2026-11-22",
+  "accounts": {
+    "agent": "3bfc6N7NivEQmvyMWeei1eBYv4mD21FzKfLA5nAtjhuWXHNwhZ",
+    "shop": "3HNiUGKvauG2NZXSabcsQ5eaYRbtqWYfYVUkGtzxJ37kfj64ji",
+    "viale_sponsor": "3bV1C2T7j8oNGPfZsMSP51KCgdzuTuUMjDcHFak3rHM43i46zX"
+  },
+  "runs": [
+    {
+      "what": "register-data receipt anchor (VIALE/R1 + sha256(receipt || nonce)), read back and matched",
+      "script": "spike/anchor.ts, spike/check-anchor.ts",
+      "tx": "9e4991514474fbae504ec5661d8f325ff3537eab05a01fdbe9e50e899acd8581"
+    },
+    {
+      "what": "x402 exact scheme, V1 sponsored PLT transfer: agent pays shop 1.24 EUDemo; sender cost 0 CCD, sponsor paid 6.006281 CCD",
+      "script": "spike/pay.ts",
+      "tx": "b2a6f8ad6eeceafe5543286e239b28415e3fc26ac78af1c2eee8779a418410b3",
+      "balances_before": { "agent": { "CCD": 0, "EUDemo": 100 }, "shop": { "EUDemo": 200 } },
+      "balances_after": { "agent": { "CCD": 0, "EUDemo": 98.76 }, "shop": { "EUDemo": 201.24 } }
+    },
+    {
+      "what": "receipt for that payment anchored by Viale",
+      "script": "spike/pay.ts -> anchorReceipt",
+      "tx": "73bdc4e9e24b394ebc0293645490cebed2e800dffc6a458884768472d0885c41"
+    }
+  ]
+}
