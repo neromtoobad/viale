@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Viale</title>
+<meta name="description" content="A street of verified shops where your AI agent runs your errands, and every step is proven on Concordium.">
+<style>
+  :root { --bg:#f7f5f0; --text:#1d2433; --muted:#5b6475; --line:#e3ded3; --accent:#2a4d8f; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif; }
+  main { max-width:640px; margin:0 auto; padding:72px 16px; }
+  h1 { font-size:40px; margin:0 0 8px; letter-spacing:-0.02em; }
+  p { margin:0 0 16px; color:var(--muted); }
+  .lead { color:var(--text); font-size:19px; }
+  ul { padding:0; list-style:none; border-top:1px solid var(--line); margin:32px 0 0; }
+  li { padding:12px 0; border-bottom:1px solid var(--line); }
+  a { color:var(--accent); }
+  small { color:var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Viale</h1>
+  <p class="lead">A street of verified shops where your AI agent runs your errands, and every step is proven on Concordium.</p>
+  <p>The street is being built during the Concordium Trusted Agents Hackathon. Right now this site hosts the shops' agent cards, which Concordium's Agent Registry points to.</p>
+  <ul id="cards"><li><small>Loading cards…</small></li></ul>
+</main>
+<script>
+  const ids = ["1406"];
+  const list = document.getElementById("cards");
+  Promise.all(ids.map(id => fetch(`agents/${id}.json`).then(r => r.json()).then(c => ({ id, c })).catch(() => null)))
+    .then(rows => {
+      list.innerHTML = "";
+      for (const row of rows.filter(Boolean)) {
+        const li = document.createElement("li");
+        const a = document.createElement("a");
+        a.href = `agents/${row.id}.json`; a.textContent = `#${row.id} ${row.c.name}`;
+        const s = document.createElement("small"); s.textContent = ` · agent card`;
+        li.append(a, s); list.append(li);
+      }
+    });
+</script>
+</body>
+</html>
