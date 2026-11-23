@@ -5,7 +5,7 @@ import { startServer, PUBLIC_URL } from '../server/index.ts';
 import { startAgeProof, waitForProof } from './age.ts';
 
 const server = await startServer();
-const p = startAgeProof('try', process.argv[2] ?? 'Test shop');
+const p = startAgeProof('try', process.argv[2] ?? 'Test shop', 30);
 console.log(`Open ${PUBLIC_URL}/prove/${p.id} and approve in the Concordium ID app (expires ${p.expiresAt})`);
 const done = await waitForProof(p.id);
 console.log('result:', done.state, done.error ?? '');
