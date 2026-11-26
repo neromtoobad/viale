@@ -103,7 +103,7 @@ footer{padding:0 48px 40px;color:var(--muted);font-size:13px}
   .shoplist{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin:12px 24px 0}
 }
 @media (max-width:860px){
-  nav{padding:16px}nav .r a.hide{display:none}
+  nav{padding:16px}nav .r a.hide,nav .r .net{display:none}nav .r a{white-space:nowrap}
   .top{padding:4px 16px 18px}h1{font-size:34px}.sub{font-size:16px}
   .stage{margin:0 16px;border-radius:20px}
   .agent{top:auto;bottom:6%;font-size:12px;padding:5px 10px 5px 6px}.agent i{width:14px;height:14px}
@@ -119,7 +119,7 @@ footer{padding:0 48px 40px;color:var(--muted);font-size:13px}
 <body>
 <nav>
   <a href="/"><img src="/brand/viale-lockup.svg" alt="Viale" width="144" height="30"></a>
-  <div class="r"><span class="lab">Concordium testnet</span></div>
+  <div class="r"><a href="/check">Check any agent</a><span class="lab net">Concordium testnet</span></div>
 </nav>
 
 <section class="top">
