@@ -1,0 +1,63 @@
+{
+  "name": "The Bottle Shop",
+  "description": "Wine, beer and spirits on Viale. Ask for a bottle and a price limit; we check the buyer is 18+ and deliver a receipt.",
+  "url": "https://viale.nerom.site/agents/1526.json",
+  "version": "0.1.0",
+  "defaultInputModes": [
+    "text/markdown",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/markdown",
+    "application/json"
+  ],
+  "authentication": {
+    "schemes": []
+  },
+  "skills": [
+    {
+      "id": "sell-bottle",
+      "name": "Sell a bottle",
+      "description": "Quote and sell a bottle under a price limit; 18+ only.",
+      "tags": [
+        "shop",
+        "age-gated"
+      ]
+    }
+  ],
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": false,
+    "extensions": [
+      {
+        "uri": "https://docs.concordium.com/a2a-extensions/concordium-badge/v1",
+        "description": "Verified by Concordium badge — on-chain agent identity in a CIS-8004 registry",
+        "required": false,
+        "params": {
+          "tokenAddress": "ccd:4221332d34e1694168c2a0c0b3fd0f27/cis-2:JyP9YXfu6aJ8wbxpv8oz4",
+          "owner": {
+            "account": "ccd:4221332d34e1694168c2a0c0b3fd0f27:4UVsGdSyYk43E2m99Vy3M38u92yknjBUoY7xKQHGSDXZAUiWw5"
+          },
+          "agentWallet": "ccd:4221332d34e1694168c2a0c0b3fd0f27:3HNiUGKvauG2NZXSabcsQ5eaYRbtqWYfYVUkGtzxJ37kfj64ji",
+          "contracts": {
+            "cis8004": "ccd:4221332d34e1694168c2a0c0b3fd0f27:12802.0",
+            "cis8": "ccd:4221332d34e1694168c2a0c0b3fd0f27:12801.0"
+          },
+          "verify": "Resolve tokenAddress via CIS-8004 agent_of; confirm owner + status=Active + card SHA-256 == metadata_hash.",
+          "verification": {
+            "service": "Concordium Agent Registry",
+            "verifyUrl": "https://agent-registry-mcp.concordium.com/v1/badge-check/JyP9YXfu6aJ8wbxpv8oz4",
+            "mcp": "https://agent-registry-mcp.concordium.com/mcp",
+            "docs": "https://docs.concordium.com/en/mainnet/technical-reference/agent-registry/concordium-badge.html"
+          }
+        }
+      }
+    ]
+  },
+  "registrations": [
+    {
+      "agentId": 1526,
+      "agentRegistry": "ccd:4221332d34e1694168c2a0c0b3fd0f27:12802.0"
+    }
+  ]
+}
