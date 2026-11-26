@@ -216,5 +216,36 @@ await claim('C12', 'Viale serves the check as an MCP server: tools/list and chec
   return `tools ${tools.join(', ')}; check_agent #1406 walk_away, #1527 trade`;
 });
 
+await claim('C13', "Errands run under a mandate signed by a human's Concordium account key; forged or over-limit mandates are refused", async () => {
+  const e = evidence.find((x) => x.data.mandate?.signed)!;
+  must(e, 'no evidence errand carries a signed mandate');
+  const { message, signature, human } = e.data.mandate.signed;
+  const terms = JSON.parse(message);
+  const info = await grpc.getAccountInfo(AccountAddress.fromBase58(human));
+  must(await verifyMessageSignature(message, signature, info), `${e.file}: signature does not verify against ${human.slice(0, 8)}…'s keys on chain`);
+  const forged = JSON.stringify({ ...terms, budget_eur: 50 });
+  must(!(await verifyMessageSignature(forged, signature, info)), 'a tampered mandate still verifies');
+  const paid = steps(e.data).filter((s) => s.step === 'payment');
+  must(paid.length && paid.every((p) => p.amount_eur <= terms.max_payment_eur), 'a payment is over the signed cap');
+  must(e.data.ledger.spentEur <= terms.budget_eur, 'spent more than the signed budget');
+
+  // Live site: a fresh mandate with someone else's signature, and one over the street's limits, are both refused.
+  const post = async (body: unknown) => {
+    for (let i = 0; i < 8; i++) {
+      const r = await fetch(`${SITE}/api/errands`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+      const j: any = await r.json();
+      if (r.status === 429 && /running/.test(j.error)) { await new Promise((ok) => setTimeout(ok, 20_000)); continue; }
+      return { status: r.status, error: String(j.error ?? '') , id: j.id };
+    }
+    throw new Error('the street stayed busy');
+  };
+  const draft = (await json(`${SITE}/api/mandates/draft`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ task: 'check-live: should be refused', human }) })).message;
+  const a = await post({ mandate: { message: draft, signature } });
+  must(a.status === 400 && /signature does not match/.test(a.error) && !a.id, `wrong signature: HTTP ${a.status} ${a.error}`);
+  const b = await post({ mandate: { message: JSON.stringify({ ...JSON.parse(draft), budget_eur: 50 }), signature } });
+  must(b.status === 400 && /over this street/.test(b.error) && !b.id, `over limit: HTTP ${b.status} ${b.error}`);
+  return `${e.file}: signed by ${human.slice(0, 8)}…, verifies on chain, paid ≤ €${terms.max_payment_eur} cap; live site refused a wrong signature and a €50 budget (HTTP 400, no errand)`;
+});
+
 console.log(failed ? `\n${failed} claim(s) failed` : '\nAll claims pass');
 process.exit(failed ? 1 : 0);
