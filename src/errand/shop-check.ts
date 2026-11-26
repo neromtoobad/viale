@@ -6,7 +6,7 @@
 //  5. it takes payment to its own registered wallet.
 // Any failure = walk away, with the reason.
 import { AccountAddress } from '@concordium/web-sdk';
-import { client } from '../chain/chain.ts';
+import { client, withRetry } from '../chain/chain.ts';
 import { agentOf, checkBadge } from '../registry/mcp.ts';
 
 export const BUSINESS_IDP_NAME = 'Global FinReg';
@@ -30,9 +30,10 @@ let idpNames: Promise<Map<number, string>> | undefined;
 export function identityProviderNames(): Promise<Map<number, string>> {
   idpNames ??= (async () => {
     const names = new Map<number, string>();
-    for await (const ip of client().getIdentityProviders()) names.set(Number(ip.ipIdentity), ip.ipDescription.name);
+    await withRetry(async () => { for await (const ip of client().getIdentityProviders()) names.set(Number(ip.ipIdentity), ip.ipDescription.name); });
     return names;
   })();
+  idpNames.catch(() => (idpNames = undefined)); // a failed load is retried on the next check
   return idpNames;
 }
 async function businessIdentityProviders(): Promise<Set<number>> {
@@ -55,7 +56,7 @@ async function fetchCard(uri: string): Promise<any> {
 
 /** Identity providers behind every credential on an account. */
 export async function accountIdentityProviders(address: string): Promise<number[]> {
-  const info = await client().getAccountInfo(AccountAddress.fromBase58(address));
+  const info = await withRetry(() => client().getAccountInfo(AccountAddress.fromBase58(address)));
   return Object.values(info.accountCredentials).map((c: any) => Number(c.value.contents.ipIdentity));
 }
 

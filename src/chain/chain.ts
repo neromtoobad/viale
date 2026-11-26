@@ -9,3 +9,13 @@ export function client() {
 }
 
 export const txUrl = (hash: string) => `${EXPLORER}/transaction/${hash}`;
+
+/** Retries a node read when the public testnet node says to slow down (HTTP 429 / UNAVAILABLE). */
+export async function withRetry<T>(read: () => Promise<T>, tries = 6): Promise<T> {
+  for (let i = 1; ; i++) {
+    try { return await read(); } catch (err: any) {
+      if (i >= tries || !/429|UNAVAILABLE|RESOURCE_EXHAUSTED/.test(`${err.code} ${err.message}`)) throw err;
+      await new Promise((r) => setTimeout(r, i * 1000));
+    }
+  }
+}

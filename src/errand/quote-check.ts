@@ -5,7 +5,7 @@
 //  4. it has not expired and its price is a positive amount.
 // Only a quote that passes every point can be paid, and only for exactly its price.
 import { AccountAddress, verifyMessageSignature } from '@concordium/web-sdk';
-import { client } from '../chain/chain.ts';
+import { client, withRetry } from '../chain/chain.ts';
 import type { ShopVerdict } from './shop-check.ts';
 import type { QuoteTerms, SignedQuote } from '../street/shop-agent.ts';
 
@@ -29,7 +29,7 @@ export async function checkQuote(q: SignedQuote, shop: ShopVerdict | undefined, 
   let terms: QuoteTerms;
   try { terms = JSON.parse(q.message); } catch { return { ok: false, reasons: ['quote is not readable'] }; }
   const reasons = quoteTermsProblems(terms, shop, now);
-  const ownerInfo = await client().getAccountInfo(AccountAddress.fromBase58(shop.owner));
+  const ownerInfo = await withRetry(() => client().getAccountInfo(AccountAddress.fromBase58(shop.owner!)));
   const signed = await verifyMessageSignature(q.message, q.signature, ownerInfo).catch(() => false);
   if (!signed) reasons.unshift("signature does not match the shop owner's keys on chain");
   return reasons.length ? { ok: false, reasons } : { ok: true, quote: { ...terms, verified: true } };
