@@ -8,7 +8,7 @@ import { callTool } from './mcp.ts';
 
 type Built = { contract_address: { index: number; subindex: number }; receive_name: string; parameter_hex: string; suggested_energy: number };
 
-async function submit(owner: Wallet, built: Built) {
+export async function submit(owner: Wallet, built: Built) {
   const grpc = client();
   const { nonce } = await grpc.getNextAccountNonce(owner.address);
   const tx = Transaction.updateContract(
