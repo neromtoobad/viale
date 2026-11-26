@@ -1,0 +1,14 @@
+{
+  "what": "Active agents in the CIS-8004 Agent Registry <12802,0> on testnet, by the identity behind their owner account",
+  "measured_at": "2026-11-26T17:55:47.540Z",
+  "script": "tools/measure-registry.ts",
+  "active_agents": 1245,
+  "owner_accounts": 219,
+  "agents_owned_by_business_identity": 29,
+  "business_owner_accounts": 10,
+  "agents_by_owner_identity_provider": {
+    "0 Concordium testnet IP": 1196,
+    "4 Global FinReg Testnet": 29,
+    "3 Digital Trust Solutions TestNet": 20
+  }
+}
