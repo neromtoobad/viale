@@ -23,6 +23,8 @@ import { startAgeProof, waitForProof } from '../proof/age.ts';
 import { PUBLIC_URL, startServer } from '../server/index.ts';
 
 export const MODEL = 'claude-opus-5-5';
+// How long an errand waits for its human's 18+ proof. The hosted demo sets this low (see README, 18+ check).
+const AGE_PROOF_MINUTES = Number(process.env.VIALE_AGE_PROOF_MINUTES ?? 10);
 export const STREET_HOST = process.env.VIALE_STREET_HOST ?? 'viale.nerom.site';
 
 type LogEntry = { at: string; step: string; [k: string]: unknown };
@@ -168,9 +170,9 @@ export async function runErrand(mandate: Mandate, opts: { onStep?: (e: LogEntry)
       const shop = checked.get(token_id);
       // Never show the human's proof to a shop that failed its check.
       if (!shop?.ok) return JSON.stringify({ proven: false, reason: 'check_shop has not passed for this shop, so no proof is shared with it' });
-      const p = startAgeProof(token_id, shop.name ?? `shop #${token_id}`);
+      const p = startAgeProof(token_id, shop.name ?? `shop #${token_id}`, AGE_PROOF_MINUTES);
       const url = `${PUBLIC_URL}/prove/${p.id}`;
-      note('age_proof_requested', { token_id, shop: shop.name, url });
+      note('age_proof_requested', { token_id, shop: shop.name, url, minutes: AGE_PROOF_MINUTES });
       const done = await waitForProof(p.id);
       if (done.state === 'verified') ageProven.add(token_id);
       note('age_proof_result', { token_id, state: done.state, requestTx: done.requestTx, verifyTx: done.verifyTx, error: done.error });
