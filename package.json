@@ -16,7 +16,8 @@
     "server": "npm run build:web && node src/server/index.ts",
     "verifier": "docker compose -f verifier/docker-compose.yml up -d",
     "proof:try": "npm run build:web && node src/proof/try.ts",
-    "errand": "npm run build:web && node src/agent/errand.ts"
+    "errand": "npm run build:web && node src/agent/errand.ts",
+    "check:live": "node tools/check-live.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.12.0",
