@@ -186,5 +186,35 @@ await claim('C10', 'The payment guard tests pass (budget, cap, expiry, checked s
   return `${pass} tests pass`;
 });
 
+await claim('C11', 'Check any agent: the same check runs on any registry agent, and its owner verdict matches the chain', async () => {
+  const reg = await json(`${SITE}/api/registry`);
+  const outsider = reg.business_agents.find((a: any) => a.owner !== '4UVsGdSyYk43E2m99Vy3M38u92yknjBUoY7xKQHGSDXZAUiWw5');
+  must(outsider, 'no business-owned agent outside Viale in the registry count');
+  const out: string[] = [];
+  for (const id of ['1010', outsider.token_id, IMPOSTOR]) {
+    const v = await json(`${SITE}/api/check/${id}`);
+    const { business } = await identityProviders(v.owner);
+    must(v.owner_identity.business === business, `#${id}: page says business=${v.owner_identity.business}, chain says ${business}`);
+    if (!business) must(v.verdict === 'walk_away', `#${id} has a personal owner but verdict ${v.verdict}`);
+    out.push(`#${id} ${v.verdict} (${business ? 'business' : 'personal'} owner)`);
+  }
+  must((await fetch(`${SITE}/api/check/99999999`).then((r) => r.json())).verdict === 'walk_away', 'an unknown agent is not refused');
+  return `${out.join(', ')}, unknown #99999999 walk_away`;
+});
+
+await claim('C12', 'Viale serves the check as an MCP server: tools/list and check_agent over JSON-RPC at /mcp', async () => {
+  const call = (id: number, method: string, params?: unknown) =>
+    json(`${SITE}/mcp`, { method: 'POST', headers: { 'content-type': 'application/json', accept: 'application/json, text/event-stream' }, body: JSON.stringify({ jsonrpc: '2.0', id, method, params }) });
+  const init = await call(1, 'initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'check-live', version: '1' } });
+  must(init.result?.serverInfo?.name === 'viale', 'initialize failed');
+  const tools = (await call(2, 'tools/list')).result.tools.map((t: any) => t.name);
+  must(tools.includes('check_agent') && tools.includes('registry_owners'), `tools: ${tools.join(', ')}`);
+  const r = (await call(3, 'tools/call', { name: 'check_agent', arguments: { token_id: IMPOSTOR } })).result;
+  must(!r.isError && r.structuredContent.verdict === 'walk_away', `check_agent #${IMPOSTOR}: ${JSON.stringify(r).slice(0, 200)}`);
+  const ok = (await call(4, 'tools/call', { name: 'check_agent', arguments: { token_id: '1527' } })).result;
+  must(ok.structuredContent.verdict === 'trade', `check_agent #1527: ${ok.structuredContent.verdict}`);
+  return `tools ${tools.join(', ')}; check_agent #1406 walk_away, #1527 trade`;
+});
+
 console.log(failed ? `\n${failed} claim(s) failed` : '\nAll claims pass');
 process.exit(failed ? 1 : 0);
