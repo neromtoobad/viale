@@ -6,19 +6,19 @@ import crypto from 'node:crypto';
 import { SHOPS, cardUrl } from '../street/shops.ts';
 import { buildCard, setCard } from './register.ts';
 import { agentOf } from './mcp.ts';
-import { sponsorWallet, type Wallet } from '../chain/keys.ts';
+import { shopOwnerWallet, sponsorWallet, type Wallet } from '../chain/keys.ts';
 
 const pin = process.argv.includes('--pin');
 const walletFor = (owner: string): Wallet => {
-  const w = sponsorWallet();
-  if (w.address.address === owner) return w;
+  for (const w of [sponsorWallet(), shopOwnerWallet()]) if (w.address.address === owner) return w;
   throw new Error(`no signer wired for owner ${owner}`);
 };
 
 fs.mkdirSync('public/agents', { recursive: true });
 for (const shop of SHOPS.filter((s) => s.tokenId)) {
   const url = cardUrl(shop.tokenId!);
-  const card = await buildCard(shop.owner, shop.tokenId!, url, shop.name, shop.description, shop.skills);
+  const wallet = (await agentOf(shop.tokenId!))?.agent_wallet ?? undefined;
+  const card = await buildCard(shop.owner, shop.tokenId!, url, shop.name, shop.description, shop.skills, wallet);
   const local = crypto.createHash('sha256').update(card.json).digest('hex');
   if (local !== card.sha256) throw new Error(`hash mismatch for ${shop.slug}`);
   fs.writeFileSync(`public/agents/${shop.tokenId}.json`, card.json);

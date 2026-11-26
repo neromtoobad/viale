@@ -53,9 +53,10 @@ export async function registerAgent(owner: Wallet) {
 
 /** Builds the shop's A2A Agent Card (with the Concordium badge block) via the registry MCP.
  *  Returns the exact bytes to host and their SHA-256, which setCard() pins on chain. */
-export async function buildCard(owner: string, tokenId: string, cardUrl: string, name: string, description: string, skills: { id: string; name: string; description: string; tags?: string[] }[]) {
+export async function buildCard(owner: string, tokenId: string, cardUrl: string, name: string, description: string, skills: { id: string; name: string; description: string; tags?: string[] }[], agentWallet?: string) {
   const r = await callTool<{ agent_card_json: string; metadata_hash_hex: string; token_address: string }>('build_agent_card', {
     name, description, agent_uri: cardUrl, owner_account: owner, token_id: tokenId, skills, version: '0.1.0',
+    ...(agentWallet ? { agent_wallet: agentWallet } : {}),
   });
   return { json: r.agent_card_json, sha256: r.metadata_hash_hex, tokenAddress: r.token_address };
 }
