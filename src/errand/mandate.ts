@@ -52,6 +52,7 @@ export function mandateTermsProblems(t: MandateTerms, o: { agent: string; limits
   if (t?.v !== 1 || t.kind !== 'viale-mandate') return ['not a Viale mandate'];
   if (typeof t.mandate_id !== 'string' || !t.mandate_id) r.push('mandate has no id');
   if (typeof t.human !== 'string' || !t.human) r.push('mandate names no signer');
+  if (t.human === o.agent) r.push('the agent cannot sign its own mandate: sign with a different account');
   if (t.agent !== o.agent) r.push(`mandate is for agent ${String(t.agent).slice(0, 6)}…, not this agent ${o.agent.slice(0, 6)}…`);
   if (typeof t.task !== 'string' || !t.task.trim()) r.push('mandate has no task');
   if (!money(t.budget_eur)) r.push('mandate has no valid budget');

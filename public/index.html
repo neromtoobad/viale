@@ -432,6 +432,7 @@ async function connectWallet() {
     if (!accounts?.length) throw new Error('No account was connected.');
     wallet.account = accounts[0];
     drawSigner();
+    if (!wallet.listening) { wallet.listening = true; wallet.api.on?.('accountChanged', (a) => { if (wallet.account) { wallet.account = a; drawSigner(); } }); }
   } catch (err) {
     $('msg').textContent = err?.message ?? 'The wallet did not connect.';
   }

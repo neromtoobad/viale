@@ -25,6 +25,7 @@ export function mandateDraft(task: unknown, human: unknown): { message?: string;
   const t = String(task ?? '').trim().slice(0, 300);
   if (!t) return { error: 'Tell the agent what to buy.' };
   try { AccountAddress.fromBase58(String(human)); } catch { return { error: 'That is not a Concordium account address.' }; }
+  if (String(human) === agentWallet().address.address) return { error: "That is the errand agent's own account. Pick another account in your wallet: the agent can't sign its own limits." };
   const terms = draftMandate({ task: t, human: String(human), agent: agentWallet().address.address, budgetEur: LIMITS.budgetEur, maxPaymentEur: LIMITS.maxPaymentEur, minutes: MANDATE_MINUTES });
   return { message: JSON.stringify(terms) };
 }

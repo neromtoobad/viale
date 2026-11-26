@@ -93,7 +93,7 @@ test('refuses to pay under a mandate that no human signed', () => {
   assert.match(why(pay(2, { m: { ...mandate, verified: undefined } })), /not signed by a human/);
 });
 
-test('mandate terms: right agent, within the street limits, not expired', () => {
+test('mandate terms: right agent, not signed by the agent itself, within the street limits, not expired', () => {
   const limits = { budgetEur: 5, maxPaymentEur: 3, maxMinutes: 30 };
   const now = new Date('2026-11-26T12:00:00Z');
   const t = draftMandate({ task: 'buy flowers', human: 'H', agent: 'A', budgetEur: 5, maxPaymentEur: 3, minutes: 15, now });
@@ -103,5 +103,6 @@ test('mandate terms: right agent, within the street limits, not expired', () => 
   assert.match(mandateTermsProblems({ ...t, max_payment_eur: 0 }, { agent: 'A', limits, now }).join(), /valid cap/);
   assert.match(mandateTermsProblems(t, { agent: 'A', limits, now: new Date('2026-11-26T12:16:00Z') }).join(), /expired/);
   assert.match(mandateTermsProblems({ ...t, expires_at: '2026-11-26T14:00:00Z' }, { agent: 'A', limits, now }).join(), /longer than 30 minutes/);
+  assert.match(mandateTermsProblems({ ...t, human: 'A' }, { agent: 'A', limits, now }).join(), /cannot sign its own mandate/);
   assert.match(mandateTermsProblems({ ...t, kind: 'other' } as any, { agent: 'A', limits, now }).join(), /not a Viale mandate/);
 });
