@@ -1,0 +1,25 @@
+{
+  "what": "Honest shops owned by a Global FinReg business identity, paid at an allow-listed till",
+  "network": "testnet",
+  "shop_owner": {
+    "account": "4UVsGdSyYk43E2m99Vy3M38u92yknjBUoY7xKQHGSDXZAUiWw5",
+    "identity_provider": "4 = Global FinReg Testnet (Business ID)",
+    "made_by": "src/identity/business-id.ts (identity request in code, Global FinReg KYB form, Veriff check by a person)",
+    "account_creation_tx": "250f614dd79643be5a57591189274f7a4e83e87d50b9b65c3fbe44529246c961",
+    "funded_by_viale_tx": "2de572092dd52eae8cf6316564f27194347088eb8ed314de0a0bdbbba241645f"
+  },
+  "shops": {
+    "1526": { "name": "The Bottle Shop", "age_gated": true, "register_tx": "ef0156cea7a3e241033362c23ec8fa924ae2f380e9ae0cee4816c35cf3fbdfd1", "set_till_tx": "9b57c870377aaa5ba8166d891b6da8f03ca3fbd57f025c4ad7c27054d80fb4ad", "pin_card_tx": "52f6808b112251b892f6995e23cf0f71c7d722540058b9abf469dee9ab7bd362", "shop_check": "TRADE" },
+    "1527": { "name": "Viale Flowers", "age_gated": false, "register_tx": "d9c24c8a7a1f8de4437f8fa3f8b34c9d3e03d8ee737cbd130b13d06b46368250", "set_till_tx": "d2929679db75470464b026d15451df5e2391d13fb5ffdacfbc2cb4ac8a51f70f", "pin_card_tx": "cd49f2dbbbe4b886c6cc2940c2bb1f776194c0a612e9b07e717c7d2a05c2f477", "shop_check": "TRADE" },
+    "1406": { "name": "The Bottle Shop (planted impostor)", "owner_identity": "personal", "shop_check": "WALK AWAY: owner holds only a personal identity" }
+  },
+  "till": {
+    "account": "3HNiUGKvauG2NZXSabcsQ5eaYRbtqWYfYVUkGtzxJ37kfj64ji",
+    "why": "EUDemo has an allow-list; a business identity cannot join it (it needs proof of EU nationality), so each honest shop's CIS-8004 agent wallet is an allow-listed till, linked with the till's own signature"
+  },
+  "paid_errand": {
+    "log": "evidence/errand-flowers-paid-2026-11-26.json",
+    "payment_tx": "b2ffbc675cfcfb5d4175a844876cdfe241fae757803a56b6308b8fb2fd0f1f61",
+    "log_anchor_tx": "b7d6560d6bc911cd90a74237a8d2a4ad51fc7027cd638216950c8014265d9c41"
+  }
+}
