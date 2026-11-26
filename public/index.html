@@ -130,7 +130,6 @@ footer{padding:0 48px 40px;color:var(--muted);font-size:13px}
   <div class="ideas">
     <button type="button" data-task="Buy me a small bouquet from Viale Flowers. Pay at most €3.">Small bouquet</button>
     <button type="button" data-task="Buy ten tulips from Viale Flowers. Pay at most €3.">Ten tulips</button>
-    <button type="button" data-task="Buy the cheapest six-pack of lager on the street. Pay at most €3.">Cheapest lager (18+)</button>
   </div>
   <p class="lab limits" id="limits">Budget €5 · max €3 a payment · enforced in code</p>
   <p class="msg" id="msg" role="status"></p>
@@ -290,7 +289,7 @@ function onStep(e) {
   } else if (s === 'quote_rejected' || s === 'quote_failed') {
     addStep('bad', `Refused a quote from ${shopName(e.token_id)}`, h('ul', { class: 'checks' }, (e.reasons ?? [e.error]).map((r) => h('li', { class: 'n' }, r))));
   } else if (s === 'age_proof_requested') {
-    addStep('wait', `${e.shop} asks you to prove you are 18+`, h('p', {}, 'Zero-knowledge: the shop learns only yes or no. ', h('a', { href: e.url, target: '_blank', rel: 'noopener' }, 'Open the proof page ↗'), ' (needs the Concordium ID app on testnet; the request expires in 10 minutes).'));
+    addStep('wait', `${e.shop} asks you to prove you are 18+`, h('p', {}, 'Zero-knowledge: the shop learns only yes or no. ', h('a', { href: e.url, target: '_blank', rel: 'noopener' }, 'Open the proof page ↗'), ` (needs the Concordium ID app on testnet; the request expires in ${e.minutes ?? 10} minutes).`));
     moveAgent(e.token_id, 'Waiting for your 18+ proof');
   } else if (s === 'age_proof_result') {
     addStep(e.state === 'verified' ? 'ok' : 'bad', e.state === 'verified' ? 'Age proof verified on chain' : `No age proof (${e.state})`, e.verifyTx ? h('p', {}, txLink(e.verifyTx)) : e.error ? h('p', {}, e.error) : null);
