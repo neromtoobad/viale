@@ -9,9 +9,27 @@
     "funded_by_viale_tx": "2de572092dd52eae8cf6316564f27194347088eb8ed314de0a0bdbbba241645f"
   },
   "shops": {
-    "1526": { "name": "The Bottle Shop", "age_gated": true, "register_tx": "ef0156cea7a3e241033362c23ec8fa924ae2f380e9ae0cee4816c35cf3fbdfd1", "set_till_tx": "9b57c870377aaa5ba8166d891b6da8f03ca3fbd57f025c4ad7c27054d80fb4ad", "pin_card_tx": "52f6808b112251b892f6995e23cf0f71c7d722540058b9abf469dee9ab7bd362", "shop_check": "TRADE" },
-    "1527": { "name": "Viale Flowers", "age_gated": false, "register_tx": "d9c24c8a7a1f8de4437f8fa3f8b34c9d3e03d8ee737cbd130b13d06b46368250", "set_till_tx": "d2929679db75470464b026d15451df5e2391d13fb5ffdacfbc2cb4ac8a51f70f", "pin_card_tx": "cd49f2dbbbe4b886c6cc2940c2bb1f776194c0a612e9b07e717c7d2a05c2f477", "shop_check": "TRADE" },
-    "1406": { "name": "The Bottle Shop (planted impostor)", "owner_identity": "personal", "shop_check": "WALK AWAY: owner holds only a personal identity" }
+    "1526": {
+      "name": "The Bottle Shop",
+      "age_gated": true,
+      "register_tx": "ef0156cea7a3e241033362c23ec8fa924ae2f380e9ae0cee4816c35cf3fbdfd1",
+      "set_till_tx": "9b57c870377aaa5ba8166d891b6da8f03ca3fbd57f025c4ad7c27054d80fb4ad",
+      "pin_card_tx": "52f6808b112251b892f6995e23cf0f71c7d722540058b9abf469dee9ab7bd362",
+      "shop_check": "TRADE"
+    },
+    "1527": {
+      "name": "Viale Flowers",
+      "age_gated": false,
+      "register_tx": "d9c24c8a7a1f8de4437f8fa3f8b34c9d3e03d8ee737cbd130b13d06b46368250",
+      "set_till_tx": "d2929679db75470464b026d15451df5e2391d13fb5ffdacfbc2cb4ac8a51f70f",
+      "pin_card_tx": "cd49f2dbbbe4b886c6cc2940c2bb1f776194c0a612e9b07e717c7d2a05c2f477",
+      "shop_check": "TRADE"
+    },
+    "1406": {
+      "name": "The Bottle Shop (planted impostor)",
+      "owner_identity": "personal",
+      "shop_check": "WALK AWAY: owner holds only a personal identity"
+    }
   },
   "till": {
     "account": "3HNiUGKvauG2NZXSabcsQ5eaYRbtqWYfYVUkGtzxJ37kfj64ji",
@@ -20,6 +38,13 @@
   "paid_errand": {
     "log": "evidence/errand-flowers-paid-2026-11-26.json",
     "payment_tx": "b2ffbc675cfcfb5d4175a844876cdfe241fae757803a56b6308b8fb2fd0f1f61",
-    "log_anchor_tx": "b7d6560d6bc911cd90a74237a8d2a4ad51fc7027cd638216950c8014265d9c41"
+    "log_anchor_tx": "b7d6560d6bc911cd90a74237a8d2a4ad51fc7027cd638216950c8014265d9c41",
+    "note": "before signed quotes: the agent paid its full EUR 3 limit"
+  },
+  "quoted_errand": {
+    "log": "evidence/errand-flowers-quoted-2026-11-26.json",
+    "quote": "Small bouquet EUR 1.80, signed by shop owner 4UVsGd\u2026 (checked against its keys on chain)",
+    "payment_tx": "bf43ee0b86a1b55d69f42fc02057f5136330b331c26ef6cd33bc8ed30edbc42a",
+    "log_anchor_tx": "61bf89ea06c2f53745e8f0d15a1f3975da9912f64dd16710855d1a579ad3b328"
   }
 }
