@@ -1,6 +1,6 @@
 # Viale: an AI errand agent that checks every shop on Concordium before it pays
 
-Viale is a street of shops where every shop is an agent in Concordium's Agent Registry. You tell a Claude errand agent what to buy. It checks that the shop is a registered agent owned by a verified business, gets a price signed by the shop's owner, pays exactly that price in test euros over x402, and seals the whole errand log on chain.
+Viale is a street of shops where every shop is an agent in Concordium's Agent Registry. You tell a Claude errand agent what to buy and sign its limits with your Concordium account. It checks that the shop is a registered agent owned by a verified business, gets a price signed by the shop's owner, pays exactly that price in test euros over x402, and seals the whole errand log on chain.
 
 The same check is open to everyone: [Check any agent](https://viale.nerom.site/check) runs it on any of the 1,245 agents in Concordium's testnet registry, as a page, a JSON API and an MCP server that other agents can call before they pay.
 
@@ -22,11 +22,11 @@ No wallet or sign-in needed. [JUDGES.md](JUDGES.md) has the same steps with more
 | `curl https://viale.nerom.site/api/street` | The same checks as JSON, for every shop. |
 | `claude mcp add --transport http viale https://viale.nerom.site/mcp` | Your own agent gets `check_agent` and `registry_owners` tools. |
 | `curl -X POST https://viale.nerom.site/shops/1527/quote -H 'content-type: application/json' -d '{"sku":"small-bouquet"}'` | A price quote signed with the shop owner's Concordium account key. |
-| `npm ci && npm run check:live` | PASS or FAIL for each claim below, checked against the live site and testnet. The last run passed all 12. |
+| `npm ci && npm run check:live` | PASS or FAIL for each claim below, checked against the live site and testnet. The last run passed all 13. |
 
 ## Claims
 
-Every claim below is checked by [tools/check-live.ts](tools/check-live.ts) (C1–C12), against the live site and Concordium testnet.
+Every claim below is checked by [tools/check-live.ts](tools/check-live.ts) (C1–C13), against the live site and Concordium testnet.
 
 | Claim | Where in code | Check |
 |---|---|---|
@@ -34,24 +34,26 @@ Every claim below is checked by [tools/check-live.ts](tools/check-live.ts) (C1�
 | Each shop's Agent Card hashes to the SHA-256 pinned on chain, and its Verified-by-Concordium badge is valid | [src/errand/shop-check.ts:74-80](src/errand/shop-check.ts#L74), [src/registry/publish-cards.ts](src/registry/publish-cards.ts) | C2 · [pin card #1527](https://ccdexplorer.io/testnet/transaction/cd49f2dbbbe4b886c6cc2940c2bb1f776194c0a612e9b07e717c7d2a05c2f477) |
 | The agent trades only with shops whose owner holds a business identity (Global FinReg) | [src/errand/shop-check.ts:83-88](src/errand/shop-check.ts#L83) | C3, C4 |
 | The honest shops' owner got its business identity in code, from Global FinReg | [src/identity/business-id.ts:59](src/identity/business-id.ts#L59), [:142](src/identity/business-id.ts#L142) | [account opened](https://ccdexplorer.io/testnet/transaction/250f614dd79643be5a57591189274f7a4e83e87d50b9b65c3fbe44529246c961) |
-| A copied shop with the same name and a valid badge, but a personal-identity owner, is refused before any money moves | [src/errand/shop-check.ts:88](src/errand/shop-check.ts#L88), [src/errand/guards.ts:32](src/errand/guards.ts#L32) | C4, C9 · [impostor errand seal](https://ccdexplorer.io/testnet/transaction/8b8838dcd3cbbc9a259964711550f122b4f6a7c6e52fe9d5cdcccc166b5d8197) |
+| A copied shop with the same name and a valid badge, but a personal-identity owner, is refused before any money moves | [src/errand/shop-check.ts:88](src/errand/shop-check.ts#L88), [src/errand/guards.ts:35](src/errand/guards.ts#L35) | C4, C9 · [impostor errand seal](https://ccdexplorer.io/testnet/transaction/8b8838dcd3cbbc9a259964711550f122b4f6a7c6e52fe9d5cdcccc166b5d8197) |
 | Shops sign each price with the owner's account key; the agent checks the signature against the owner's keys on chain | [src/street/shop-agent.ts:59](src/street/shop-agent.ts#L59), [src/errand/quote-check.ts:32-33](src/errand/quote-check.ts#L32) | C5 |
-| The model never picks the amount: `pay_shop` takes only a quote id, and code pays exactly the quoted price | [src/agent/errand.ts:139](src/agent/errand.ts#L139), [src/errand/guards.ts:42](src/errand/guards.ts#L42) | C7, C10 |
-| Code refuses any payment over budget, over the per-payment cap, after expiry, to an unchecked shop, to another wallet, or twice for one quote | [src/errand/guards.ts:22-46](src/errand/guards.ts#L22) | C10 (13 tests in [guards.test.ts](src/errand/guards.test.ts)) |
+| The model never picks the amount: `pay_shop` takes only a quote id, and code pays exactly the quoted price | [src/agent/errand.ts:142](src/agent/errand.ts#L142), [src/errand/guards.ts:45](src/errand/guards.ts#L45) | C7, C10 |
+| Code refuses any payment under an unsigned mandate, over budget, over the per-payment cap, after expiry, to an unchecked shop, to another wallet, or twice for one quote | [src/errand/guards.ts:24-50](src/errand/guards.ts#L24) | C10 (15 tests in [guards.test.ts](src/errand/guards.test.ts)) |
+| Every errand runs under a mandate (task, agent, budget, cap, expiry) signed with a human's Concordium account key and checked against that account's keys on chain; a forged, over-limit, expired or reused mandate starts nothing | [src/errand/mandate.ts:70-82](src/errand/mandate.ts#L70), [src/agent/errand.ts:57](src/agent/errand.ts#L57), [src/server/errands.ts:58-61](src/server/errands.ts#L58) | C13 · [evidence](evidence/errand-bouquet-signed-mandate-2026-11-26.json) |
 | Payments are x402 (exact scheme) in EUDemo, a Protocol-Level Token; Viale's facilitator pays the fee as a sponsored transaction | [src/pay/x402.ts:37-43](src/pay/x402.ts#L37) | C7 · [payment](https://ccdexplorer.io/testnet/transaction/159c5899b5ff3fa24b090f01c47d388ea3fdb9d86fcacc939311c8a52ac913b5) |
 | Each honest shop is paid at its CIS-8004 agent wallet, linked with that wallet's own signature | [src/registry/set-till.ts:25-26](src/registry/set-till.ts#L25), [src/errand/shop-check.ts:99-100](src/errand/shop-check.ts#L99) | C7 · [set till #1527](https://ccdexplorer.io/testnet/transaction/d2929679db75470464b026d15451df5e2391d13fb5ffdacfbc2cb4ac8a51f70f) |
-| Each errand log is sealed on chain as sha256(log ‖ nonce); editing the log breaks the match | [src/chain/anchor.ts:15-31](src/chain/anchor.ts#L15), [src/agent/errand.ts:230](src/agent/errand.ts#L230) | C8 · [seal](https://ccdexplorer.io/testnet/transaction/90c5ed1c644d4cf6f0a556cb30ab52beac21aa3cda622327b821c80e13c04aba) |
-| The errand agent is Claude (`claude-opus-5-5`) using tools: find_shops, check_shop, see_menu, get_quote, prove_age, pay_shop | [src/agent/errand.ts:25](src/agent/errand.ts#L25), [:198](src/agent/errand.ts#L198) | the live errand on the page |
-| Every transaction in [evidence/](evidence/) is finalized and succeeded | [evidence/](evidence/) | C6 (22 transactions) |
+| Each errand log is sealed on chain as sha256(log ‖ nonce); editing the log breaks the match | [src/chain/anchor.ts:15-31](src/chain/anchor.ts#L15), [src/agent/errand.ts:233](src/agent/errand.ts#L233) | C8 · [seal](https://ccdexplorer.io/testnet/transaction/90c5ed1c644d4cf6f0a556cb30ab52beac21aa3cda622327b821c80e13c04aba) |
+| The errand agent is Claude (`claude-opus-5-5`) using tools: find_shops, check_shop, see_menu, get_quote, prove_age, pay_shop | [src/agent/errand.ts:26](src/agent/errand.ts#L26), [:201](src/agent/errand.ts#L201) | the live errand on the page |
+| Every transaction in [evidence/](evidence/) is finalized and succeeded | [evidence/](evidence/) | C6 |
 | Anyone can run the shop check on any agent in the registry, and its owner verdict matches the chain | [src/server/check.ts:19](src/server/check.ts#L19), [src/errand/shop-check.ts:63](src/errand/shop-check.ts#L63) | C11 · [/check/1010](https://viale.nerom.site/check/1010) |
 | Viale serves the check as an MCP server (`check_agent`, `registry_owners`) | [src/server/check.ts:91-156](src/server/check.ts#L91) | C12 |
 | 29 of the 1,245 active agents on testnet are owned by a business identity | [src/registry/owners.ts:20](src/registry/owners.ts#L20) | [evidence/registry-owners-2026-11-26.json](evidence/registry-owners-2026-11-26.json) · recounted live every 6 hours on [/check](https://viale.nerom.site/check) |
 
 ## Not built yet
 
-- **The 18+ check, live.** The Bottle Shop sells 18+ goods, so before paying it the agent asks its human for a zero-knowledge proof of age (Concordium Verify & Access). The code is written ([src/proof/age.ts](src/proof/age.ts), [web/prove.ts](web/prove.ts), [verifier/](verifier/)), and the guard refuses an 18+ shop until a proof passes ([src/errand/guards.ts:34](src/errand/guards.ts#L34)). We could not finish a proof on testnet: the ID app from the App Store is the mainnet app, and it shows "failed to connect to WalletConnect" after scanning our QR code. So the live demo buys flowers, and the street page offers no 18+ errand. On the hosted site an 18+ errand waits 2 minutes for a proof, then stops without paying. Details in [feedback.md](feedback.md).
+- **The 18+ check, live.** The Bottle Shop sells 18+ goods, so before paying it the agent asks its human for a zero-knowledge proof of age (Concordium Verify & Access). The code is written ([src/proof/age.ts](src/proof/age.ts), [web/prove.ts](web/prove.ts), [verifier/](verifier/)), and the guard refuses an 18+ shop until a proof passes ([src/errand/guards.ts:37](src/errand/guards.ts#L37)). We could not finish a proof on testnet: the ID app from the App Store is the mainnet app, and it shows "failed to connect to WalletConnect" after scanning our QR code. So the live demo buys flowers, and the street page offers no 18+ errand. On the hosted site an 18+ errand waits 2 minutes for a proof, then stops without paying. Details in [feedback.md](feedback.md).
 - **Shops run by their owners.** All three shop agents run inside Viale's server, each signing with its own owner's key.
-- **A human-signed mandate.** The errand limits (€5 budget, €3 per payment, 15 minutes) are set by Viale's server, not signed by the human.
+- **A wallet-signed errand in evidence.** The street page can have the mandate signed in the Concordium Browser Wallet ([public/index.html:386](public/index.html#L386)); the errand in evidence was signed by Viale's labelled demo account, for visitors without a wallet. Both are checked the same way on chain.
+- **Spending limits on chain.** The mandate is checked by Viale's code before every payment; the agent's account itself is not yet limited by a contract.
 - **Mainnet.** See the path to production below.
 
 ## Judging criteria
@@ -72,7 +74,7 @@ Every claim below is checked by [tools/check-live.ts](tools/check-live.ts) (C1�
 | Shop owner [4UVsGd…](https://ccdexplorer.io/testnet/account/4UVsGdSyYk43E2m99Vy3M38u92yknjBUoY7xKQHGSDXZAUiWw5) | Account on a Global FinReg business identity (idp 4) | [account opened](https://ccdexplorer.io/testnet/transaction/250f614dd79643be5a57591189274f7a4e83e87d50b9b65c3fbe44529246c961) |
 | Errands with signed quotes | Real EUDemo payments, exact quoted price | [€1.80 bouquet, live site](https://ccdexplorer.io/testnet/transaction/159c5899b5ff3fa24b090f01c47d388ea3fdb9d86fcacc939311c8a52ac913b5) · [€2.60 tulips](https://ccdexplorer.io/testnet/transaction/8ce06ffd6fc23eccd8a13122bd255c366cc377298a18eb6b52274421ecdf76d6) · [€1.80 bouquet](https://ccdexplorer.io/testnet/transaction/bf43ee0b86a1b55d69f42fc02057f5136330b331c26ef6cd33bc8ed30edbc42a) |
 | Errand log seals | register-data, re-checked by C8 | [bouquet](https://ccdexplorer.io/testnet/transaction/90c5ed1c644d4cf6f0a556cb30ab52beac21aa3cda622327b821c80e13c04aba) · [tulips](https://ccdexplorer.io/testnet/transaction/1b9d9ad1fcacd532c14adc24b34cdc827e41ad87b220a90ad0b6ac3fb4ebb251) · [impostor, no payment](https://ccdexplorer.io/testnet/transaction/8b8838dcd3cbbc9a259964711550f122b4f6a7c6e52fe9d5cdcccc166b5d8197) |
-| Errand agent | Live Claude API calls (`claude-opus-5-5`) on every errand | [src/agent/errand.ts:198](src/agent/errand.ts#L198) |
+| Errand agent | Live Claude API calls (`claude-opus-5-5`) on every errand | [src/agent/errand.ts:201](src/agent/errand.ts#L201) |
 | Simulated | Nothing | The shops, menus and prices are made up for the demo; every check, quote, payment and seal is real. |
 
 The first errand, before signed quotes, paid its full €3 limit: [payment](https://ccdexplorer.io/testnet/transaction/b2ffbc675cfcfb5d4175a844876cdfe241fae757803a56b6308b8fb2fd0f1f61). That is why quotes exist.
@@ -83,23 +85,24 @@ An AI agent that shops for you has to decide who to pay. A name proves nothing: 
 
 ## How it works
 
+0. **Sign the mandate** ([src/errand/mandate.ts](src/errand/mandate.ts)): the server drafts the terms (your task, this agent's account, €5 budget, €3 per payment, 15 minutes) and you sign them in the Concordium Browser Wallet. Without a wallet, Viale's demo account signs, and the page says so. The signature is checked against the signer's keys on chain; the errand runs once per mandate.
 1. **Find shops** in the Agent Registry through Concordium's Registry MCP ([src/agent/errand.ts](src/agent/errand.ts), `find_shops`).
 2. **Check the shop** ([src/errand/shop-check.ts](src/errand/shop-check.ts)): Active agent; badge valid; owner holds a Global FinReg business identity (read from the owner's credentials on chain); the card names the shop the agent was sent to; payment goes to its registered agent wallet. Any failure means walk away, with the reason.
 3. **Get a signed quote** ([src/street/shop-agent.ts](src/street/shop-agent.ts)) and check it ([src/errand/quote-check.ts](src/errand/quote-check.ts)): the signature matches the owner's keys on chain; shop, owner and wallet match the registry; not expired.
-4. **Pay** ([src/errand/guards.ts](src/errand/guards.ts), [src/pay/x402.ts](src/pay/x402.ts)): code checks the mandate, then pays exactly the quoted price in EUDemo over x402. Viale's facilitator verifies, settles and pays the fee.
+4. **Pay** ([src/errand/guards.ts](src/errand/guards.ts), [src/pay/x402.ts](src/pay/x402.ts)): code checks the signed mandate, then pays exactly the quoted price in EUDemo over x402. Viale's facilitator verifies, settles and pays the fee.
 5. **Seal the log** ([src/chain/anchor.ts](src/chain/anchor.ts)): sha256 of the full errand log plus a random nonce goes on chain with register-data. The log and nonce stay off chain, so no personal data is published.
 6. **Show it** ([src/server/errands.ts](src/server/errands.ts), [public/index.html](public/index.html)): the street page streams each step as it happens.
 
 **Check any agent.** Step 2 is also served on its own ([src/server/check.ts](src/server/check.ts)): `GET /api/check/<id>`, the [/check](https://viale.nerom.site/check) page, and an MCP server at `/mcp` (JSON-RPC over HTTP, read-only, no keys) with `check_agent` and `registry_owners`. Results are cached for five minutes and limited to 30 checks a minute per address. The registry count ([src/registry/owners.ts](src/registry/owners.ts)) lists every Active agent through the Registry MCP's `list_agents` and reads each owner's identity providers from a testnet node.
 
 ```
-human ──task──▶ Claude errand agent ──tools──▶ Viale code (checks + limits)
-                                                │
-          Registry MCP ◀── find / check shop ───┤
-   owner's identity (gRPC) ◀── business ID? ────┤
-          shop agent ──── signed quote ────────▶┤
-   x402 facilitator ◀── pay exact quote ────────┤──▶ EUDemo to shop's agent wallet
-     register-data ◀── seal the errand log ─────┘
+human ──signed mandate──▶ Claude errand agent ──tools──▶ Viale code (checks + limits)
+                                                         │
+                   Registry MCP ◀── find / check shop ───┤
+            owner's identity (gRPC) ◀── business ID? ────┤
+                   shop agent ──── signed quote ────────▶┤
+            x402 facilitator ◀── pay exact quote ────────┤──▶ EUDemo to shop's agent wallet
+              register-data ◀── seal the errand log ─────┘
 ```
 
 ## Sponsor integrations (Concordium)
@@ -112,7 +115,8 @@ human ──task──▶ Claude errand agent ──tools──▶ Viale code (c
 | x402 (`@x402/concordium`) | Exact scheme, client and facilitator, for every payment | [src/pay/x402.ts](src/pay/x402.ts) |
 | Protocol-Level Tokens | Payments in EUDemo; each honest shop's till is on the EUDemo allow-list | [src/pay/x402.ts](src/pay/x402.ts), [src/registry/set-till.ts](src/registry/set-till.ts) |
 | Sponsored transactions | The agent holds no CCD; Viale's facilitator pays every payment fee | [src/pay/x402.ts:24-26](src/pay/x402.ts#L24) |
-| Account message signing | Shops sign quotes; the agent verifies them against keys on chain | [src/street/shop-agent.ts:59](src/street/shop-agent.ts#L59), [src/errand/quote-check.ts:33](src/errand/quote-check.ts#L33) |
+| Account message signing | Humans sign errand mandates and shops sign quotes; both are verified against keys on chain | [src/errand/mandate.ts:81](src/errand/mandate.ts#L81), [src/street/shop-agent.ts:59](src/street/shop-agent.ts#L59), [src/errand/quote-check.ts:33](src/errand/quote-check.ts#L33) |
+| Concordium Browser Wallet | Signs the errand mandate on the street page (`signMessage`), on testnet | [public/index.html:386](public/index.html#L386) |
 | Verify & Access | 18+ proof request and verification, written but not finished on testnet (see Not built yet) | [src/proof/age.ts](src/proof/age.ts) |
 
 Feedback for Concordium from building this: [feedback.md](feedback.md).
@@ -122,7 +126,8 @@ Feedback for Concordium from building this: [feedback.md](feedback.md).
 - **Viale's server holds keys** for the errand agent's account, Viale's own account (facilitator and log seals), and both shop owners' accounts (to sign quotes). In production each of these belongs to a different party; see below.
 - **Viale's own account (3bV1C2…) also owns the planted impostor shop.** It has a personal identity, which is what the impostor needs to show. The facilitator can't move the agent's money: it can only settle a transfer the agent's key has signed.
 - **The till.** EUDemo can only be paid to accounts on its EU allow-list, and a business identity can't join that list. So each honest shop takes payment at an allow-listed till account (3HNiUG…), set as its CIS-8004 agent wallet with the till's own signature. The business-identity check is on the shop's owner; the wallet check is on the registry's agent wallet.
-- **Limits.** The public street runs one errand at a time, 6 an hour, with a €5 budget and €3 per payment, enforced in code ([src/server/errands.ts:14-27](src/server/errands.ts#L14)). Errands spend Claude API credit and test euros.
+- **Limits.** The public street runs one errand at a time, 6 an hour. A mandate may ask for at most a €5 budget and €3 per payment ([src/server/errands.ts:16-19](src/server/errands.ts#L16)), and code enforces the signed numbers on every payment.
+- **The demo signer.** Visitors without a Concordium wallet get a mandate signed by Viale's own account (3bV1C2…), and the page labels it "Viale's demo account". It goes through the same check as a wallet-signed one. The list of used mandates is kept in memory, so a restart forgets it, but every mandate also expires after 15 minutes. Errands spend Claude API credit and test euros.
 - **Concordium services.** Shop checks rely on Concordium's hosted Registry MCP and the public testnet node. If the badge checker's card fetch fails, the check retries once; if the node says to slow down (HTTP 429), reads retry with a backoff. A check that still fails shows as failing, and the agent never trades on a failed check.
 - **What "trade" means.** The check proves the owner account holds a business identity from Global FinReg. It doesn't say the business is good, and an agent card can be fetched from any URL its owner registered, so Viale fetches cards only from public https hosts, with a timeout and size limit ([src/errand/shop-check.ts:44](src/errand/shop-check.ts#L44)).
 - **Errand history.** The hosted server keeps errand logs on disk until it restarts; the page then shows the newest log committed in [evidence/](evidence/).
@@ -133,7 +138,7 @@ Feedback for Concordium from building this: [feedback.md](feedback.md).
 2. **The check is usable today.** Any agent can call `check_agent` over MCP before it pays another agent; on mainnet only the registry address changes.
 3. **Shops run their own agents.** A shop owner runs the shop agent (menu + signed quotes) on their own server with their own key, registers it, and sets their own wallet. Viale becomes a directory plus the errand agent.
 4. **A regulated euro.** Pay in a mainnet euro PLT. A shop with a business identity takes payment at its own allow-listed account, so no separate till.
-5. **The human signs the mandate.** The budget, cap, shop list and expiry are signed by the human's wallet, and the agent's account is limited to that.
+5. **Limits on chain.** The human already signs the mandate (budget, cap, shop list, expiry). Next, the agent's account is held by a contract that enforces those signed numbers, so even Viale's server can't overspend.
 6. **18+ on mainnet.** The ID app is a mainnet app, so the Verify & Access flow we wrote should work there as is.
 7. **Who pays.** Shops pay a small fee per errand, and agent platforms pay for checks beyond a free tier; Viale keeps paying transaction fees through sponsored transactions, so buyers need no CCD.
 
@@ -143,7 +148,7 @@ Node 24 or newer, and testnet accounts as listed in [keys.env.example](keys.env.
 
 ```bash
 npm ci
-npm test                     # 13 payment guard tests
+npm test                     # 15 payment guard and mandate tests
 npm run check:live           # check every claim against the live site and testnet (no keys)
 npm run server               # street page on http://localhost:3000 (needs the keys)
 ```
