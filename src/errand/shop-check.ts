@@ -18,20 +18,39 @@ export type ShopVerdict = {
   owner?: string;
   payTo?: string;
   ageGated?: boolean; // the verified card sells something only for 18+
+  badge?: string; // the agent's CIS-2 token address, which is also its Verified-by-Concordium badge id
+  agentUri?: string;
+  ownerIdentity?: { providers: { id: number; name: string }[]; business: boolean };
   reasons: string[]; // why we refused (empty when ok)
   passed: string[]; // what we checked and saw pass
 };
 
-let businessIdps: Promise<Set<number>> | undefined;
-async function businessIdentityProviders(): Promise<Set<number>> {
-  businessIdps ??= (async () => {
-    const ids = new Set<number>();
-    for await (const ip of client().getIdentityProviders()) {
-      if (ip.ipDescription.name.includes(BUSINESS_IDP_NAME)) ids.add(Number(ip.ipIdentity));
-    }
-    return ids;
+let idpNames: Promise<Map<number, string>> | undefined;
+/** Every identity provider on the network, by id. */
+export function identityProviderNames(): Promise<Map<number, string>> {
+  idpNames ??= (async () => {
+    const names = new Map<number, string>();
+    for await (const ip of client().getIdentityProviders()) names.set(Number(ip.ipIdentity), ip.ipDescription.name);
+    return names;
   })();
-  return businessIdps;
+  return idpNames;
+}
+async function businessIdentityProviders(): Promise<Set<number>> {
+  const names = await identityProviderNames();
+  return new Set([...names].filter(([, n]) => n.includes(BUSINESS_IDP_NAME)).map(([id]) => id));
+}
+
+/** Fetches an agent card from the URL its owner registered. Any agent can register any URL, so only
+ *  public https hosts, a 5 s timeout and 256 kB are allowed. */
+async function fetchCard(uri: string): Promise<any> {
+  const u = new URL(uri);
+  if (u.protocol !== 'https:') throw new Error('card URL is not https');
+  if (/^(localhost|\[.*\]|[\d.]+)$/i.test(u.hostname) || u.hostname.endsWith('.internal') || u.hostname.endsWith('.local')) throw new Error('card URL is not a public host');
+  const r = await fetch(u, { signal: AbortSignal.timeout(5000), redirect: 'error' });
+  if (!r.ok) throw new Error(`card URL returned HTTP ${r.status}`);
+  const text = await r.text();
+  if (text.length > 256_000) throw new Error('card is too large');
+  return JSON.parse(text);
 }
 
 /** Identity providers behind every credential on an account. */
@@ -46,6 +65,8 @@ export async function checkShop(tokenId: string, expectedName?: string): Promise
   const agent = await agentOf(tokenId);
   if (!agent) return { ...v, reasons: [`no agent #${tokenId} in the registry`] };
   v.owner = agent.owner_account;
+  v.badge = agent.token_address;
+  v.agentUri = agent.agent_uri ?? undefined;
   if (agent.status !== 'Active') v.reasons.push(`agent #${tokenId} is ${agent.status}`);
   else v.passed.push(`agent #${tokenId} is registered and Active`);
 
@@ -60,11 +81,14 @@ export async function checkShop(tokenId: string, expectedName?: string): Promise
 
   const idps = await accountIdentityProviders(agent.owner_account);
   const business = await businessIdentityProviders();
+  const names = await identityProviderNames();
+  v.ownerIdentity = { providers: [...new Set(idps)].map((id) => ({ id, name: names.get(id) ?? `provider ${id}` })), business: idps.some((i) => business.has(i)) };
   if (idps.some((i) => business.has(i))) v.passed.push(`owner ${agent.owner_account.slice(0, 6)}… holds a business identity (${BUSINESS_IDP_NAME})`);
   else v.reasons.push(`owner ${agent.owner_account.slice(0, 6)}… holds only a personal identity, not a business one`);
 
   if (agent.agent_uri && badge.badge_valid) {
-    const card = await (await fetch(agent.agent_uri)).json();
+    const card = await fetchCard(agent.agent_uri).catch((err) => ({ error: err.message }));
+    if (card.error) v.reasons.push(`could not read the card: ${card.error}`);
     v.name = card.name;
     v.ageGated = (card.skills ?? []).some((k: any) => (k.tags ?? []).includes('age-gated'));
     if (expectedName && card.name !== expectedName) v.reasons.push(`card is "${card.name}", not "${expectedName}"`);
