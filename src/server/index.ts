@@ -1,10 +1,11 @@
-// Viale's local server: the public site, the 18+ proof page and its API.
+// Viale's local server: the public site, the shop agents (menus + signed quotes), the 18+ proof page and its API.
 // The errand agent runs in the same process so it can wait for the human's proof.
 import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
 import { setting } from '../chain/keys.ts';
 import { createRequest, getProof, publicView, verifyPresentation } from '../proof/age.ts';
+import { menu, quote } from '../street/shop-agent.ts';
 
 export const PORT = Number(process.env.PORT ?? 3000);
 export const PUBLIC_URL = process.env.VIALE_PUBLIC_URL ?? `http://localhost:${PORT}`;
@@ -56,6 +57,16 @@ export function startServer(): Promise<http.Server> {
           return send(res, 200, await verifyPresentation(p.id, presentation));
         }
         return send(res, 405, { error: 'method not allowed' });
+      }
+      // Shop agents: GET /shops/<tokenId>/menu, POST /shops/<tokenId>/quote {sku} -> quote signed by the shop owner.
+      if (parts[0] === 'shops' && /^\d+$/.test(parts[1] ?? '')) {
+        if (req.method === 'GET' && parts[2] === 'menu') return send(res, 200, { shop_token_id: parts[1], items: menu(parts[1]) });
+        if (req.method === 'POST' && parts[2] === 'quote') {
+          const { sku } = await body(req);
+          if (typeof sku !== 'string' || !sku) return send(res, 400, { error: 'sku missing' });
+          return send(res, 200, await quote(parts[1], sku));
+        }
+        return send(res, 404, { error: 'not found' });
       }
       if (parts[0] === 'prove' && parts[1] === 'app.js') return file(res, path.join(ROOT, 'dist/prove/app.js'));
       if (parts[0] === 'prove' && parts[1] === 'app.css') return file(res, path.join(ROOT, 'dist/prove/app.css'));
