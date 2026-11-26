@@ -49,7 +49,12 @@ export async function checkShop(tokenId: string, expectedName?: string): Promise
   if (agent.status !== 'Active') v.reasons.push(`agent #${tokenId} is ${agent.status}`);
   else v.passed.push(`agent #${tokenId} is registered and Active`);
 
-  const badge = await checkBadge(agent.token_address);
+  let badge = await checkBadge(agent.token_address);
+  // Concordium's checker fetches the card itself; one failed fetch on its side is retried once.
+  if (!badge.badge_valid && badge.checks.card_fetched === false) {
+    await new Promise((r) => setTimeout(r, 1500));
+    badge = await checkBadge(agent.token_address);
+  }
   if (badge.badge_valid) v.passed.push('Verified-by-Concordium badge valid (card hash matches the chain)');
   else v.reasons.push(`badge invalid: ${badge.issues.map((i) => (typeof i === 'string' ? i : i.message)).join('; ') || 'failed checks ' + Object.entries(badge.checks).filter(([, x]) => x === false).map(([k]) => k).join(', ')}`);
 
