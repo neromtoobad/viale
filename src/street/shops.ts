@@ -24,4 +24,20 @@ export const SHOPS: Shop[] = [
     skills: [{ id: 'sell-bottle', name: 'Sell a bottle', description: 'Quote and sell a bottle under a price limit; 18+ only.', tags: ['shop', 'age-gated'] }],
     impostor: true,
   },
+  {
+    slug: 'bottle-shop',
+    tokenId: '1526',
+    owner: '4UVsGdSyYk43E2m99Vy3M38u92yknjBUoY7xKQHGSDXZAUiWw5',
+    name: 'The Bottle Shop',
+    description: 'Wine, beer and spirits on Viale. Ask for a bottle and a price limit; we check the buyer is 18+ and deliver a receipt.',
+    skills: [{ id: 'sell-bottle', name: 'Sell a bottle', description: 'Quote and sell a bottle under a price limit; 18+ only.', tags: ['shop', 'age-gated'] }],
+  },
+  {
+    slug: 'flower-stall',
+    tokenId: '1527',
+    owner: '4UVsGdSyYk43E2m99Vy3M38u92yknjBUoY7xKQHGSDXZAUiWw5',
+    name: 'Viale Flowers',
+    description: 'Cut flowers and small bouquets on Viale. Ask for a bouquet and a price limit; we quote, take payment and deliver a receipt.',
+    skills: [{ id: 'sell-bouquet', name: 'Sell a bouquet', description: 'Quote and sell a bouquet under a price limit.', tags: ['shop'] }],
+  },
 ];
