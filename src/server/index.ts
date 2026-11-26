@@ -6,6 +6,8 @@ import path from 'node:path';
 import { setting } from '../chain/keys.ts';
 import { createRequest, getProof, publicView, verifyPresentation } from '../proof/age.ts';
 import { menu, quote } from '../street/shop-agent.ts';
+import { followErrand, errandLimits, latestErrand, startErrand, street } from './errands.ts';
+import { EXPLORER } from '../chain/chain.ts';
 
 export const PORT = Number(process.env.PORT ?? 3000);
 export const PUBLIC_URL = process.env.VIALE_PUBLIC_URL ?? `http://localhost:${PORT}`;
@@ -58,6 +60,14 @@ export function startServer(): Promise<http.Server> {
         }
         return send(res, 405, { error: 'method not allowed' });
       }
+      if (url.pathname === '/api/street') return send(res, 200, { shops: await street(), explorer: EXPLORER, limits: errandLimits });
+      if (url.pathname === '/api/errands/latest') return send(res, 200, latestErrand());
+      if (url.pathname === '/api/errands' && req.method === 'POST') {
+        const { task } = await body(req);
+        const r = startErrand(task);
+        return send(res, r.error ? 429 : 200, r);
+      }
+      if (parts[0] === 'api' && parts[1] === 'errands' && parts[2] && parts[3] === 'events') return followErrand(parts[2], res);
       // Shop agents: GET /shops/<tokenId>/menu, POST /shops/<tokenId>/quote {sku} -> quote signed by the shop owner.
       if (parts[0] === 'shops' && /^\d+$/.test(parts[1] ?? '')) {
         if (req.method === 'GET' && parts[2] === 'menu') return send(res, 200, { shop_token_id: parts[1], items: menu(parts[1]) });
