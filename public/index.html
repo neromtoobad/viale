@@ -43,6 +43,9 @@ form.task input{flex:1;min-width:0;border:0;outline:0;font:15px Geist,system-ui,
 .ideas button{border:1px solid var(--line);background:transparent;border-radius:99px;padding:6px 12px;font:13px Geist,system-ui,sans-serif;color:var(--muted);cursor:pointer}
 .ideas button:hover{background:#fff;color:var(--ink)}
 .limits{margin-top:12px}
+.signer{margin:8px auto 0;color:var(--muted);font-size:13.5px;max-width:640px}
+.signer button{border:0;background:none;padding:0;font:inherit;color:#2a4d8f;text-decoration:underline;cursor:pointer}
+.signer b{color:var(--ink);font-weight:500}
 .msg{margin:10px auto 0;color:var(--bad);font-size:14px;min-height:1px}
 
 .stage{position:relative;margin:0 24px;border-radius:28px;overflow:hidden;container-type:inline-size;background:#3a2c22}
@@ -131,7 +134,8 @@ footer{padding:0 48px 40px;color:var(--muted);font-size:13px}
     <button type="button" data-task="Buy me a small bouquet from Viale Flowers. Pay at most €3.">Small bouquet</button>
     <button type="button" data-task="Buy ten tulips from Viale Flowers. Pay at most €3.">Ten tulips</button>
   </div>
-  <p class="lab limits" id="limits">Budget €5 · max €3 a payment · enforced in code</p>
+  <p class="lab limits" id="limits">Budget €5 · max €3 a payment · 15 minutes · in a signed mandate</p>
+  <p class="signer" id="signer">Signed by Viale's demo account, because no Concordium wallet is connected. <button type="button" id="wallet">Sign with my Concordium wallet</button></p>
   <p class="msg" id="msg" role="status"></p>
 </section>
 
@@ -234,10 +238,12 @@ function waiting(text) {
   waitingLi = text ? addStep('wait', text) : undefined;
 }
 
-function resetErrand(task, limits) {
+function resetErrand(task, limits, signer) {
   $('steps').replaceChildren();
-  state = { spent: 0, budget: limits?.budgetEur ?? 5, payments: [], quote: null, owner: null, anchor: null, refused: [] };
-  addStep('', 'You asked', h('p', {}, `“${task}”`), limits ? h('p', { class: 'lab', style: 'margin-top:6px' }, `Budget €${limits.budgetEur} · max €${limits.maxPaymentEur} a payment · enforced in code`) : null);
+  state = { spent: 0, budget: limits?.budgetEur ?? 5, payments: [], quote: null, owner: null, anchor: null, refused: [], signer };
+  addStep('', 'You asked', h('p', {}, `“${task}”`), limits ? h('p', { class: 'lab', style: 'margin-top:6px' }, `Budget €${limits.budgetEur} · max €${limits.maxPaymentEur} a payment · in a signed mandate, enforced in code`) : null);
+  if (signer) addStep('ok', signer.demo ? "Mandate signed by Viale's demo account" : 'Mandate signed in your Concordium wallet',
+    h('p', {}, 'Signature checked against the keys of ', h('a', { href: `${explorer}/account/${signer.human}`, target: '_blank', rel: 'noopener', class: 'mono' }, short(signer.human)), ' on chain. Code pays nothing outside it.', signer.demo ? ' (No wallet was connected, so Viale signed for the demo.)' : ''));
   drawReceipt();
 }
 
@@ -247,6 +253,7 @@ function drawReceipt() {
   $('paidFor').textContent = last ? state.payments.map((p) => `${p.item} · ${p.shop}`).join(' + ') : state.refused.length ? 'Nothing paid. The agent refused.' : 'Nothing paid yet';
   const rows = [];
   const row = (k, v) => rows.push(h('div', { class: 'row' }, h('span', {}, k), h('span', {}, v)));
+  if (state.signer) row('Mandate', h('span', {}, h('span', { class: 'mono' }, short(state.signer.human)), state.signer.demo ? ' · Viale demo' : ' · your wallet'));
   if (state.owner) row('Shop owner', h('span', { class: 'mono' }, `${short(state.owner.address)}${state.owner.business ? ' · Business ID' : ''}`));
   if (state.quote) row('Quote', `${state.quote.item}, ${eur(state.quote.price_eur)} · signed`);
   for (const p of state.payments) { row('Paid to', h('span', { class: 'mono' }, `${short(p.payTo)} (registered till)`)); row('Payment', txLink(p.tx)); }
@@ -258,7 +265,7 @@ function drawReceipt() {
 
 function onStep(e) {
   const s = e.step;
-  if (s === 'task') return resetErrand(e.task, e.limits);
+  if (s === 'task') return resetErrand(e.task, e.limits, e.signer);
   if (s === 'mandate' || s === 'report') return;
   if (s === 'tool_call') {
     const id = e.input?.token_id;
@@ -349,7 +356,7 @@ async function start() {
     if (!r.ok) throw new Error();
     const st = await r.json();
     explorer = st.explorer ?? explorer;
-    if (st.limits) $('limits').textContent = `Budget €${st.limits.budgetEur} · max €${st.limits.maxPaymentEur} a payment · enforced in code`;
+    if (st.limits) $('limits').textContent = `Budget €${st.limits.budgetEur} · max €${st.limits.maxPaymentEur} a payment · 15 minutes · in a signed mandate`;
     drawStreet(st.shops);
   } catch {
     $('stage').append(h('div', { class: 'offline' }, 'The street server is offline, so shops can’t be checked right now.'));
@@ -368,7 +375,19 @@ $('task').onsubmit = async (ev) => {
   $('msg').textContent = '';
   $('run').disabled = true;
   try {
-    const r = await fetch('/api/errands', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ task: $('taskInput').value }) });
+    const post = (url, data) => fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(data) });
+    let payload = { task: $('taskInput').value };
+    if (wallet.account) {
+      // The mandate is drafted by the server (this agent, the street's limits) and signed in your wallet.
+      const d = await post('/api/mandates/draft', { task: $('taskInput').value, human: wallet.account });
+      const draft = await d.json();
+      if (!d.ok) throw new Error(draft.error ?? 'Could not draft the mandate.');
+      $('msg').textContent = 'Approve the mandate in your Concordium wallet…';
+      const signature = await wallet.api.signMessage(wallet.account, draft.message);
+      $('msg').textContent = '';
+      payload = { mandate: { message: draft.message, signature } };
+    }
+    const r = await post('/api/errands', payload);
     const j = await r.json();
     if (!r.ok || !j.id) throw new Error(j.error ?? 'Could not start the errand.');
     $('agent').classList.remove('on');
@@ -379,6 +398,45 @@ $('task').onsubmit = async (ev) => {
     $('run').disabled = false;
   }
 };
+// Concordium Browser Wallet: the extension injects window.concordium (same detection as
+// @concordium/browser-wallet-api-helpers). With it, your own testnet account signs each errand's mandate.
+const TESTNET_GENESIS = '4221332d34e1694168c2a0c0b3fd0f27';
+const wallet = { api: null, account: null };
+function detectWallet(timeout = 2000) {
+  return new Promise((resolve) => {
+    if (window.concordium) return resolve(window.concordium);
+    const t = setTimeout(() => resolve(window.concordium ?? null), timeout);
+    addEventListener('concordium#initialized', () => { clearTimeout(t); resolve(window.concordium ?? null); }, { once: true });
+  });
+}
+function drawSigner() {
+  const useDemo = h('button', { type: 'button' }, "use Viale's demo account");
+  useDemo.onclick = () => { wallet.account = null; drawSigner(); };
+  const useWallet = h('button', { type: 'button' }, 'Sign with my Concordium wallet');
+  useWallet.onclick = connectWallet;
+  $('signer').replaceChildren(...(wallet.account
+    ? ['Your wallet signs the mandate: ', h('b', { class: 'mono' }, short(wallet.account)), ' · ', useDemo]
+    : ["Signed by Viale's demo account, because no Concordium wallet is connected. ", useWallet]));
+}
+async function connectWallet() {
+  $('msg').textContent = '';
+  wallet.api ??= await detectWallet();
+  if (!wallet.api) {
+    $('signer').replaceChildren('No Concordium wallet found in this browser. Install the ', h('a', { href: 'https://chromewebstore.google.com/detail/concordium-wallet/mnnkpffndmickbiakofclnpoiajlegmg', target: '_blank', rel: 'noopener' }, 'Concordium Browser Wallet'), ', switch it to testnet, then try again. Until then, Viale\'s demo account signs.');
+    return;
+  }
+  try {
+    const accounts = await wallet.api.requestAccounts();
+    const chain = await wallet.api.getSelectedChain().catch(() => undefined);
+    if (chain && !String(chain).startsWith(TESTNET_GENESIS)) throw new Error('Your wallet is on another network. Switch it to Concordium testnet.');
+    if (!accounts?.length) throw new Error('No account was connected.');
+    wallet.account = accounts[0];
+    drawSigner();
+  } catch (err) {
+    $('msg').textContent = err?.message ?? 'The wallet did not connect.';
+  }
+}
+$('wallet').onclick = connectWallet;
 document.querySelectorAll('.ideas button').forEach((b) => (b.onclick = () => { $('taskInput').value = b.dataset.task; $('taskInput').focus(); }));
 start();
 </script>
