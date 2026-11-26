@@ -6,6 +6,8 @@
     "node": ">=24"
   },
   "scripts": {
+    "build": "npm run build:web",
+    "start": "node src/server/index.ts",
     "spike:anchor": "node src/chain/anchor.ts",
     "spike:pay": "node spike/pay.ts",
     "build:web": "esbuild web/prove.ts --bundle --format=esm --target=es2022 --minify --outfile=dist/prove/app.js --loader:.svg=dataurl --loader:.png=dataurl --loader:.woff2=dataurl --loader:.woff=dataurl --loader:.ttf=dataurl --define:process.env.NODE_ENV='\"production\"' --define:global=globalThis",
