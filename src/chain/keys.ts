@@ -52,3 +52,11 @@ export function agentWallet(): Wallet {
 export function sponsorWallet(): Wallet {
   return wallet(readEnv().SPONSOR_ADDRESS);
 }
+
+/** The honest shops' owner: an account on a Global FinReg business identity (made by src/identity/business-id.ts). */
+export function shopOwnerWallet(): Wallet {
+  const f = path.join(dir, 'shop.json');
+  if (!fs.existsSync(f)) throw new Error(`No shop owner yet: run src/identity/business-id.ts (expects ${f})`);
+  const { address, signKey } = JSON.parse(fs.readFileSync(f, 'utf8'));
+  return { address: AccountAddress.fromBase58(address), signer: buildBasicAccountSigner(signKey), signKeyHex: signKey };
+}
