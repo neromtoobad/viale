@@ -4,53 +4,384 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Viale</title>
-<meta name="description" content="A street of verified shops where your AI agent runs your errands, and every step is proven on Concordium.">
+<meta name="description" content="Send an AI agent shopping on a street of verified businesses. Every shop is checked on Concordium, fakes are refused, and every payment is proven on chain.">
 <link rel="icon" href="/brand/viale-favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/brand/viale-favicon-32.png" type="image/png" sizes="32x32">
 <link rel="apple-touch-icon" href="/brand/viale-apple-touch-icon.png">
 <meta name="theme-color" content="#1E2B4A">
 <meta property="og:title" content="Viale">
-<meta property="og:description" content="A street of verified shops where your AI agent runs your errands, and every step is proven on Concordium.">
+<meta property="og:description" content="Send an AI agent shopping on a street of verified businesses, proven on Concordium.">
 <meta property="og:image" content="https://viale.nerom.site/brand/viale-og.png">
 <meta property="og:url" content="https://viale.nerom.site">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://viale.nerom.site/brand/viale-og.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root { --bg:#F6F1E7; --text:#1E2B4A; --muted:#5b6475; --line:#e3ded3; --accent:#2a4d8f; --brass:#C9A14A; }
-  * { box-sizing:border-box; }
-  body { margin:0; background:var(--bg); color:var(--text); font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif; }
-  main { max-width:640px; margin:0 auto; padding:72px 16px; }
-  h1 { margin:0 0 20px; line-height:0; }
-  h1 img { height:56px; width:auto; }
-  p { margin:0 0 16px; color:var(--muted); }
-  .lead { color:var(--text); font-size:19px; }
-  ul { padding:0; list-style:none; border-top:1px solid var(--line); margin:32px 0 0; }
-  li { padding:12px 0; border-bottom:1px solid var(--line); }
-  a { color:var(--accent); }
-  small { color:var(--muted); }
+:root{--paper:#F6F1E7;--ink:#1E2B4A;--muted:#6b7385;--line:#e6dfd1;--brass:#C9A14A;--sky:#7FAEE3;--ok:#2f7d55;--okbg:#e6f2ea;--bad:#b0412e;--badbg:#f8e6e1;--wait:#9a7420;--waitbg:#f6edd6}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 Geist,system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:#2a4d8f}
+.mono{font-family:'Geist Mono',ui-monospace,monospace}
+.lab{font:500 11px/1.2 'Geist Mono',ui-monospace,monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:99px;font-size:12.5px;font-weight:500;white-space:nowrap}
+.ok{background:var(--okbg);color:var(--ok)}.bad{background:var(--badbg);color:var(--bad)}.wait{background:var(--waitbg);color:var(--wait)}
+
+nav{display:flex;align-items:center;justify-content:space-between;padding:22px 48px}
+nav img{height:30px;display:block}
+nav .r{display:flex;gap:22px;align-items:center;font-size:14px}
+nav .r a{color:var(--muted);text-decoration:none}nav .r a:hover{color:var(--ink)}
+
+.top{text-align:center;padding:6px 48px 22px}
+h1{font-size:48px;line-height:1.05;letter-spacing:-.03em;font-weight:600;margin:14px auto 12px;max-width:820px}
+.sub{color:var(--muted);font-size:17px;margin:0 auto 24px;max-width:640px}
+form.task{display:flex;gap:8px;background:#fff;border:1px solid var(--line);border-radius:99px;padding:6px 6px 6px 18px;align-items:center;max-width:640px;margin:0 auto}
+form.task input{flex:1;min-width:0;border:0;outline:0;font:15px Geist,system-ui,sans-serif;background:transparent;color:var(--ink)}
+.btn{background:var(--ink);color:#fff;border:0;border-radius:99px;padding:12px 20px;font:600 14px Geist,system-ui,sans-serif;cursor:pointer;white-space:nowrap}
+.btn:disabled{opacity:.45;cursor:default}
+.ideas{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.ideas button{border:1px solid var(--line);background:transparent;border-radius:99px;padding:6px 12px;font:13px Geist,system-ui,sans-serif;color:var(--muted);cursor:pointer}
+.ideas button:hover{background:#fff;color:var(--ink)}
+.limits{margin-top:12px}
+.msg{margin:10px auto 0;color:var(--bad);font-size:14px;min-height:1px}
+
+.stage{position:relative;margin:0 24px;border-radius:28px;overflow:hidden;container-type:inline-size;background:#3a2c22}
+.stage img{width:100%;height:auto;display:block}
+.plate{position:absolute;transform:translate(-50%,-50%);background:#F3EBDA;color:var(--ink);border:2px solid var(--brass);border-radius:6px;padding:.35cqw 1cqw;font:600 1.35cqw/1.2 Geist,system-ui,sans-serif;white-space:nowrap;text-align:center;box-shadow:0 2px 0 rgba(0,0,0,.15);overflow:hidden;text-overflow:ellipsis}
+.plate.dark{background:#1E2B4A;color:#E9D7A6;border-color:#8a7440}
+.pin{position:absolute;top:3.5%;transform:translateX(-50%);background:rgba(255,255,255,.95);backdrop-filter:blur(6px);border:0;border-radius:14px;padding:9px 12px;box-shadow:0 10px 30px rgba(30,43,74,.18);text-align:left;font:inherit;color:inherit;cursor:pointer;max-width:300px;z-index:2}
+.pin .lab{display:block;margin-bottom:5px}
+.pin ul{display:none;list-style:none;margin:10px 0 2px;padding:0;font-size:12.5px;line-height:1.4;white-space:normal;min-width:260px}
+.pin ul li{padding:3px 0 3px 18px;position:relative}.pin ul li:before{position:absolute;left:0}
+.pin ul li.y:before{content:"✓";color:var(--ok)}.pin ul li.n:before{content:"✗";color:var(--bad)}
+.pin.open ul{display:block}.pin.open{z-index:3}
+.pin.here{outline:2px solid var(--sky)}
+.agent{position:absolute;top:86%;transform:translateX(-50%);display:none;align-items:center;gap:8px;background:var(--ink);color:#fff;border-radius:99px;padding:7px 12px 7px 8px;font-size:13px;font-weight:500;transition:left .7s cubic-bezier(.3,.7,.2,1);white-space:nowrap;z-index:2}
+.agent.on{display:flex}
+.agent i{width:18px;height:18px;border-radius:50%;background:var(--sky);display:block}
+.offline{position:absolute;inset:auto 0 0 0;padding:12px 16px;background:rgba(30,43,74,.85);color:#fff;font-size:14px;text-align:center}
+.shoplist{display:none}
+
+.panel{margin:20px 48px 48px;display:grid;grid-template-columns:1.4fr 1fr;gap:20px;align-items:start}
+.card{background:#fff;border:1px solid var(--line);border-radius:24px;padding:26px 28px}
+.card .head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 18px}
+.steps{list-style:none;margin:0;padding:0}
+.steps>li{display:grid;grid-template-columns:22px 1fr;gap:14px;padding:0 0 18px;position:relative;animation:in .35s ease both}
+@keyframes in{from{opacity:0;transform:translateY(4px)}}
+.steps>li:before{content:"";position:absolute;left:10px;top:20px;bottom:0;width:1px;background:var(--line)}
+.steps>li:last-child:before{display:none}
+.dot{width:21px;height:21px;border-radius:50%;border:1.5px solid var(--line);background:#fff;margin-top:1px}
+.dot.ok{background:var(--okbg);border-color:#bfdcc9}.dot.bad{background:var(--badbg);border-color:#ebc3b9}
+.dot.pay{background:#f3e7c8;border-color:#e3cf98}.dot.seal{background:var(--ink);border-color:var(--ink)}
+.dot.wait{background:var(--waitbg);border-color:#e3cf98;animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.4}}
+.steps b{font-weight:600;font-size:15px}
+.steps p{margin:3px 0 0;color:var(--muted);font-size:14px}
+.checks{list-style:none;margin:6px 0 0;padding:0;font-size:13.5px;color:var(--muted)}
+.checks li{display:block;padding:2px 0 2px 18px;position:relative;animation:none}
+.checks li:before{position:absolute;left:0;top:2px;bottom:auto;width:auto;background:none}
+.checks li.y:before{content:"✓";color:var(--ok)}.checks li.n:before{content:"✗";color:var(--bad)}
+.says{margin-top:6px;padding:10px 14px;background:var(--paper);border-radius:12px;font-size:14px;color:var(--ink);white-space:pre-wrap}
+.says summary{cursor:pointer;list-style:none}.says summary::-webkit-details-marker{display:none}
+.says summary:after{content:" · more";color:var(--muted)}.says[open] summary:after{content:""}
+.empty{color:var(--muted);font-size:14px}
+
+.rec{background:var(--ink);color:#fff;border:0;position:sticky;top:20px}
+.rec .lab{color:#aeb6c8}
+.big{font-size:44px;font-weight:300;letter-spacing:-.03em;margin:6px 0 2px}
+.row{display:flex;justify-content:space-between;gap:16px;padding:11px 0;border-top:1px solid rgba(255,255,255,.12);font-size:14px}
+.row span:first-child{color:#aeb6c8;flex:none}.row span:last-child{text-align:right;overflow-wrap:anywhere}
+.rec a{color:#cfe0ff}
+footer{padding:0 48px 40px;color:var(--muted);font-size:13px}
+
+  .shoplist .card{padding:14px 16px;border-radius:16px}
+  .shoplist .card ul{list-style:none;margin:8px 0 0;padding:0;font-size:13px;color:var(--muted)}
+  .shoplist .card li{padding:2px 0 2px 18px;position:relative}.shoplist .card li:before{position:absolute;left:0}
+  .shoplist li.y:before{content:"✓";color:var(--ok)}.shoplist li.n:before{content:"✗";color:var(--bad)}
+@media (max-width:1000px){
+  .pin{display:none}
+  .shoplist{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin:12px 24px 0}
+}
+@media (max-width:860px){
+  nav{padding:16px}nav .r a.hide{display:none}
+  .top{padding:4px 16px 18px}h1{font-size:34px}.sub{font-size:16px}
+  .stage{margin:0 16px;border-radius:20px}
+  .agent{top:auto;bottom:6%;font-size:12px;padding:5px 10px 5px 6px}.agent i{width:14px;height:14px}
+  .plate{border-width:1px;border-radius:3px}
+  .shoplist{margin:12px 16px 0}
+  .panel{grid-template-columns:1fr;margin:16px 16px 32px}
+  .card{padding:20px}
+  .rec{position:static}
+  footer{padding:0 16px 32px}
+}
 </style>
 </head>
 <body>
-<main>
-  <h1><img src="/brand/viale-lockup.svg" alt="Viale" width="268" height="56"></h1>
-  <p class="lead">A street of verified shops where your AI agent runs your errands, and every step is proven on Concordium.</p>
-  <p>The street is being built during the Concordium Trusted Agents Hackathon. Right now this site hosts the shops' agent cards, which Concordium's Agent Registry points to.</p>
-  <ul id="cards"><li><small>Loading cards…</small></li></ul>
-</main>
+<nav>
+  <a href="/"><img src="/brand/viale-lockup.svg" alt="Viale" width="144" height="30"></a>
+  <div class="r"><span class="lab">Concordium testnet</span></div>
+</nav>
+
+<section class="top">
+  <span class="lab">Errand agent · Claude</span>
+  <h1>Send an AI agent shopping on a street of verified businesses.</h1>
+  <p class="sub">It checks every shop on Concordium, walks away from fakes, pays the exact signed price in test euros, and seals the log on chain.</p>
+  <form class="task" id="task"><input id="taskInput" name="task" maxlength="300" placeholder="Tell the agent what to buy" value="Buy me a small bouquet from Viale Flowers. Pay at most €3." aria-label="Errand"><button class="btn" id="run">Run errand</button></form>
+  <div class="ideas">
+    <button type="button" data-task="Buy me a small bouquet from Viale Flowers. Pay at most €3.">Small bouquet</button>
+    <button type="button" data-task="Buy ten tulips from Viale Flowers. Pay at most €3.">Ten tulips</button>
+    <button type="button" data-task="Buy the cheapest six-pack of lager on the street. Pay at most €3.">Cheapest lager (18+)</button>
+  </div>
+  <p class="lab limits" id="limits">Budget €5 · max €3 a payment · enforced in code</p>
+  <p class="msg" id="msg" role="status"></p>
+</section>
+
+<div class="stage" id="stage">
+  <img src="/street/dusk.jpg" alt="Three shops at dusk: a wine shop, a run-down copy of it, and a flower shop" width="2400" height="1018">
+  <div class="agent" id="agent"><i></i><span id="agentText"></span></div>
+</div>
+<div class="shoplist" id="shoplist"></div>
+
+<section class="panel">
+  <div class="card">
+    <div class="head"><span class="lab">Errand, step by step</span><span class="lab" id="when"></span></div>
+    <ol class="steps" id="steps"><li class="empty" style="display:block">Loading the street…</li></ol>
+  </div>
+  <div class="card rec" id="receipt">
+    <span class="lab">Receipt</span>
+    <div class="big" id="paid">€0.00</div>
+    <p class="lab" id="paidFor" style="margin:0 0 18px">Nothing paid yet</p>
+    <div id="rows"></div>
+  </div>
+</section>
+<footer>Test euros (EUDemo) on Concordium testnet. No real money moves. Shop checks, quotes and payments are live calls; nothing on this page is simulated.</footer>
+
 <script>
-  const ids = ["1406"];
-  const list = document.getElementById("cards");
-  Promise.all(ids.map(id => fetch(`agents/${id}.json`).then(r => r.json()).then(c => ({ id, c })).catch(() => null)))
-    .then(rows => {
-      list.innerHTML = "";
-      for (const row of rows.filter(Boolean)) {
-        const li = document.createElement("li");
-        const a = document.createElement("a");
-        a.href = `agents/${row.id}.json`; a.textContent = `#${row.id} ${row.c.name}`;
-        const s = document.createElement("small"); s.textContent = ` · agent card`;
-        li.append(a, s); list.append(li);
-      }
-    });
+// Where each shop stands in the street picture (the art is drawn for these three registered shops).
+const SPOT = { '1526': { x: 21.3, plate: 'dark', w: 18, name: 'The Bottle Shop' }, '1406': { x: 48, plate: 'dark', w: 15, tilt: -2, name: 'The Bottle Shop' }, '1527': { x: 80.4, plate: '', w: 22, name: 'Viale Flowers' } };
+const $ = (id) => document.getElementById(id);
+const h = (tag, attrs = {}, ...kids) => {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (v == null || v === false) continue;
+    if (k === 'class') el.className = v; else if (k === 'style') el.style.cssText = v; else el.setAttribute(k, v);
+  }
+  for (const k of kids.flat()) if (k != null && k !== false) el.append(k instanceof Node ? k : String(k));
+  return el;
+};
+const short = (a) => a ? `${String(a).slice(0, 6)}…` : '';
+const shortTx = (t) => t ? `${t.slice(0, 6)}…${t.slice(-4)}` : '';
+const eur = (n) => `€${Number(n).toFixed(2)}`;
+let explorer = 'https://ccdexplorer.io/testnet';
+const txLink = (t) => h('a', { href: `${explorer}/transaction/${t}`, target: '_blank', rel: 'noopener', class: 'mono' }, `${shortTx(t)} ↗`);
+
+let shops = {};           // token_id -> live shop check from /api/street
+let source;               // EventSource of the errand being followed
+let state;                // receipt state for the errand on screen
+
+function idLabel(s) {
+  if (s.trade) return s.passed.some((p) => /business identity/.test(p)) ? '✓ Business ID · Trade' : '✓ Checks pass · Trade';
+  return `✗ ${s.failed.some((r) => /personal identity/.test(r)) ? 'Personal ID' : 'Failed check'} · Walk away`;
+}
+const checkList = (s) => [...s.passed.map((p) => h('li', { class: 'y' }, p)), ...s.failed.map((r) => h('li', { class: 'n' }, r))];
+
+// Name plates go up at once (the picture's own signs are placeholder art); live names replace them when the street loads.
+function drawPlates(list) {
+  $('stage').querySelectorAll('.plate').forEach((n) => n.remove());
+  for (const s of list) {
+    const spot = SPOT[s.token_id];
+    if (spot) $('stage').append(h('div', { class: `plate ${spot.plate}`, style: `left:${spot.x}%;top:28.6%;width:${spot.w}%${spot.tilt ? `;transform:translate(-50%,-50%) rotate(${spot.tilt}deg)` : ''}` }, s.name));
+  }
+}
+drawPlates(Object.entries(SPOT).map(([token_id, s]) => ({ token_id, name: s.name })));
+
+function drawStreet(list) {
+  list = [...list].sort((a, b) => (SPOT[a.token_id]?.x ?? 999) - (SPOT[b.token_id]?.x ?? 999));
+  shops = Object.fromEntries(list.map((s) => [s.token_id, s]));
+  drawPlates(list);
+  const stage = $('stage');
+  stage.querySelectorAll('.pin').forEach((n) => n.remove());
+  $('shoplist').replaceChildren();
+  for (const s of list) {
+    const spot = SPOT[s.token_id];
+    const tag = `#${s.token_id}${s.age_gated ? ' · 18+' : ''}`;
+    $('shoplist').append(h('div', { class: 'card' }, h('span', { class: 'lab' }, tag), ' ', h('b', {}, s.name), h('div', { style: 'margin-top:6px' }, h('span', { class: `chip ${s.trade ? 'ok' : 'bad'}` }, idLabel(s))), h('ul', {}, checkList(s))));
+    if (!spot) continue;
+    const pin = h('button', { class: 'pin', id: `pin-${s.token_id}`, style: `left:${spot.x}%`, type: 'button', 'aria-expanded': 'false', title: 'Show the checks' },
+      h('span', { class: 'lab' }, tag), h('span', { class: `chip ${s.trade ? 'ok' : 'bad'}` }, idLabel(s)), h('ul', {}, checkList(s)));
+    pin.onclick = () => { const open = pin.classList.toggle('open'); pin.setAttribute('aria-expanded', open); };
+    stage.append(pin);
+  }
+}
+
+function moveAgent(tokenId, text) {
+  const a = $('agent');
+  const spot = tokenId && SPOT[tokenId];
+  if (spot) a.style.left = `${spot.x}%`; else if (!a.style.left) a.style.left = '50%';
+  $('agentText').textContent = text;
+  a.classList.add('on');
+  document.querySelectorAll('.pin').forEach((p) => p.classList.toggle('here', p.id === `pin-${tokenId}`));
+}
+const shopName = (id, fallback) => shops[id]?.name ?? fallback ?? `shop #${id}`;
+
+function addStep(dot, title, ...body) {
+  const li = h('li', {}, h('span', { class: `dot ${dot}` }), h('div', {}, h('b', {}, title), ...body));
+  $('steps').append(li);
+  return li;
+}
+let waitingLi;
+function waiting(text) {
+  waitingLi?.remove();
+  waitingLi = text ? addStep('wait', text) : undefined;
+}
+
+function resetErrand(task, limits) {
+  $('steps').replaceChildren();
+  state = { spent: 0, budget: limits?.budgetEur ?? 5, payments: [], quote: null, owner: null, anchor: null, refused: [] };
+  addStep('', 'You asked', h('p', {}, `“${task}”`), limits ? h('p', { class: 'lab', style: 'margin-top:6px' }, `Budget €${limits.budgetEur} · max €${limits.maxPaymentEur} a payment · enforced in code`) : null);
+  drawReceipt();
+}
+
+function drawReceipt() {
+  const last = state.payments.at(-1);
+  $('paid').textContent = eur(state.spent);
+  $('paidFor').textContent = last ? state.payments.map((p) => `${p.item} · ${p.shop}`).join(' + ') : state.refused.length ? 'Nothing paid. The agent refused.' : 'Nothing paid yet';
+  const rows = [];
+  const row = (k, v) => rows.push(h('div', { class: 'row' }, h('span', {}, k), h('span', {}, v)));
+  if (state.owner) row('Shop owner', h('span', { class: 'mono' }, `${short(state.owner.address)}${state.owner.business ? ' · Business ID' : ''}`));
+  if (state.quote) row('Quote', `${state.quote.item}, ${eur(state.quote.price_eur)} · signed`);
+  for (const p of state.payments) { row('Paid to', h('span', { class: 'mono' }, `${short(p.payTo)} (registered till)`)); row('Payment', txLink(p.tx)); }
+  for (const r of state.refused) row('Refused', r);
+  if (state.anchor) row('Log seal', txLink(state.anchor));
+  row('Budget left', `${eur(state.budget - state.spent)} of ${eur(state.budget)}`);
+  $('rows').replaceChildren(...rows);
+}
+
+function onStep(e) {
+  const s = e.step;
+  if (s === 'task') return resetErrand(e.task, e.limits);
+  if (s === 'mandate' || s === 'report') return;
+  if (s === 'tool_call') {
+    const id = e.input?.token_id;
+    const name = shopName(id, e.input?.expected_name);
+    const say = { find_shops: ['Looking up shops in the Agent Registry…'], check_shop: [`Checking ${name}…`, `Checking ${name}`], see_menu: [`Reading the menu at ${name}…`, `At ${name}`], get_quote: [`Asking ${name} for a signed price…`, `Getting a quote from ${name}`], pay_shop: ['Paying…', 'Paying'], prove_age: ['Asking you to prove you are 18+…', '18+ check'] }[e.tool] ?? [`${e.tool}…`];
+    waiting(say[0]);
+    moveAgent(id, say[1] ?? say[0]);
+    return;
+  }
+  waiting(null);
+  if (s === 'find_shops') {
+    const names = (e.found ?? []).map((f) => `${f.claimed_name ?? 'unnamed'} #${f.token_id}`);
+    addStep('', `Found ${names.length} shop${names.length === 1 ? '' : 's'} on the street`, h('p', {}, `Read from Concordium’s Agent Registry: ${names.join(', ') || 'none'}.`));
+  } else if (s === 'check_shop') {
+    const name = shopName(e.token_id, e.expected_name);
+    addStep(e.ok ? 'ok' : 'bad', `${e.ok ? 'Checked' : 'Walked away from'} ${name} #${e.token_id}`,
+      h('ul', { class: 'checks' }, (e.passed ?? []).map((p) => h('li', { class: 'y' }, p)), (e.reasons ?? []).map((r) => h('li', { class: 'n' }, r))));
+    if (e.ok) state.owner = { address: e.owner, business: (e.passed ?? []).some((p) => /business identity/.test(p)) };
+    moveAgent(e.token_id, e.ok ? `${name} passed` : `Walked away from #${e.token_id}`);
+    drawReceipt();
+  } else if (s === 'see_menu') {
+    addStep('', `Read the menu at ${shopName(e.token_id)}`, h('p', {}, e.error ? e.error : (e.items ?? []).map((i) => `${i.name} €${i.priceEur.toFixed(2)}`).join(' · ')));
+  } else if (s === 'quote') {
+    const q = e.quote;
+    state.quote = q;
+    addStep('ok', `Got a signed quote: ${q.item}, ${eur(q.price_eur)}`, h('p', {}, 'Signed by the shop’s owner account ', h('span', { class: 'mono' }, short(q.shop_owner)), '. Signature checked against its keys on chain. Pay to ', h('span', { class: 'mono' }, short(q.pay_to)), ', the shop’s registered till.'));
+    drawReceipt();
+  } else if (s === 'quote_rejected' || s === 'quote_failed') {
+    addStep('bad', `Refused a quote from ${shopName(e.token_id)}`, h('ul', { class: 'checks' }, (e.reasons ?? [e.error]).map((r) => h('li', { class: 'n' }, r))));
+  } else if (s === 'age_proof_requested') {
+    addStep('wait', `${e.shop} asks you to prove you are 18+`, h('p', {}, 'Zero-knowledge: the shop learns only yes or no. ', h('a', { href: e.url, target: '_blank', rel: 'noopener' }, 'Open the proof page ↗'), ' (needs the Concordium ID app on testnet; the request expires in 10 minutes).'));
+    moveAgent(e.token_id, 'Waiting for your 18+ proof');
+  } else if (s === 'age_proof_result') {
+    addStep(e.state === 'verified' ? 'ok' : 'bad', e.state === 'verified' ? 'Age proof verified on chain' : `No age proof (${e.state})`, e.verifyTx ? h('p', {}, txLink(e.verifyTx)) : e.error ? h('p', {}, e.error) : null);
+  } else if (s === 'payment_refused') {
+    state.refused.push((e.reasons ?? []).join('; '));
+    addStep('bad', `Payment of ${eur(e.amount_eur)} refused by your limits`, h('ul', { class: 'checks' }, (e.reasons ?? []).map((r) => h('li', { class: 'n' }, r))));
+    drawReceipt();
+  } else if (s === 'payment_failed') {
+    addStep('bad', `Payment of ${eur(e.amount_eur)} did not go through`, h('p', {}, e.reason));
+  } else if (s === 'payment') {
+    state.spent += e.amount_eur;
+    state.payments.push({ item: e.item, shop: e.shop, payTo: e.payTo, tx: e.tx });
+    addStep('pay', `Paid ${eur(e.amount_eur)} in test euros`, h('p', {}, `${e.item} from ${e.shop}. Exactly the quoted price, to till `, h('span', { class: 'mono' }, short(e.payTo)), '. ', txLink(e.tx)));
+    moveAgent(e.token_id, `Paid ${e.shop}`);
+    drawReceipt();
+  } else if (s === 'agent_says') {
+    const text = String(e.text).replace(/\*\*/g, '').trim();
+    const [first, ...rest] = text.split('\n');
+    addStep('', 'The agent says', rest.join('').trim() ? h('details', { class: 'says' }, h('summary', {}, first), rest.join('\n').trim()) : h('div', { class: 'says' }, first));
+  } else if (s === 'tool_error') {
+    addStep('bad', `A ${e.tool} call failed`, h('p', {}, e.error));
+  } else if (s === 'model_refused') {
+    addStep('bad', 'The model declined the errand');
+  } else if (s === 'log_anchored') {
+    state.anchor = e.tx;
+    addStep('seal', 'Sealed the errand log on Concordium', h('p', {}, 'Anyone holding the log can recompute its hash and check it against this transaction. ', txLink(e.tx)));
+    drawReceipt();
+  } else if (s === 'anchor_failed') {
+    addStep('bad', 'Could not seal the log on chain', h('p', {}, e.error));
+  } else if (s === 'finished' || s === 'failed') {
+    if (s === 'failed') addStep('bad', 'The errand stopped', h('p', {}, e.error));
+    $('agentText').textContent = s === 'failed' ? 'Errand stopped' : state.payments.length ? 'Errand done' : 'Errand done · nothing bought';
+    document.querySelectorAll('.pin').forEach((p) => p.classList.remove('here'));
+    source?.close(); source = undefined;
+    $('run').disabled = false;
+  }
+}
+
+function follow(id, label) {
+  source?.close();
+  $('when').textContent = label;
+  $('run').disabled = true;
+  source = new EventSource(`/api/errands/${id}/events`);
+  source.onmessage = (m) => onStep(JSON.parse(m.data));
+  source.onerror = () => { if (source?.readyState === EventSource.CLOSED) $('run').disabled = false; };
+}
+
+function replay(steps, id) {
+  const at = steps.find((x) => x.at)?.at;
+  $('when').textContent = `Last errand · ${at ? new Date(at).toUTCString().slice(5, 22) + ' UTC' : id}`;
+  for (const e of steps) onStep(e);
+}
+
+async function start() {
+  try {
+    const r = await fetch('/api/street');
+    if (!r.ok) throw new Error();
+    const st = await r.json();
+    explorer = st.explorer ?? explorer;
+    if (st.limits) $('limits').textContent = `Budget €${st.limits.budgetEur} · max €${st.limits.maxPaymentEur} a payment · enforced in code`;
+    drawStreet(st.shops);
+  } catch {
+    $('stage').append(h('div', { class: 'offline' }, 'The street server is offline, so shops can’t be checked right now.'));
+    $('run').disabled = true;
+    $('steps').replaceChildren(h('li', { class: 'empty', style: 'display:block' }, 'No errand to show.'));
+    return;
+  }
+  const last = await (await fetch('/api/errands/latest')).json().catch(() => ({ none: true }));
+  if (last.recorded) replay(last.steps, last.id);
+  else if (last.id) follow(last.id, last.live ? 'Live now' : 'Last errand');
+  else $('steps').replaceChildren(h('li', { class: 'empty', style: 'display:block' }, 'No errands yet. Send the first one.'));
+}
+
+$('task').onsubmit = async (ev) => {
+  ev.preventDefault();
+  $('msg').textContent = '';
+  $('run').disabled = true;
+  try {
+    const r = await fetch('/api/errands', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ task: $('taskInput').value }) });
+    const j = await r.json();
+    if (!r.ok || !j.id) throw new Error(j.error ?? 'Could not start the errand.');
+    $('agent').classList.remove('on');
+    follow(j.id, 'Live now');
+    $('steps').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } catch (err) {
+    $('msg').textContent = err.message;
+    $('run').disabled = false;
+  }
+};
+document.querySelectorAll('.ideas button').forEach((b) => (b.onclick = () => { $('taskInput').value = b.dataset.task; $('taskInput').focus(); }));
+start();
 </script>
 </body>
 </html>
