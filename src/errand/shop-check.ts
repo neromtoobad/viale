@@ -51,7 +51,7 @@ export async function checkShop(tokenId: string, expectedName?: string): Promise
 
   const badge = await checkBadge(agent.token_address);
   if (badge.badge_valid) v.passed.push('Verified-by-Concordium badge valid (card hash matches the chain)');
-  else v.reasons.push(`badge invalid: ${badge.issues.join('; ') || 'failed checks ' + Object.entries(badge.checks).filter(([, x]) => x === false).map(([k]) => k).join(', ')}`);
+  else v.reasons.push(`badge invalid: ${badge.issues.map((i) => (typeof i === 'string' ? i : i.message)).join('; ') || 'failed checks ' + Object.entries(badge.checks).filter(([, x]) => x === false).map(([k]) => k).join(', ')}`);
 
   const idps = await accountIdentityProviders(agent.owner_account);
   const business = await businessIdentityProviders();

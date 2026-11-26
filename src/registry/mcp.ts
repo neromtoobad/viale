@@ -57,7 +57,7 @@ export type AgentRecord = {
 export type BadgeVerdict = {
   badge_valid: boolean;
   checks: Record<string, boolean | string>;
-  issues: string[];
+  issues: (string | { severity?: string; field?: string; message: string })[];
   card_sha256?: string;
 };
 
