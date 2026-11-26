@@ -2,9 +2,13 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { authorizePayment, type Ledger, type Mandate } from './guards.ts';
 import { quoteTermsProblems, type VerifiedQuote } from './quote-check.ts';
+import { draftMandate, mandateTermsProblems } from './mandate.ts';
 import type { ShopVerdict } from './shop-check.ts';
 
-const mandate: Mandate = { task: 'buy wine', budgetEur: 10, maxPaymentEur: 6, expiresAt: '2099-01-01T00:00:00Z' };
+const mandate: Mandate = {
+  task: 'buy wine', budgetEur: 10, maxPaymentEur: 6, expiresAt: '2099-01-01T00:00:00Z',
+  signed: { mandateId: 'm-1', human: 'human', message: '{}', signature: {} }, verified: true,
+};
 const fresh = (): Ledger => ({ spentEur: 0, payments: [] });
 const goodShop: ShopVerdict = { ok: true, tokenId: '1', name: 'The Bottle Shop', owner: '4UVs', payTo: '3HNi', reasons: [], passed: [] };
 const impostor: ShopVerdict = { ...goodShop, ok: false, reasons: ['owner holds only a personal identity'] };
@@ -81,4 +85,23 @@ test('quote terms must match the checked shop', () => {
   assert.deepEqual(quoteTermsProblems(terms, goodShop), []);
   assert.match(quoteTermsProblems({ ...terms, shop_owner: '3bV1' }, goodShop).join(), /registry says/);
   assert.match(quoteTermsProblems({ ...terms, price_eur: -1 }, goodShop).join(), /no valid price/);
+});
+
+test('refuses to pay under a mandate that no human signed', () => {
+  const { signed, verified, ...unsigned } = mandate;
+  assert.match(why(pay(2, { m: unsigned })), /not signed by a human/);
+  assert.match(why(pay(2, { m: { ...mandate, verified: undefined } })), /not signed by a human/);
+});
+
+test('mandate terms: right agent, within the street limits, not expired', () => {
+  const limits = { budgetEur: 5, maxPaymentEur: 3, maxMinutes: 30 };
+  const now = new Date('2026-11-26T12:00:00Z');
+  const t = draftMandate({ task: 'buy flowers', human: 'H', agent: 'A', budgetEur: 5, maxPaymentEur: 3, minutes: 15, now });
+  assert.deepEqual(mandateTermsProblems(t, { agent: 'A', limits, now }), []);
+  assert.match(mandateTermsProblems(t, { agent: 'B', limits, now }).join(), /not this agent/);
+  assert.match(mandateTermsProblems({ ...t, budget_eur: 50 }, { agent: 'A', limits, now }).join(), /over this street/);
+  assert.match(mandateTermsProblems({ ...t, max_payment_eur: 0 }, { agent: 'A', limits, now }).join(), /valid cap/);
+  assert.match(mandateTermsProblems(t, { agent: 'A', limits, now: new Date('2026-11-26T12:16:00Z') }).join(), /expired/);
+  assert.match(mandateTermsProblems({ ...t, expires_at: '2026-11-26T14:00:00Z' }, { agent: 'A', limits, now }).join(), /longer than 30 minutes/);
+  assert.match(mandateTermsProblems({ ...t, kind: 'other' } as any, { agent: 'A', limits, now }).join(), /not a Viale mandate/);
 });

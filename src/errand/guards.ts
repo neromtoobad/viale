@@ -1,5 +1,5 @@
-// Hard limits on what the errand agent may pay. The human sets the mandate before the errand starts;
-// the language model can't change it. Every payment passes through authorizePayment() in code,
+// Hard limits on what the errand agent may pay. The human signs the mandate before the errand starts
+// (src/errand/mandate.ts checks the signature on chain); the language model can't change it. Every payment passes through authorizePayment() in code,
 // whatever the model says, so a confused or manipulated model still can't overspend or pay an unchecked shop.
 // (Protocol-level account locks replace this in-process check when they reach testnet.)
 import type { ShopVerdict } from './shop-check.ts';
@@ -11,6 +11,8 @@ export type Mandate = {
   maxPaymentEur: number; // cap on any single payment
   allowedShops?: string[]; // optional: only shops with these card names
   expiresAt: string; // ISO time after which the agent may not pay
+  signed?: { mandateId: string; human: string; message: string; signature: unknown }; // the human's signed mandate
+  verified?: true; // set only by verifyMandate(), after the signature checked out against the human's keys on chain
 };
 
 export type Ledger = { spentEur: number; payments: { tokenId: string; amount: number; tx: string; quoteId?: string }[] };
@@ -22,6 +24,7 @@ const cents = (x: number) => Math.round(x * 100);
 export function authorizePayment(m: Mandate, ledger: Ledger, shop: ShopVerdict | undefined, amountEur: number, opts: { ageProven?: boolean; quote?: VerifiedQuote; now?: Date } = {}): Decision {
   const now = opts.now ?? new Date();
   const reasons: string[] = [];
+  if (m.verified !== true || !m.signed) reasons.push('the mandate is not signed by a human, so nothing can be paid');
   if (!Number.isFinite(amountEur) || amountEur <= 0) reasons.push(`amount €${amountEur} is not a positive number`);
   if (cents(amountEur) > cents(m.maxPaymentEur)) reasons.push(`€${amountEur} is over the €${m.maxPaymentEur} limit for one payment`);
   if (cents(ledger.spentEur + amountEur) > cents(m.budgetEur))
