@@ -10,7 +10,7 @@ import { checkShop, type ShopVerdict } from '../errand/shop-check.ts';
 import { SHOPS } from '../street/shops.ts';
 import { CATALOG } from '../street/catalog.ts';
 import { AccountAddress } from '@concordium/web-sdk';
-import { agentWallet, sponsorWallet } from '../chain/keys.ts';
+import { agentWallet, shopOwnerWallet, sponsorWallet } from '../chain/keys.ts';
 import { draftMandate, signMandate, verifyMandate, type SignedMandate } from '../errand/mandate.ts';
 
 const MAX_PER_HOUR = Number(process.env.VIALE_ERRANDS_PER_HOUR ?? 6);
@@ -18,6 +18,11 @@ const LIMITS = { budgetEur: 5, maxPaymentEur: 3 };
 const MANDATE_MINUTES = 15;
 const MANDATE_LIMITS = { ...LIMITS, maxMinutes: 30 };
 const usedMandates = new Set<string>();
+// Accounts whose keys this server holds (the shop till's key is used once, in tools/set-till). A wallet
+// mandate signed by one of them would not show that anyone but Viale agreed, so only the demo path uses one.
+const TILL = '3HNiUGKvauG2NZXSabcsQ5eaYRbtqWYfYVUkGtzxJ37kfj64ji';
+const vialeHeld = () => new Set([sponsorWallet(), shopOwnerWallet()].map((w) => w.address.address).concat(TILL));
+const HELD_BY_VIALE = "That is one of Viale's own accounts: its key is on Viale's server, so its signature can't stand for you. Pick or create an account of your own in your wallet.";
 let starting = false;
 
 /** The mandate a visitor's wallet signs: their task, this agent, the street's limits, 15 minutes. */
@@ -25,6 +30,7 @@ export function mandateDraft(task: unknown, human: unknown): { message?: string;
   const t = String(task ?? '').trim().slice(0, 300);
   if (!t) return { error: 'Tell the agent what to buy.' };
   try { AccountAddress.fromBase58(String(human)); } catch { return { error: 'That is not a Concordium account address.' }; }
+  if (vialeHeld().has(String(human))) return { error: HELD_BY_VIALE };
   if (String(human) === agentWallet().address.address) return { error: "That is the errand agent's own account. Pick another account in your wallet: the agent can't sign its own limits." };
   const terms = draftMandate({ task: t, human: String(human), agent: agentWallet().address.address, budgetEur: LIMITS.budgetEur, maxPaymentEur: LIMITS.maxPaymentEur, minutes: MANDATE_MINUTES });
   return { message: JSON.stringify(terms) };
@@ -59,6 +65,7 @@ export async function startErrand(input: { task?: unknown; mandate?: SignedManda
     const check = await verifyMandate(signed, { agent, limits: MANDATE_LIMITS });
     if (!check.ok) return { error: `Mandate refused: ${check.reasons.join('; ')}`, status: 400 };
     const m = check.mandate;
+    if (!demo && vialeHeld().has(m.signed!.human)) return { error: HELD_BY_VIALE, status: 400 };
     if (usedMandates.has(m.signed!.mandateId)) return { error: 'This mandate has already been used. Sign a new one.', status: 400 };
     usedMandates.add(m.signed!.mandateId);
     started.push(Date.now());
