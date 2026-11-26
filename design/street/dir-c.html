@@ -1,0 +1,55 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="shared.css"><style>
+nav{display:flex;align-items:center;justify-content:space-between;padding:22px 48px}nav img{height:30px}
+nav .r{display:flex;gap:22px;align-items:center;font-size:14px;color:var(--muted)}
+.top{padding:10px 48px 0;max-width:880px}
+h1{font-size:44px;line-height:1.06;letter-spacing:-.03em;font-weight:600;margin:14px 0 12px}
+.sub{color:var(--muted);font-size:17px;margin:0 0 24px}
+.wrap{display:grid;grid-template-columns:1fr 380px;gap:28px;padding:30px 48px 48px}
+.street{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;align-items:end;border-bottom:10px solid #d9cfbd;padding-bottom:0;position:relative}
+.shop{background:#fff;border:1px solid var(--line);border-bottom:0;border-radius:18px 18px 0 0;position:relative;padding:0 0 0}
+.sign{margin:16px 16px 0;padding:10px 12px;border:1.5px solid var(--ink);border-radius:8px;text-align:center;font-weight:600;font-size:15px}
+.awn{height:46px;margin:14px -8px 0;border-radius:0 0 14px 14px;background:repeating-linear-gradient(90deg,var(--ink) 0 22px,#F3EBDA 22px 44px);box-shadow:0 6px 10px rgba(30,43,74,.12)}
+.awn.sky{background:repeating-linear-gradient(90deg,var(--sky) 0 22px,#fff 22px 44px)}
+.awn.off{background:repeating-linear-gradient(90deg,#3b4558 0 22px,#e9e2d2 22px 44px);transform:rotate(-1.2deg)}
+.front{display:grid;grid-template-columns:1fr 70px;gap:10px;padding:18px 16px 0}
+.win{height:110px;border-radius:10px;background:linear-gradient(180deg,#eef3fb,#dfe7f3);border:1px solid #d5dde9}
+.door{height:150px;border-radius:36px 36px 0 0;background:#e9dfcc;border:1px solid #d8ccb4;border-bottom:0;position:relative}
+.stamp{position:absolute;top:22px;left:50%;transform:translate(-50%,0) rotate(-8deg);width:58px;height:58px;border-radius:50%;display:grid;place-items:center;font:600 10px/1.1 'Geist Mono';text-align:center;border:2px solid}
+.stamp.ok{color:var(--ok);border-color:var(--ok);background:rgba(230,242,234,.9)}.stamp.bad{color:var(--bad);border-color:var(--bad);background:rgba(248,230,225,.9)}
+.meta{padding:14px 16px 16px}.meta .lab{display:block;margin-bottom:6px}
+.walker{position:absolute;bottom:14px;left:73%;background:var(--ink);color:#fff;border-radius:99px;padding:6px 12px;font-size:12.5px;font-weight:500}
+.tape{background:#fffdf8;border:1px solid var(--line);padding:26px 24px 30px;font-family:'Geist Mono';font-size:13px;position:relative;
+  -webkit-mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/16px 100%}
+.tape h3{font:600 13px 'Geist Mono';letter-spacing:.08em;text-align:center;margin:0 0 4px}.tape .c{text-align:center;color:var(--muted);margin:0 0 16px}
+.tl{display:flex;justify-content:space-between;padding:7px 0;border-top:1px dashed #d8d0c0}.tl span:last-child{text-align:right}
+.ok2{color:var(--ok)}.tot{font-size:22px;font-weight:500;padding:12px 0}
+</style></head><body>
+<nav><img src="../../public/brand/viale-lockup.svg"><div class="r"><span class="lab">Concordium testnet</span><span>How it’s proven</span><span>Shops</span></div></nav>
+<section class="top"><span class="lab">Errand agent · Claude</span>
+<h1>Send an AI agent shopping on a street of verified businesses.</h1>
+<p class="sub">It checks every shop on Concordium, walks away from fakes, pays the exact signed price in test euros, and seals the log on chain.</p>
+<div class="task" style="max-width:640px"><input value="Buy me a small bouquet from Viale Flowers, at most €3"><button class="btn">Run errand</button></div></section>
+<section class="wrap"><div>
+<div class="street">
+ <div class="shop"><div class="sign">The Bottle Shop</div><div class="awn"></div><div class="front"><div class="win"></div><div class="door"><div class="stamp ok">✓<br>BUSINESS<br>ID</div></div></div></div>
+ <div class="shop"><div class="sign" style="transform:rotate(-1.5deg)">The Bottle Shop</div><div class="awn off"></div><div class="front"><div class="win"></div><div class="door"><div class="stamp bad">✗<br>PERSONAL<br>ID</div></div></div></div>
+ <div class="shop"><div class="sign">Viale Flowers</div><div class="awn sky"></div><div class="front"><div class="win"></div><div class="door"><div class="stamp ok">✓<br>BUSINESS<br>ID</div></div></div></div>
+ <div class="walker">● Agent at Viale Flowers</div>
+</div>
+<div class="street" style="border:0;align-items:start">
+ <div class="meta"><span class="lab">#1526 · 18+</span><span class="chip ok">Trade</span> <span style="color:var(--muted);font-size:13px">House red €2.40</span></div>
+ <div class="meta"><span class="lab">#1406</span><span class="chip bad">Walk away</span> <span style="color:var(--muted);font-size:13px">owner is a person</span></div>
+ <div class="meta"><span class="lab">#1527</span><span class="chip ok">Trade</span> <span style="color:var(--muted);font-size:13px">Bouquet €1.80</span></div>
+</div></div>
+<div class="tape"><h3>VIALE · ERRAND RECEIPT</h3><p class="c">26 NOV 2026 · 16:38 UTC</p>
+<div class="tl"><span>Task</span><span>small bouquet ≤ €3</span></div>
+<div class="tl"><span>Shop</span><span>Viale Flowers #1527</span></div>
+<div class="tl"><span>Registry, badge</span><span class="ok2">✓ ✓</span></div>
+<div class="tl"><span>Owner identity</span><span class="ok2">✓ Business</span></div>
+<div class="tl"><span>Quote signed</span><span class="ok2">✓ 4UVsGd…</span></div>
+<div class="tl tot"><span>PAID</span><span>€1.80</span></div>
+<div class="tl"><span>To till</span><span>3HNiUG…</span></div>
+<div class="tl"><span>Payment tx</span><span>bf43ee…c42a ↗</span></div>
+<div class="tl"><span>Log sealed</span><span>61bf89…b328 ↗</span></div>
+<div class="tl"><span>Budget left</span><span>€3.20 / €5</span></div></div>
+</section></body></html>

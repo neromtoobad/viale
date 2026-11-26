@@ -1,0 +1,49 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="shared.css"><link rel="stylesheet" href="steps.css"><style>
+nav{display:flex;align-items:center;justify-content:space-between;padding:22px 48px}nav img{height:30px}
+nav .r{display:flex;gap:22px;align-items:center;font-size:14px;color:var(--muted)}
+.top{text-align:center;padding:6px 48px 18px}.top .task{max-width:620px;margin:0 auto}
+h1{font-size:48px;line-height:1.05;letter-spacing:-.03em;font-weight:600;margin:14px auto 12px;max-width:820px}
+.sub{color:var(--muted);font-size:17px;margin:0 auto 24px;max-width:640px}
+.stage{position:relative;margin:0 24px;border-radius:28px;overflow:hidden}.stage img{width:100%;display:block}
+.plate{position:absolute;transform:translate(-50%,-50%);background:#F3EBDA;color:var(--ink);border:2px solid var(--brass);border-radius:6px;padding:6px 18px;font:600 19px Geist;letter-spacing:.01em;white-space:nowrap;box-shadow:0 2px 0 rgba(0,0,0,.15)}
+.plate.dark{background:#1E2B4A;color:#E9D7A6;border-color:#8a7440}
+.pin{position:absolute;transform:translateX(-50%);background:rgba(255,255,255,.94);backdrop-filter:blur(6px);border-radius:14px;padding:9px 12px;box-shadow:0 10px 30px rgba(30,43,74,.18);text-align:left}
+.pin .lab{display:block;margin-bottom:5px}
+.agent{position:absolute;left:66%;top:84%;display:flex;align-items:center;gap:8px;background:var(--ink);color:#fff;border-radius:99px;padding:7px 12px 7px 8px;font-size:13px;font-weight:500}
+.agent i{width:18px;height:18px;border-radius:50%;background:var(--sky);display:block}
+.panel{margin:20px 48px 48px;display:grid;grid-template-columns:1.4fr 1fr;gap:20px}
+.card{background:#fff;border:1px solid var(--line);border-radius:24px;padding:26px 28px}
+.card h3{margin:0 0 18px;font-size:13px}.rec{background:var(--ink);color:#fff;border:0}
+.rec .lab{color:#aeb6c8}.big{font-size:44px;font-weight:300;letter-spacing:-.03em;margin:6px 0 2px}.big small{font-size:22px;color:#aeb6c8}
+.row{display:flex;justify-content:space-between;padding:11px 0;border-top:1px solid rgba(255,255,255,.12);font-size:14px}.row span:first-child{color:#aeb6c8}
+</style></head><body>
+<nav><img src="../../public/brand/viale-lockup.svg"><div class="r"><span class="lab">Concordium testnet</span><span>How it’s proven</span><span>Shops</span></div></nav>
+<section class="top"><span class="lab">Errand agent · Claude</span>
+<h1>Send an AI agent shopping on a street of verified businesses.</h1>
+<p class="sub">It checks every shop on Concordium, walks away from fakes, pays the exact signed price in test euros, and seals the log on chain.</p>
+<div class="task"><input value="Buy me a small bouquet from Viale Flowers, at most €3"><button class="btn">Run errand</button></div></section>
+<div class="stage"><img src="dusk-1800.png">
+<div class="plate dark" style="left:21.3%;top:28.6%;width:18%;text-align:center">The Bottle Shop</div>
+<div class="plate dark" style="left:48%;top:28.4%;transform:translate(-50%,-50%) rotate(-2deg)">The Bottle Shop</div>
+<div class="plate" style="left:80.4%;top:28.6%;width:22%;text-align:center">Viale Flowers</div>
+<div class="pin" style="left:21%;top:4%"><span class="lab">#1526 · 18+</span><span class="chip ok">✓ Business ID · Trade</span></div>
+<div class="pin" style="left:48%;top:4%"><span class="lab">#1406</span><span class="chip bad">✗ Personal ID · Walk away</span></div>
+<div class="pin" style="left:80%;top:4%"><span class="lab">#1527</span><span class="chip ok">✓ Business ID · Trade</span></div>
+<div class="agent"><i></i>Agent paying Viale Flowers…</div>
+</div>
+<section class="panel"><div class="card"><h3 class="lab">Errand, step by step</h3><ol class="steps">
+  <li><span class="dot"></span><div><b>You asked</b><p>“Buy me a small bouquet from Viale Flowers. Pay at most €3.”</p><p class="lab">Budget €5 · max €3 a payment · enforced in code</p></div></li>
+  <li><span class="dot"></span><div><b>Found 3 shops on the street</b><p>Read from Concordium’s Agent Registry: The Bottle Shop #1526, The Bottle Shop #1406, Viale Flowers #1527.</p></div></li>
+  <li><span class="dot ok"></span><div><b>Checked Viale Flowers #1527</b>
+    <p class="chips"><span class="chip ok">✓ Registered, active</span><span class="chip ok">✓ Badge matches chain</span><span class="chip ok">✓ Business ID · Global FinReg</span><span class="chip ok">✓ Pays its registered till</span></p></div></li>
+  <li><span class="dot ok"></span><div><b>Got a signed quote: Small bouquet, €1.80</b><p>Signed by the shop’s owner account <span class="mono">4UVsGd…</span>. Signature checked against its keys on chain.</p></div></li>
+  <li><span class="dot pay"></span><div><b>Paid €1.80 in test euros</b><p>Exactly the quoted price, to till <span class="mono">3HNiUG…</span>. <a href="#">bf43ee…c42a ↗</a></p></div></li>
+  <li><span class="dot seal"></span><div><b>Sealed the errand log on Concordium</b><p>Anyone can recheck this log against the chain. <a href="#">61bf89…b328 ↗</a></p></div></li>
+</ol></div>
+<div class="card rec"><h3 class="lab">Receipt</h3><div class="big">€1<small>.80</small></div><p class="lab" style="margin:0 0 18px">Small bouquet · Viale Flowers</p>
+<div class="row"><span>Shop owner</span><span class="mono">4UVsGd… · Business ID</span></div>
+<div class="row"><span>Paid to</span><span class="mono">3HNiUG… (registered till)</span></div>
+<div class="row"><span>Payment</span><span class="mono">bf43ee…c42a ↗</span></div>
+<div class="row"><span>Log seal</span><span class="mono">61bf89…b328 ↗</span></div>
+<div class="row"><span>Budget left</span><span>€3.20 of €5</span></div></div></section>
+</body></html>

@@ -1,0 +1,9 @@
+<ol class="steps">
+  <li><span class="dot"></span><div><b>You asked</b><p>“Buy me a small bouquet from Viale Flowers. Pay at most €3.”</p><p class="lab">Budget €5 · max €3 a payment · enforced in code</p></div></li>
+  <li><span class="dot"></span><div><b>Found 3 shops on the street</b><p>Read from Concordium’s Agent Registry: The Bottle Shop #1526, The Bottle Shop #1406, Viale Flowers #1527.</p></div></li>
+  <li><span class="dot ok"></span><div><b>Checked Viale Flowers #1527</b>
+    <p class="chips"><span class="chip ok">✓ Registered, active</span><span class="chip ok">✓ Badge matches chain</span><span class="chip ok">✓ Business ID · Global FinReg</span><span class="chip ok">✓ Pays its registered till</span></p></div></li>
+  <li><span class="dot ok"></span><div><b>Got a signed quote: Small bouquet, €1.80</b><p>Signed by the shop’s owner account <span class="mono">4UVsGd…</span>. Signature checked against its keys on chain.</p></div></li>
+  <li><span class="dot pay"></span><div><b>Paid €1.80 in test euros</b><p>Exactly the quoted price, to till <span class="mono">3HNiUG…</span>. <a href="#">bf43ee…c42a ↗</a></p></div></li>
+  <li><span class="dot seal"></span><div><b>Sealed the errand log on Concordium</b><p>Anyone can recheck this log against the chain. <a href="#">61bf89…b328 ↗</a></p></div></li>
+</ol>

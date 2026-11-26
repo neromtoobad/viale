@@ -1,0 +1,11 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap');
+:root{--paper:#F6F1E7;--card:#fff;--ink:#1E2B4A;--muted:#6b7385;--line:#e6dfd1;--brass:#C9A14A;--sky:#7FAEE3;--ok:#2f7d55;--okbg:#e6f2ea;--bad:#b0412e;--badbg:#f8e6e1}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 Geist,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.mono{font-family:'Geist Mono',monospace}.lab{font:500 11px/1 'Geist Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:99px;font-size:12.5px;font-weight:500}
+.ok{background:var(--okbg);color:var(--ok)}.bad{background:var(--badbg);color:var(--bad)}
+.btn{background:var(--ink);color:#fff;border:0;border-radius:99px;padding:12px 20px;font:600 14px Geist;cursor:pointer}
+.task{display:flex;gap:8px;background:#fff;border:1px solid var(--line);border-radius:99px;padding:6px 6px 6px 18px;align-items:center}
+.task input{flex:1;border:0;outline:0;font:15px Geist;background:transparent;color:var(--ink)}
+a{color:#2a4d8f}
+.seal{width:22px;height:22px}

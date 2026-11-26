@@ -11,3 +11,7 @@ keys/
 *.key
 *.seed
 .vercel
+
+# full-size generated renders (smaller copies are committed)
+design/street/dir-a-dusk.png
+design/street/dir-b-isometric.png
