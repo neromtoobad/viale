@@ -5,6 +5,8 @@
 //   POST /mcp                   an MCP server (streamable HTTP, JSON responses) with check_agent + registry_owners,
 //                               so another agent can check who it is about to pay before it pays.
 import type http from 'node:http';
+import fs from 'node:fs';
+import path from 'node:path';
 import { checkShop, type ShopVerdict } from '../errand/shop-check.ts';
 import { registryOwners, type RegistryOwners } from '../registry/owners.ts';
 import { EXPLORER } from '../chain/chain.ts';
@@ -57,17 +59,29 @@ export function overLimit(req: http.IncomingMessage): boolean {
   return recent.length > PER_IP_PER_MINUTE;
 }
 
-let owners: { data?: RegistryOwners; running?: Promise<RegistryOwners> } = {};
-/** Registry owners, refreshed in the background every 6 hours. The first call waits for the first count. */
-export function registry(): Promise<RegistryOwners> {
-  const stale = !owners.data || Date.now() - Date.parse(owners.data.measured_at) > 6 * 3600_000;
+/** The newest count committed in evidence/ (made by tools/measure-registry.ts), for a server that just started. */
+function committedCount(): RegistryOwners | undefined {
+  const dir = path.resolve(import.meta.dirname, '../../evidence');
+  const f = fs.readdirSync(dir).filter((n) => /^registry-owners-.*\.json$/.test(n)).sort().at(-1);
+  if (!f) return;
+  const d = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8'));
+  return d.business_agents && d.newest_agents ? d : undefined;
+}
+
+let owners: { data?: RegistryOwners; live?: boolean; running?: Promise<RegistryOwners> } = {};
+/** Registry owners. Counted live in the background every 6 hours (a count takes a few minutes, because the
+ *  public node limits requests); until the first live count is done, the newest committed count is served. */
+export function registry(): Promise<RegistryOwners & { source: string }> {
+  const stale = !owners.live || Date.now() - Date.parse(owners.data!.measured_at) > 6 * 3600_000;
   if (stale && !owners.running) {
     owners.running = registryOwners()
-      .then((d) => (owners.data = d))
+      .then((d) => { owners.data = d; owners.live = true; return d; })
       .finally(() => (owners.running = undefined));
+    owners.running.catch((err) => console.error('registry count failed:', err.message));
   }
-  if (owners.data) { owners.running?.catch(() => {}); return Promise.resolve(owners.data); }
-  return owners.running!;
+  owners.data ??= committedCount();
+  if (owners.data) return Promise.resolve({ ...owners.data, source: owners.live ? 'live count by this server' : 'committed count in evidence/ (a live count is running)' });
+  return owners.running!.then((d) => ({ ...d, source: 'live count by this server' }));
 }
 
 // ---- MCP (JSON-RPC 2.0 over HTTP POST, JSON responses, no sessions) ----

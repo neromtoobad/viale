@@ -1,7 +1,6 @@
 {
   "what": "Active agents in the CIS-8004 Agent Registry <12802,0> on testnet, by the identity behind their owner account",
-  "measured_at": "2026-11-26T17:55:47.540Z",
-  "script": "tools/measure-registry.ts",
+  "measured_at": "2026-11-26T19:22:42.777Z",
   "active_agents": 1245,
   "owner_accounts": 219,
   "agents_owned_by_business_identity": 29,
@@ -10,5 +9,227 @@
     "0 Concordium testnet IP": 1196,
     "4 Global FinReg Testnet": 29,
     "3 Digital Trust Solutions TestNet": 20
-  }
+  },
+  "business_agents": [
+    {
+      "token_id": "600",
+      "owner": "36bpBdY5PPqSMTBSSsbey6Xb9GpabrU86XtpyE5y8n8p8NzW8Z",
+      "agent_uri": "https://api.y-provenance-agent.seier.ai/.well-known/agent.json"
+    },
+    {
+      "token_id": "905",
+      "owner": "2zApPQfD9xCw4QdRLA7QKyLpNdH5VgKHBjZ6SkQ4JgPft4xmZW",
+      "agent_uri": "https://testnet.agenticrisk.io/agent-cards/16a0bf57d92a8f544e93a493eb1c0869baf98ecf6f91c0f5f3b0aa1f662b2faa.json"
+    },
+    {
+      "token_id": "920",
+      "owner": "2zApPQfD9xCw4QdRLA7QKyLpNdH5VgKHBjZ6SkQ4JgPft4xmZW",
+      "agent_uri": "https://testnet.agenticrisk.io/agent-cards/bd84db98bfc0a02665ae628b15f807c4a4563b72acf302bafe67fcf110719310.json"
+    },
+    {
+      "token_id": "951",
+      "owner": "4eznZy4g4NtrQh6MSEm3tUKWhSPdQNWCmw9LTDmc649W5VuXJW",
+      "agent_uri": "https://trust.concordium.express/agents/C-PROVIDER-35.json"
+    },
+    {
+      "token_id": "1182",
+      "owner": "41pmE4y6CvmYcAVXDX9V46SCPGv7Qam3UEFSqwBBsjBqZD8dPg",
+      "agent_uri": "https://gist.githubusercontent.com/arome3/d679320ae40b96f455cefc05d43db81f/raw/merchant-card.json"
+    },
+    {
+      "token_id": "1206",
+      "owner": "4FoWbP7qANwED5SkWgiEt7UEYgGuBTomNBePZ25YQ2oJTqXpTY",
+      "agent_uri": "https://tooloffer.kinganlogic.com/.well-known/agent-card-tooloffer-testnet-1206-v1.json"
+    },
+    {
+      "token_id": "1207",
+      "owner": "4FoWbP7qANwED5SkWgiEt7UEYgGuBTomNBePZ25YQ2oJTqXpTY",
+      "agent_uri": "https://fahce.kinganlogic.com/.well-known/agent-card-fahce-testnet-1207-v1.json"
+    },
+    {
+      "token_id": "1208",
+      "owner": "4FoWbP7qANwED5SkWgiEt7UEYgGuBTomNBePZ25YQ2oJTqXpTY",
+      "agent_uri": "https://npl.kinganlogic.com/.well-known/agent-card-npl-testnet-1208-v1.json"
+    },
+    {
+      "token_id": "1209",
+      "owner": "4FoWbP7qANwED5SkWgiEt7UEYgGuBTomNBePZ25YQ2oJTqXpTY",
+      "agent_uri": "https://kls.kinganlogic.com/.well-known/agent-card-kls-testnet-1209-v1.json"
+    },
+    {
+      "token_id": "1231",
+      "owner": "34YUTLcnDvBYtoxYxVBdCjv5xQ7SgAXpUReg4a8vH7KZ8Rbisi",
+      "agent_uri": "https://app.numberoneagent.co.uk/agents/1e1e51cf-f42c-44ba-b7ab-e816dced429f.v5.json"
+    },
+    {
+      "token_id": "1232",
+      "owner": "34YUTLcnDvBYtoxYxVBdCjv5xQ7SgAXpUReg4a8vH7KZ8Rbisi",
+      "agent_uri": "https://app.numberoneagent.co.uk/agents/265bb75e-d8ae-4bd7-a12f-618968defdde.v2.json"
+    },
+    {
+      "token_id": "1233",
+      "owner": "34YUTLcnDvBYtoxYxVBdCjv5xQ7SgAXpUReg4a8vH7KZ8Rbisi",
+      "agent_uri": "https://app.numberoneagent.co.uk/agents/e20274e9-680b-4bbd-b8cd-96482eb3bf35.v2.json"
+    },
+    {
+      "token_id": "1234",
+      "owner": "34YUTLcnDvBYtoxYxVBdCjv5xQ7SgAXpUReg4a8vH7KZ8Rbisi",
+      "agent_uri": "https://app.numberoneagent.co.uk/agents/c8a422e6-ff29-4e5c-8cef-b348b0de3864.v2.json"
+    },
+    {
+      "token_id": "1235",
+      "owner": "34YUTLcnDvBYtoxYxVBdCjv5xQ7SgAXpUReg4a8vH7KZ8Rbisi",
+      "agent_uri": "https://app.numberoneagent.co.uk/agents/a66394a3-6e6c-44c1-9e71-72f611911c12.v3.json"
+    },
+    {
+      "token_id": "1266",
+      "owner": "4FoWbP7qANwED5SkWgiEt7UEYgGuBTomNBePZ25YQ2oJTqXpTY",
+      "agent_uri": "https://torivane.kinganlogic.com/.well-known/agent-card-torivane-testnet-1266-v1.json"
+    },
+    {
+      "token_id": "1270",
+      "owner": "4FoWbP7qANwED5SkWgiEt7UEYgGuBTomNBePZ25YQ2oJTqXpTY",
+      "agent_uri": "https://partizan.kinganlogic.com/.well-known/agent-card-partizan-testnet-1270-v1.json"
+    },
+    {
+      "token_id": "1297",
+      "owner": "3tCvWPDYchFULvGXKc6Q3MzofopAgMzzL3KeRU66G2dM2LqcNa",
+      "agent_uri": "https://gist.githubusercontent.com/Prashant-Mishra-12569/3867d2cda42a8a9f26c36db94d24b2b0/raw/agent-card.json"
+    },
+    {
+      "token_id": "1380",
+      "owner": "2zjstTQQxhJebpeqRvM5Kex6bG4ssTikwk5FSvLty8mWHtwvpB",
+      "agent_uri": "https://app.numberoneagent.co.uk/agents/eac336bf-ea08-4adf-b2aa-bf89febc4a35.v5.json"
+    },
+    {
+      "token_id": "1381",
+      "owner": "2zjstTQQxhJebpeqRvM5Kex6bG4ssTikwk5FSvLty8mWHtwvpB",
+      "agent_uri": "https://app.numberoneagent.co.uk/agents/d4425e02-89a4-4d52-adb1-a17d529ee05e.v3.json"
+    },
+    {
+      "token_id": "1382",
+      "owner": "2zjstTQQxhJebpeqRvM5Kex6bG4ssTikwk5FSvLty8mWHtwvpB",
+      "agent_uri": "https://app.numberoneagent.co.uk/agents/53800b6b-d8b4-4a1f-b2fc-3de42fda73fb.v3.json"
+    },
+    {
+      "token_id": "1383",
+      "owner": "2zjstTQQxhJebpeqRvM5Kex6bG4ssTikwk5FSvLty8mWHtwvpB",
+      "agent_uri": "https://app.numberoneagent.co.uk/agents/857e034f-606e-4bc3-8234-38a50cd61b77.v3.json"
+    },
+    {
+      "token_id": "1384",
+      "owner": "2zjstTQQxhJebpeqRvM5Kex6bG4ssTikwk5FSvLty8mWHtwvpB",
+      "agent_uri": "https://app.numberoneagent.co.uk/agents/cc428bb2-5294-45c9-a3b7-16fc7f49d214.v3.json"
+    },
+    {
+      "token_id": "1423",
+      "owner": "37FXXCmvW32QcsiH3y2VMuGdJXJ6LFHZMaxZuxWkTQvFykERLd",
+      "agent_uri": "https://app.numberoneagent.co.uk/agents/9cdd7df6-7ec6-43ea-b59b-aad7b8bae25d.json"
+    },
+    {
+      "token_id": "1424",
+      "owner": "37FXXCmvW32QcsiH3y2VMuGdJXJ6LFHZMaxZuxWkTQvFykERLd",
+      "agent_uri": "https://app.numberoneagent.co.uk/agents/9121e9c5-6d6c-4fa6-97e7-91958aafb3e7.json"
+    },
+    {
+      "token_id": "1425",
+      "owner": "37FXXCmvW32QcsiH3y2VMuGdJXJ6LFHZMaxZuxWkTQvFykERLd",
+      "agent_uri": "https://app.numberoneagent.co.uk/agents/5f66f5a4-ac3b-40d8-a980-5e287e05d663.json"
+    },
+    {
+      "token_id": "1426",
+      "owner": "37FXXCmvW32QcsiH3y2VMuGdJXJ6LFHZMaxZuxWkTQvFykERLd",
+      "agent_uri": "https://app.numberoneagent.co.uk/agents/a51d2e4a-8493-4d91-9f21-104e60521379.json"
+    },
+    {
+      "token_id": "1427",
+      "owner": "37FXXCmvW32QcsiH3y2VMuGdJXJ6LFHZMaxZuxWkTQvFykERLd",
+      "agent_uri": "https://app.numberoneagent.co.uk/agents/e41de0a3-f8cb-4840-9a22-eac91581345f.json"
+    },
+    {
+      "token_id": "1526",
+      "owner": "4UVsGdSyYk43E2m99Vy3M38u92yknjBUoY7xKQHGSDXZAUiWw5",
+      "agent_uri": "https://viale.nerom.site/agents/1526.json"
+    },
+    {
+      "token_id": "1527",
+      "owner": "4UVsGdSyYk43E2m99Vy3M38u92yknjBUoY7xKQHGSDXZAUiWw5",
+      "agent_uri": "https://viale.nerom.site/agents/1527.json"
+    }
+  ],
+  "newest_agents": [
+    {
+      "token_id": "1529",
+      "owner": "3jrcJeoWrE1jjTyNvc4b6oHCfQAVsxBB3h9mL4Qm8Sctm463Fu",
+      "agent_uri": null,
+      "business": false
+    },
+    {
+      "token_id": "1528",
+      "owner": "3jrcJeoWrE1jjTyNvc4b6oHCfQAVsxBB3h9mL4Qm8Sctm463Fu",
+      "agent_uri": null,
+      "business": false
+    },
+    {
+      "token_id": "1527",
+      "owner": "4UVsGdSyYk43E2m99Vy3M38u92yknjBUoY7xKQHGSDXZAUiWw5",
+      "agent_uri": "https://viale.nerom.site/agents/1527.json",
+      "business": true
+    },
+    {
+      "token_id": "1526",
+      "owner": "4UVsGdSyYk43E2m99Vy3M38u92yknjBUoY7xKQHGSDXZAUiWw5",
+      "agent_uri": "https://viale.nerom.site/agents/1526.json",
+      "business": true
+    },
+    {
+      "token_id": "1525",
+      "owner": "34ULL1g7DW7fEneaGv9D3Rvyv3G8CKeaG5GQ3A8zKtTuwSeTou",
+      "agent_uri": "https://herald-git-ccr-fa6a4ebd-3qac2c-levithefirst-1227s-projects.vercel.app/cards/herald-v2.json",
+      "business": false
+    },
+    {
+      "token_id": "1524",
+      "owner": "4o35tLLKAKios7Cvxh5NDw9QDq8Qi6YVNHsxLsnqwLBCBy2iNn",
+      "agent_uri": "https://herald-git-ccr-fa6a4ebd-3qac2c-levithefirst-1227s-projects.vercel.app/cards/visitor-badged-v2.json",
+      "business": false
+    },
+    {
+      "token_id": "1522",
+      "owner": "4dc5mXGraFb6euitAybH5rePtZXoDDgcN5t1GUymBhUxmBADoS",
+      "agent_uri": "https://apix-agent-card.vercel.app/client/agent-card.json",
+      "business": false
+    },
+    {
+      "token_id": "1521",
+      "owner": "45GYzCjNUQurQEN8TRmWDjdYhfKJgrusZ6jUGs373NamwjmRh6",
+      "agent_uri": "https://registry-testnet.modernmiracle.org/agents/1521/.well-known/agent-card.json",
+      "business": false
+    },
+    {
+      "token_id": "1519",
+      "owner": "4PcwwFzBtoimE8PxoydKcjvMqJ7U6uFPJRD1MxfqmuHh7Yu3Br",
+      "agent_uri": "https://gist.githubusercontent.com/petermunachi/6f9ffc8ad161e5d10087530ea98b37ad/raw/e0fd50bf8554dbd1af923e0cc5fc4018367461c4/agent-card.json",
+      "business": false
+    },
+    {
+      "token_id": "1518",
+      "owner": "3acKWtGJQuFqoDgt16ghwvrcEVSQygj67fynVWaAKbmnEHaWeZ",
+      "agent_uri": "https://concordium-preview-mainnet-production.up.railway.app/a/fy2YzocvUqxSOm1M/agent-card.json",
+      "business": false
+    },
+    {
+      "token_id": "1517",
+      "owner": "3Jvn2qBdZibreRBkcHLotJJjUMLrNfRkNkEacG9YyUJpy94VYA",
+      "agent_uri": "https://raw.githubusercontent.com/erintipiter-pixel/trusted-agent-receipts/main/agent-card.json",
+      "business": false
+    },
+    {
+      "token_id": "1516",
+      "owner": "3HFbRLEGSVUsebprTBmTvpdbTkHg4ncutEYWf4EEaQfgQae9v3",
+      "agent_uri": "https://concordium-preview-mainnet-production.up.railway.app/a/5jPVocboGQncDbpE/agent-card.json",
+      "business": false
+    }
+  ],
+  "script": "tools/measure-registry.ts"
 }
