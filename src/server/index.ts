@@ -103,6 +103,7 @@ export function startServer(): Promise<http.Server> {
       if (!target.startsWith(path.join(ROOT, 'public'))) return send(res, 403, { error: 'forbidden' });
       return file(res, target);
     } catch (err: any) {
+      console.error(`${req.method} ${req.url}: ${err.message}`);
       send(res, 500, { error: err.message });
     }
   });
@@ -112,5 +113,6 @@ export function startServer(): Promise<http.Server> {
 if (import.meta.url === `file://${process.argv[1]}`) {
   await startServer();
   console.log(`Viale server on ${PUBLIC_URL}`);
-  registry().catch((err) => console.error('registry count failed:', err.message)); // warm the /check page's numbers
+  // First live registry count, after the street's first check has had the node to itself.
+  setTimeout(() => registry().catch((err) => console.error('registry count failed:', err.message)), 30_000);
 }

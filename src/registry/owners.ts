@@ -1,7 +1,7 @@
 // Who owns the agents in Concordium's Agent Registry: every Active agent on testnet, grouped by the
 // identity provider behind its owner account. Read-only; needs no keys.
 import { AccountAddress } from '@concordium/web-sdk';
-import { client } from '../chain/chain.ts';
+import { client, withRetry } from '../chain/chain.ts';
 import { identityProviderNames, BUSINESS_IDP_NAME } from '../errand/shop-check.ts';
 import { callTool } from './mcp.ts';
 
@@ -33,21 +33,12 @@ export async function registryOwners(): Promise<RegistryOwners> {
 
   const owners = new Map<string, number[]>();
   for (const a of agents) owners.set(a.owner_account, []);
-  // The public testnet node rate-limits (HTTP 429), so two lookups at a time, backing off when told to.
-  const accountInfo = async (addr: string, tries = 6): Promise<any> => {
-    try { return await grpc.getAccountInfo(AccountAddress.fromBase58(addr)); } catch (err: any) {
-      if (tries <= 1 || !/429|UNAVAILABLE|RESOURCE_EXHAUSTED/.test(`${err.code} ${err.message}`)) throw err;
-      await new Promise((r) => setTimeout(r, (7 - tries) * 1500));
-      return accountInfo(addr, tries - 1);
-    }
-  };
-  const queue = [...owners.keys()];
-  await Promise.all(Array.from({ length: 2 }, async () => {
-    for (let addr = queue.shift(); addr; addr = queue.shift()) {
-      const info = await accountInfo(addr);
-      owners.set(addr, [...new Set(Object.values(info.accountCredentials).map((c: any) => Number(c.value.contents.ipIdentity)))]);
-    }
-  }));
+  // The public testnet node rate-limits (HTTP 429) and errands share it, so one lookup at a time, spaced out.
+  for (const addr of owners.keys()) {
+    const info: any = await withRetry(() => grpc.getAccountInfo(AccountAddress.fromBase58(addr)));
+    owners.set(addr, [...new Set(Object.values(info.accountCredentials).map((c: any) => Number(c.value.contents.ipIdentity)))]);
+    await new Promise((r) => setTimeout(r, 150));
+  }
   const isBusiness = (addr: string) => owners.get(addr)!.some((i) => business.has(i));
 
   const byIdp: Record<string, number> = {};
