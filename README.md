@@ -6,7 +6,7 @@ The same check is open to everyone: [Check any agent](https://viale.nerom.site/c
 
 **Live:** [viale.nerom.site](https://viale.nerom.site) · [Check any agent](https://viale.nerom.site/check) · **MCP:** `https://viale.nerom.site/mcp` · **Video (≤3 min):** not recorded yet · **Built at:** Encode Club × Concordium Trusted Agents Hackathon, Nov 2 – Dec 9 2026
 
-**Proof:** an errand whose limits were signed in a Concordium Browser Wallet by a visitor's own account ([3BLLTU…](https://ccdexplorer.io/testnet/account/3BLLTUG1XCZQzPgctHeMv9PsXn4KDaLYGpQDVui9xy94gUYHVh)) paid €1.80 for a small bouquet ([payment](https://ccdexplorer.io/testnet/transaction/d5cb6cf4905812f525351fe6261185cad52f1880bcd66982b3409cd176f745bf)) and sealed its log ([seal](https://ccdexplorer.io/testnet/transaction/5ed0f07e4fab8afa0a08e8894d890f554a96c3f171bf0c4a1bd9865fa59b7a0d)). An earlier errand started from the live site paid €1.80 for a small bouquet ([payment](https://ccdexplorer.io/testnet/transaction/159c5899b5ff3fa24b090f01c47d388ea3fdb9d86fcacc939311c8a52ac913b5)), then sealed its log on chain ([seal](https://ccdexplorer.io/testnet/transaction/90c5ed1c644d4cf6f0a556cb30ab52beac21aa3cda622327b821c80e13c04aba)). Concordium testnet, nothing simulated.
+**Proof:** an errand whose limits were signed in a browser wallet by a visitor's own account ([3BLLTU…](https://ccdexplorer.io/testnet/account/3BLLTUG1XCZQzPgctHeMv9PsXn4KDaLYGpQDVui9xy94gUYHVh)) paid €1.80 for a small bouquet ([payment](https://ccdexplorer.io/testnet/transaction/d5cb6cf4905812f525351fe6261185cad52f1880bcd66982b3409cd176f745bf)) and sealed its log ([seal](https://ccdexplorer.io/testnet/transaction/5ed0f07e4fab8afa0a08e8894d890f554a96c3f171bf0c4a1bd9865fa59b7a0d)). An earlier errand started from the live site paid €1.80 for a small bouquet ([payment](https://ccdexplorer.io/testnet/transaction/159c5899b5ff3fa24b090f01c47d388ea3fdb9d86fcacc939311c8a52ac913b5)), then sealed its log on chain ([seal](https://ccdexplorer.io/testnet/transaction/90c5ed1c644d4cf6f0a556cb30ab52beac21aa3cda622327b821c80e13c04aba)). Concordium testnet, nothing simulated.
 
 ![Viale's street page: three shops at dusk, two marked Business ID · Trade, a copy of The Bottle Shop marked Personal ID · Walk away](x/p1-street.png)
 
@@ -17,7 +17,7 @@ No wallet or sign-in needed. [JUDGES.md](JUDGES.md) has the same steps with more
 | Do this | You see |
 |---|---|
 | Open [viale.nerom.site](https://viale.nerom.site) | Three shops, checked live against the registry and the chain. Two are owned by a business identity and say **Trade**. The second "The Bottle Shop" is owned by a personal identity and says **Walk away**. Click a shop to see each check. |
-| Optional: click **Connect wallet** (top right) with the Concordium Browser Wallet on testnet | Your account signs the errand's limits. Without a wallet, Viale's labelled demo account signs. |
+| Optional: click **Connect wallet** (top right) with a Concordium browser wallet on testnet (the Concordium Browser Wallet, or another that provides its `window.concordium` API) | Your account signs the errand's limits. Without a wallet, Viale's labelled demo account signs. |
 | Click **Small bouquet** on the page | A real errand, step by step: registry lookup, five shop checks, a signed quote, an EUDemo payment and the log seal, each with its explorer link. The street allows 6 errands an hour and one at a time. |
 | Open [viale.nerom.site/check/1010](https://viale.nerom.site/check/1010) | Another team's agent, checked the same way: registered, badge valid, but owned by a personal identity, so **Walk away**. Try [#600](https://viale.nerom.site/check/600), owned by a business: **Trade**. The page also counts who owns all 1,245 agents. |
 | `curl https://viale.nerom.site/api/street` | The same checks as JSON, for every shop. |
@@ -85,7 +85,7 @@ An AI agent that shops for you has to decide who to pay. A name proves nothing: 
 
 ## How it works
 
-0. **Sign the mandate** ([src/errand/mandate.ts](src/errand/mandate.ts)): the server drafts the terms (your task, this agent's account, €5 budget, €3 per payment, 15 minutes) and you sign them in the Concordium Browser Wallet. Without a wallet, Viale's demo account signs, and the page says so. The signature is checked against the signer's keys on chain; the errand runs once per mandate.
+0. **Sign the mandate** ([src/errand/mandate.ts](src/errand/mandate.ts)): the server drafts the terms (your task, this agent's account, €5 budget, €3 per payment, 15 minutes) and you sign them in a Concordium browser wallet. Without a wallet, Viale's demo account signs, and the page says so. The signature is checked against the signer's keys on chain; the errand runs once per mandate.
 1. **Find shops** in the Agent Registry through Concordium's Registry MCP ([src/agent/errand.ts](src/agent/errand.ts), `find_shops`).
 2. **Check the shop** ([src/errand/shop-check.ts](src/errand/shop-check.ts)): Active agent; badge valid; owner holds a Global FinReg business identity (read from the owner's credentials on chain); the card names the shop the agent was sent to; payment goes to its registered agent wallet. Any failure means walk away, with the reason.
 3. **Get a signed quote** ([src/street/shop-agent.ts](src/street/shop-agent.ts)) and check it ([src/errand/quote-check.ts](src/errand/quote-check.ts)): the signature matches the owner's keys on chain; shop, owner and wallet match the registry; not expired.
@@ -116,7 +116,7 @@ human ──signed mandate──▶ Claude errand agent ──tools──▶ Via
 | Protocol-Level Tokens | Payments in EUDemo; each honest shop's till is on the EUDemo allow-list | [src/pay/x402.ts](src/pay/x402.ts), [src/registry/set-till.ts](src/registry/set-till.ts) |
 | Sponsored transactions | The agent holds no CCD; Viale's facilitator pays every payment fee | [src/pay/x402.ts:24-26](src/pay/x402.ts#L24) |
 | Account message signing | Humans sign errand mandates and shops sign quotes; both are verified against keys on chain | [src/errand/mandate.ts:81](src/errand/mandate.ts#L81), [src/street/shop-agent.ts:59](src/street/shop-agent.ts#L59), [src/errand/quote-check.ts:33](src/errand/quote-check.ts#L33) |
-| Concordium Browser Wallet | Connect wallet in the street page's nav; signs the errand mandate (`signMessage`), on testnet | [public/index.html:401](public/index.html#L401) |
+| Concordium Browser Wallet API (`window.concordium`) | Connect wallet in the street page's nav, with any wallet that provides it; signs the errand mandate (`signMessage`), on testnet | [public/index.html:401](public/index.html#L401) |
 | Verify & Access | 18+ proof request and verification, written but not finished on testnet (see Not built yet) | [src/proof/age.ts](src/proof/age.ts) |
 
 Feedback for Concordium from building this: [feedback.md](feedback.md).

@@ -439,7 +439,7 @@ function drawWalletButton() {
   const b = $('wbtn'), menu = $('wmenu');
   $('wwrap').classList.remove('open'); b.setAttribute('aria-expanded', 'false');
   if (!wallet.account) {
-    b.className = 'wbtn'; b.replaceChildren('Connect wallet'); b.title = 'Connect the Concordium Browser Wallet (testnet)';
+    b.className = 'wbtn'; b.replaceChildren('Connect wallet'); b.title = 'Connect a Concordium wallet (testnet)';
     menu.replaceChildren();
     return;
   }
