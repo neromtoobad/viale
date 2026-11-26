@@ -30,7 +30,16 @@ Recorded errands you can open now:
 
 Full logs are in [evidence/](evidence/).
 
-## 3. Check every claim yourself (30 s)
+## 3. Check any agent, not just ours (30 s)
+
+| Do this | You see |
+|---|---|
+| Open [viale.nerom.site/check/1010](https://viale.nerom.site/check/1010) | Another team's agent. Registered, badge valid, owned by a personal identity: **Walk away**. |
+| Open [viale.nerom.site/check/600](https://viale.nerom.site/check/600) | An agent we didn't build, owned by a Global FinReg business identity: **Trade**. |
+| Scroll down on that page | Who owns the registry: 29 of 1,245 active agents are owned by a business identity, recounted every 6 hours. Click any id to check it. |
+| `claude mcp add --transport http viale https://viale.nerom.site/mcp` | Your agent gets `check_agent` (returns `trade` or `walk_away` with reasons) and `registry_owners`. |
+
+## 4. Check every claim yourself (30 s)
 
 ```bash
 git clone https://github.com/neromtoobad/viale && cd viale
@@ -38,7 +47,7 @@ npm ci
 npm run check:live
 ```
 
-[tools/check-live.ts](tools/check-live.ts) prints PASS or FAIL for the 10 claims in the README. It reads the live site, Concordium's Registry MCP and a testnet node:
+[tools/check-live.ts](tools/check-live.ts) prints PASS or FAIL for the 12 claims in the README. It reads the live site, Concordium's Registry MCP and a testnet node:
 
 - C1: every shop is an Active agent in the registry
 - C2: every card hashes to its on-chain metadata hash
@@ -50,10 +59,12 @@ npm run check:live
 - C8: each seal is recomputed from its log (an edited log fails)
 - C9: the impostor errand paid nothing
 - C10: the 13 payment guard tests
+- C11: check any agent (another team's, a business-owned one, the impostor, an unknown id) matches each owner's identity on chain
+- C12: the MCP endpoint lists its tools and `check_agent` gives the right verdicts
 
 ## The three things to look at in the code
 
-1. **The shop check:** [src/errand/shop-check.ts:43-78](src/errand/shop-check.ts#L43). The business-identity test is at line 61: it reads the identity provider behind each of the owner's credentials on chain.
+1. **The shop check:** [src/errand/shop-check.ts:63-103](src/errand/shop-check.ts#L63). The business-identity test is at line 83: it reads the identity provider behind each of the owner's credentials on chain.
 2. **The model never picks the amount:** `pay_shop` takes only a quote id ([src/agent/errand.ts:139](src/agent/errand.ts#L139)); the guard refuses any amount but the quoted price ([src/errand/guards.ts:42](src/errand/guards.ts#L42)); the quote's signature is checked against the owner's keys on chain ([src/errand/quote-check.ts:32-33](src/errand/quote-check.ts#L32)).
 3. **The payment:** x402 exact scheme, with Viale's facilitator verifying and settling a transfer the agent signed ([src/pay/x402.ts:37-43](src/pay/x402.ts#L37)).
 
