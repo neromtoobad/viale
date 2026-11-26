@@ -16,7 +16,7 @@ No wallet, sign-in or keys needed. Everything runs on Concordium testnet.
 |---|---|
 | Click **Small bouquet** | The errand starts. The first step names who signed its mandate (task, budget, cap, 15-minute expiry): *Viale's demo account* if you have no Concordium wallet. Then steps appear as they happen: registry lookup, the shop check, the menu, a quote signed by the shop's owner, the payment, and the log seal. Each payment and seal links to CCDExplorer. |
 | Open the payment link | A `tokenUpdate`: EUDemo from the agent (3bfc6N…) to the shop's till (3HNiUG…), for exactly the quoted price. The agent paid 0 CCD; the fee shows under *sponsor*. |
-| Optional: with the [Concordium Browser Wallet](https://chromewebstore.google.com/detail/concordium-wallet/mnnkpffndmickbiakofclnpoiajlegmg) on testnet, click **Sign with my Concordium wallet** first | Your wallet asks you to sign the mandate. The errand then runs under your account's signature, checked against your keys on chain. |
+| Optional: with the [Concordium Browser Wallet](https://chromewebstore.google.com/detail/concordium-wallet/mnnkpffndmickbiakofclnpoiajlegmg) on testnet, click **Connect wallet** (top right) first | Your wallet asks you to sign the mandate. The errand then runs under your account's signature, checked against your keys on chain. |
 | Open the seal link | A `registerData` transaction: `VIALE/R1` followed by the SHA-256 of the errand log. |
 
 The street runs one errand at a time and 6 an hour. If it's busy, the page shows the running or most recent errand instead, and its links work the same way.
@@ -25,6 +25,7 @@ Recorded errands you can open now:
 
 | Errand | Payment | Seal |
 |---|---|---|
+| Small bouquet, €1.80, limits signed in a Concordium wallet by [3BLLTU…](https://ccdexplorer.io/testnet/account/3BLLTUG1XCZQzPgctHeMv9PsXn4KDaLYGpQDVui9xy94gUYHVh) | [d5cb6c…](https://ccdexplorer.io/testnet/transaction/d5cb6cf4905812f525351fe6261185cad52f1880bcd66982b3409cd176f745bf) | [5ed0f0…](https://ccdexplorer.io/testnet/transaction/5ed0f07e4fab8afa0a08e8894d890f554a96c3f171bf0c4a1bd9865fa59b7a0d) |
 | Small bouquet, €1.80, run from the live site | [159c58…](https://ccdexplorer.io/testnet/transaction/159c5899b5ff3fa24b090f01c47d388ea3fdb9d86fcacc939311c8a52ac913b5) | [90c5ed…](https://ccdexplorer.io/testnet/transaction/90c5ed1c644d4cf6f0a556cb30ab52beac21aa3cda622327b821c80e13c04aba) |
 | Ten tulips, €2.60 | [8ce06f…](https://ccdexplorer.io/testnet/transaction/8ce06ffd6fc23eccd8a13122bd255c366cc377298a18eb6b52274421ecdf76d6) | [1b9d9a…](https://ccdexplorer.io/testnet/transaction/1b9d9ad1fcacd532c14adc24b34cdc827e41ad87b220a90ad0b6ac3fb4ebb251) |
 | Sent to the impostor: walked away, paid nothing | none | [8b8838…](https://ccdexplorer.io/testnet/transaction/8b8838dcd3cbbc9a259964711550f122b4f6a7c6e52fe9d5cdcccc166b5d8197) |
@@ -62,7 +63,7 @@ npm run check:live
 - C10: the 15 payment guard and mandate tests
 - C11: check any agent (another team's, a business-owned one, the impostor, an unknown id) matches each owner's identity on chain
 - C12: the MCP endpoint lists its tools and `check_agent` gives the right verdicts
-- C13: the evidence errand's mandate signature verifies against the signer's keys on chain (a changed budget fails), its payments stay within the signed cap, and the live site refuses a mandate with the wrong signature or a €50 budget
+- C13: the wallet-signed errand's mandate (from an account Viale holds no key for) verifies against the signer's keys on chain (a changed budget fails), its payments stay within the signed cap, and the live site refuses a mandate with the wrong signature, a €50 budget, or the agent's own account
 
 ## The four things to look at in the code
 
