@@ -18,7 +18,8 @@ import { checkQuote, type VerifiedQuote } from '../errand/quote-check.ts';
 import { payShop, agentBalance, TOKEN } from '../pay/x402.ts';
 import { anchorReceipt } from '../chain/anchor.ts';
 import { txUrl } from '../chain/chain.ts';
-import { loadAnthropicKey } from '../chain/keys.ts';
+import { agentWallet, loadAnthropicKey, sponsorWallet } from '../chain/keys.ts';
+import { draftMandate, signMandate, verifyMandate } from '../errand/mandate.ts';
 import { startAgeProof, waitForProof } from '../proof/age.ts';
 import { PUBLIC_URL, startServer } from '../server/index.ts';
 
@@ -52,6 +53,8 @@ How to work:
 - Finish with a short report to the human: what you checked, who you paid (or refused) and why. Plain language, no jargon.`;
 
 export async function runErrand(mandate: Mandate, opts: { onStep?: (e: LogEntry) => void } = {}): Promise<ErrandResult> {
+  // No errand without a mandate the human signed (checked on chain by verifyMandate in src/errand/mandate.ts).
+  if (mandate.verified !== true || !mandate.signed) throw new Error('refusing to run an errand without a signed, verified mandate');
   const id = new Date().toISOString().replace(/[:.]/g, '-') + '-' + crypto.randomBytes(3).toString('hex');
   const log: LogEntry[] = [];
   const ledger: Ledger = { spentEur: 0, payments: [] };
@@ -243,7 +246,14 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const maxPaymentEur = flag('max', budgetEur);
   const task = args.join(' ');
   if (!task) throw new Error('usage: node src/agent/errand.ts "<task>" [--budget 5] [--max 5]');
-  const mandate: Mandate = { task, budgetEur, maxPaymentEur, expiresAt: new Date(Date.now() + 15 * 60_000).toISOString() };
+  // From the command line, Viale's demo account signs the mandate (the same account the street uses for
+  // visitors without a wallet); it is verified on chain exactly like a wallet signature.
+  const agent = agentWallet().address.address;
+  const demo = sponsorWallet();
+  const signed = await signMandate(draftMandate({ task, human: demo.address.address, agent, budgetEur, maxPaymentEur, minutes: 15 }), demo);
+  const check = await verifyMandate(signed, { agent, limits: { budgetEur: 50, maxPaymentEur: 50, maxMinutes: 60 } });
+  if (!check.ok) throw new Error(`mandate refused: ${check.reasons.join('; ')}`);
+  const mandate: Mandate = check.mandate;
 
   const show = (e: LogEntry) => {
     if (e.step === 'tool_call') console.log(`→ ${e.tool} ${JSON.stringify(e.input)}`);

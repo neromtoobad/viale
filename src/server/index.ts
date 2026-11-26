@@ -6,7 +6,7 @@ import path from 'node:path';
 import { setting } from '../chain/keys.ts';
 import { createRequest, getProof, publicView, verifyPresentation } from '../proof/age.ts';
 import { menu, quote } from '../street/shop-agent.ts';
-import { followErrand, errandLimits, latestErrand, startErrand, street } from './errands.ts';
+import { followErrand, errandLimits, latestErrand, mandateDraft, startErrand, street } from './errands.ts';
 import { EXPLORER } from '../chain/chain.ts';
 import { checkAgent, handleMcp, overLimit, registry, verdictView } from './check.ts';
 
@@ -78,10 +78,17 @@ export function startServer(): Promise<http.Server> {
       if (parts[0] === 'check' && parts.length <= 2) return file(res, path.join(ROOT, 'public/check.html'));
       if (url.pathname === '/api/street') return send(res, 200, { shops: await street(), explorer: EXPLORER, limits: errandLimits });
       if (url.pathname === '/api/errands/latest') return send(res, 200, latestErrand());
+      // A mandate for the visitor's wallet to sign (Concordium Browser Wallet signMessage).
+      if (url.pathname === '/api/mandates/draft' && req.method === 'POST') {
+        const { task, human } = await body(req);
+        const r = mandateDraft(task, human);
+        return send(res, r.error ? 400 : 200, r);
+      }
+      // Start an errand: { mandate: { message, signature } } signed by the visitor, or { task } for the demo signer.
       if (url.pathname === '/api/errands' && req.method === 'POST') {
-        const { task } = await body(req);
-        const r = startErrand(task);
-        return send(res, r.error ? 429 : 200, r);
+        const { task, mandate } = await body(req);
+        const r = await startErrand({ task, mandate });
+        return send(res, r.error ? (r.status ?? 400) : 200, r.error ? { error: r.error } : { id: r.id });
       }
       if (parts[0] === 'api' && parts[1] === 'errands' && parts[2] && parts[3] === 'events') return followErrand(parts[2], res);
       // Shop agents: GET /shops/<tokenId>/menu, POST /shops/<tokenId>/quote {sku} -> quote signed by the shop owner.
