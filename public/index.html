@@ -31,6 +31,21 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:22px 4
 nav img{height:30px;display:block}
 nav .r{display:flex;gap:22px;align-items:center;font-size:14px}
 nav .r a{color:var(--muted);text-decoration:none}nav .r a:hover{color:var(--ink)}
+.wwrap{position:relative}
+.wbtn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--ink);background:var(--ink);color:#fff;border-radius:99px;padding:8px 15px;font:600 13.5px Geist,system-ui,sans-serif;cursor:pointer;white-space:nowrap}
+.wbtn:hover{background:#2b3a5e}
+.wbtn.on{background:#fff;color:var(--ink);border-color:var(--line)}.wbtn.on:hover{border-color:#cfc6b4}
+.wbtn .d{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px var(--okbg)}
+.wbtn .net2{font:500 11px 'Geist Mono',ui-monospace,monospace;color:var(--muted);letter-spacing:.04em}
+.wbtn .addr{font:500 13px 'Geist Mono',ui-monospace,monospace}
+.wmenu{display:none;position:absolute;right:0;top:calc(100% + 8px);width:290px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 12px 32px rgba(30,43,74,.10);z-index:20;font-size:13.5px}
+.wwrap.open .wmenu{display:block}
+.wmenu .full{font:500 12.5px/1.45 'Geist Mono',ui-monospace,monospace;word-break:break-all;margin:6px 0 10px;color:var(--ink)}
+.wmenu p{margin:0 0 12px;color:var(--muted)}
+.wmenu .row{display:flex;gap:8px;flex-wrap:wrap}
+.wmenu .row a,.wmenu .row button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:6px 12px;font:13px Geist,system-ui,sans-serif;color:var(--ink);text-decoration:none;cursor:pointer}
+.wmenu .row a:hover,.wmenu .row button:hover{border-color:#cfc6b4}
+.wmenu .row .off{color:var(--bad)}
 
 .top{text-align:center;padding:6px 48px 22px}
 h1{font-size:48px;line-height:1.05;letter-spacing:-.03em;font-weight:600;margin:14px auto 12px;max-width:820px}
@@ -106,7 +121,7 @@ footer{padding:0 48px 40px;color:var(--muted);font-size:13px}
   .shoplist{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin:12px 24px 0}
 }
 @media (max-width:860px){
-  nav{padding:16px}nav .r a.hide,nav .r .net{display:none}nav .r a{white-space:nowrap}
+  nav{padding:16px}nav .r{gap:14px}nav .r a.hide,nav .r .net,.wbtn .net2{display:none}nav .r a{white-space:nowrap}.wbtn{padding:8px 12px}.wmenu{width:min(290px,calc(100vw - 32px))}
   .top{padding:4px 16px 18px}h1{font-size:34px}.sub{font-size:16px}
   .stage{margin:0 16px;border-radius:20px}
   .agent{top:auto;bottom:6%;font-size:12px;padding:5px 10px 5px 6px}.agent i{width:14px;height:14px}
@@ -122,7 +137,7 @@ footer{padding:0 48px 40px;color:var(--muted);font-size:13px}
 <body>
 <nav>
   <a href="/"><img src="/brand/viale-lockup.svg" alt="Viale" width="144" height="30"></a>
-  <div class="r"><a href="/check">Check any agent</a><span class="lab net">Concordium testnet</span></div>
+  <div class="r"><a href="/check">Check any agent</a><div class="wwrap" id="wwrap"><button type="button" class="wbtn" id="wbtn" aria-haspopup="true" aria-expanded="false">Connect wallet</button><div class="wmenu" id="wmenu" role="menu"></div></div></div>
 </nav>
 
 <section class="top">
@@ -417,7 +432,37 @@ function drawSigner() {
   $('signer').replaceChildren(...(wallet.account
     ? ['Your wallet signs the mandate: ', h('b', { class: 'mono' }, short(wallet.account)), ' · ', useDemo]
     : ["Signed by Viale's demo account, because no Concordium wallet is connected. ", useWallet]));
+  drawWalletButton();
 }
+// The wallet button in the nav: "Connect wallet", or the connected testnet account with a small menu.
+function drawWalletButton() {
+  const b = $('wbtn'), menu = $('wmenu');
+  $('wwrap').classList.remove('open'); b.setAttribute('aria-expanded', 'false');
+  if (!wallet.account) {
+    b.className = 'wbtn'; b.replaceChildren('Connect wallet'); b.title = 'Connect the Concordium Browser Wallet (testnet)';
+    menu.replaceChildren();
+    return;
+  }
+  b.className = 'wbtn on'; b.title = wallet.account;
+  b.replaceChildren(h('span', { class: 'd' }), h('span', { class: 'net2' }, 'Testnet'), h('span', { class: 'addr' }, short(wallet.account)));
+  const copy = h('button', { type: 'button' }, 'Copy address');
+  copy.onclick = async () => { try { await navigator.clipboard.writeText(wallet.account); copy.textContent = 'Copied'; } catch { copy.textContent = 'Copy failed'; } };
+  const off = h('button', { type: 'button', class: 'off' }, 'Disconnect');
+  off.onclick = () => { wallet.account = null; wallet.off = true; drawSigner(); };
+  menu.replaceChildren(
+    h('div', { class: 'lab' }, 'Connected · Concordium testnet'),
+    h('div', { class: 'full' }, wallet.account),
+    h('p', {}, 'Errands you run are signed by this account. Your wallet asks before each one.'),
+    h('div', { class: 'row' }, copy, h('a', { href: `${explorer}/account/${wallet.account}`, target: '_blank', rel: 'noopener' }, 'View on explorer'), off));
+}
+$('wbtn').onclick = (ev) => {
+  ev.stopPropagation();
+  if (!wallet.account) return connectWallet();
+  const open = $('wwrap').classList.toggle('open');
+  $('wbtn').setAttribute('aria-expanded', String(open));
+};
+document.addEventListener('click', (ev) => { if (!$('wwrap').contains(ev.target)) { $('wwrap').classList.remove('open'); $('wbtn').setAttribute('aria-expanded', 'false'); } });
+document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') $('wwrap').classList.remove('open'); });
 async function connectWallet() {
   $('msg').textContent = '';
   wallet.api ??= await detectWallet();
@@ -431,13 +476,32 @@ async function connectWallet() {
     if (chain && !String(chain).startsWith(TESTNET_GENESIS)) throw new Error('Your wallet is on another network. Switch it to Concordium testnet.');
     if (!accounts?.length) throw new Error('No account was connected.');
     wallet.account = accounts[0];
+    wallet.off = false;
     drawSigner();
-    if (!wallet.listening) { wallet.listening = true; wallet.api.on?.('accountChanged', (a) => { if (wallet.account) { wallet.account = a; drawSigner(); } }); }
+    listenToWallet();
   } catch (err) {
     $('msg').textContent = err?.message ?? 'The wallet did not connect.';
   }
 }
 $('wallet').onclick = connectWallet;
+function listenToWallet() {
+  if (wallet.listening) return;
+  wallet.listening = true;
+  wallet.api.on?.('accountChanged', (a) => { if (wallet.account) { wallet.account = a; drawSigner(); } });
+  wallet.api.on?.('accountDisconnected', () => { wallet.account = null; drawSigner(); });
+}
+// Like other web3 sites: if this site is already connected in the wallet, pick the account up without a prompt.
+(async () => {
+  const api = await detectWallet(1500);
+  if (!api || wallet.account) return;
+  wallet.api ??= api;
+  try {
+    const chain = await api.getSelectedChain();
+    if (!String(chain).startsWith(TESTNET_GENESIS)) return;
+    const a = await api.getMostRecentlySelectedAccount();
+    if (a && !wallet.account && !wallet.off) { wallet.account = a; drawSigner(); listenToWallet(); }
+  } catch { /* not connected yet: the button asks */ }
+})();
 document.querySelectorAll('.ideas button').forEach((b) => (b.onclick = () => { $('taskInput').value = b.dataset.task; $('taskInput').focus(); }));
 start();
 </script>
