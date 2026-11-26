@@ -1,13 +1,13 @@
 # Viale on X
 
 Account: @NeromStudio. Every claim below is live on viale.nerom.site or in this repo.
-Check the handles in the composer's mention list before posting: @encodeclub, @ConcordiumNet.
+Check the handles in the composer's mention list before posting: @encodeclub, @Concordium.
 
 ## P1 · Launch (image: x/p1-street.png)
 
 We built a street where an AI agent does your shopping, and checks every shop before it pays.
 
-Viale, for the @encodeclub × @ConcordiumNet Trusted Agents hackathon:
+Viale, for the @encodeclub × @Concordium Trusted Agents hackathon:
 
 → every shop is an agent in Concordium's Agent Registry
 → the agent walks away from any shop whose owner isn't a verified business
@@ -51,4 +51,4 @@ Seal: https://ccdexplorer.io/testnet/transaction/90c5ed1c644d4cf6f0a556cb30ab52b
 
 Viale is open source: github.com/neromtoobad/viale
 
-Claude agent with hard limits in code (budget, per-payment cap, expiry, checked shops only), Concordium Agent Registry, business identity checks, x402 payments in EUDemo, and an anchored errand log. Built for the @encodeclub × @ConcordiumNet Trusted Agents hackathon.
+Claude agent with hard limits in code (budget, per-payment cap, expiry, checked shops only), Concordium Agent Registry, business identity checks, x402 payments in EUDemo, and an anchored errand log. Built for the @encodeclub × @Concordium Trusted Agents hackathon.
