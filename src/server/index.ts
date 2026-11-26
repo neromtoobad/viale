@@ -8,6 +8,7 @@ import { createRequest, getProof, publicView, verifyPresentation } from '../proo
 import { menu, quote } from '../street/shop-agent.ts';
 import { followErrand, errandLimits, latestErrand, startErrand, street } from './errands.ts';
 import { EXPLORER } from '../chain/chain.ts';
+import { checkAgent, handleMcp, overLimit, registry, verdictView } from './check.ts';
 
 export const PORT = Number(process.env.PORT ?? 3000);
 export const PUBLIC_URL = process.env.VIALE_PUBLIC_URL ?? `http://localhost:${PORT}`;
@@ -60,6 +61,21 @@ export function startServer(): Promise<http.Server> {
         }
         return send(res, 405, { error: 'method not allowed' });
       }
+      // Check any agent in the registry (same check the errand agent runs), as JSON, as an MCP tool, and as a page.
+      if (parts[0] === 'api' && parts[1] === 'check' && parts[2]) {
+        if (!/^\d{1,10}$/.test(parts[2])) return send(res, 400, { error: 'token id must be a number' });
+        if (overLimit(req)) return send(res, 429, { error: 'Too many checks from this address. Try again in a minute.' });
+        return send(res, 200, verdictView(await checkAgent(parts[2])));
+      }
+      if (url.pathname === '/api/registry') return send(res, 200, await registry());
+      if (url.pathname === '/mcp') {
+        if (req.method === 'OPTIONS') { res.writeHead(204, { 'access-control-allow-origin': '*', 'access-control-allow-methods': 'POST', 'access-control-allow-headers': 'content-type, accept, mcp-protocol-version, mcp-session-id' }).end(); return; }
+        if (req.method !== 'POST') { res.writeHead(405, { allow: 'POST', 'content-type': 'application/json' }).end(JSON.stringify({ error: 'POST JSON-RPC to this MCP endpoint' })); return; }
+        let msg: any;
+        try { msg = await body(req); } catch { return send(res, 400, { jsonrpc: '2.0', id: null, error: { code: -32700, message: 'parse error' } }); }
+        return handleMcp(req, res, msg);
+      }
+      if (parts[0] === 'check' && parts.length <= 2) return file(res, path.join(ROOT, 'public/check.html'));
       if (url.pathname === '/api/street') return send(res, 200, { shops: await street(), explorer: EXPLORER, limits: errandLimits });
       if (url.pathname === '/api/errands/latest') return send(res, 200, latestErrand());
       if (url.pathname === '/api/errands' && req.method === 'POST') {
@@ -96,4 +112,5 @@ export function startServer(): Promise<http.Server> {
 if (import.meta.url === `file://${process.argv[1]}`) {
   await startServer();
   console.log(`Viale server on ${PUBLIC_URL}`);
+  registry().catch((err) => console.error('registry count failed:', err.message)); // warm the /check page's numbers
 }
