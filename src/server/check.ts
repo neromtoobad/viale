@@ -33,6 +33,7 @@ export function verdictView(v: ShopVerdict) {
     owner: v.owner ?? null,
     owner_identity: v.ownerIdentity ?? null,
     pays_to: v.payTo ?? null,
+    pays_to_identity: v.payToIdentity ?? null,
     badge: v.badge ?? null,
     agent_uri: v.agentUri ?? null,
     passed: v.passed,

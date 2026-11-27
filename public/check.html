@@ -188,7 +188,7 @@ function show(v) {
   const rows = [
     ['Owner', acct(v.owner)],
     ['Identity provider', idp ? h('span', {}, idp, v.owner_identity.business ? ' · business' : ' · personal') : '—'],
-    ['Payments go to', acct(v.pays_to)],
+    ['Payments go to', v.pays_to_identity ? h('span', {}, acct(v.pays_to), v.pays_to_identity.business ? ' · business ID' : ' · personal ID') : acct(v.pays_to)],
     ['Badge', v.badge ? h('span', { class: 'mono' }, v.badge) : '—'],
     ['Card', v.agent_uri ? h('a', { href: v.agent_uri, target: '_blank', rel: 'noopener noreferrer' }, new URL(v.agent_uri).host + '…') : '—'],
     ['As JSON', h('a', { href: `/api/check/${v.token_id}`, target: '_blank', class: 'mono' }, `/api/check/${v.token_id}`)],

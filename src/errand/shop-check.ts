@@ -21,6 +21,7 @@ export type ShopVerdict = {
   badge?: string; // the agent's CIS-2 token address, which is also its Verified-by-Concordium badge id
   agentUri?: string;
   ownerIdentity?: { providers: { id: number; name: string }[]; business: boolean };
+  payToIdentity?: { business: boolean }; // identity behind the agent wallet, when it is a separate account
   reasons: string[]; // why we refused (empty when ok)
   passed: string[]; // what we checked and saw pass
 };
@@ -97,7 +98,12 @@ export async function checkShop(tokenId: string, expectedName?: string): Promise
   }
 
   v.payTo = agent.agent_wallet ?? agent.owner_account;
-  if (agent.agent_wallet && agent.agent_wallet !== agent.owner_account) v.passed.push('pays to its registered agent wallet');
+  if (agent.agent_wallet && agent.agent_wallet !== agent.owner_account) {
+    // The wallet is a separate account with its own identity; say which kind, so a personal-ID till isn't hidden.
+    const walletIdps = await accountIdentityProviders(agent.agent_wallet).catch(() => [] as number[]);
+    v.payToIdentity = { business: walletIdps.some((i) => business.has(i)) };
+    v.passed.push(`pays to its registered agent wallet ${agent.agent_wallet.slice(0, 6)}… (that account holds a ${v.payToIdentity.business ? 'business' : 'personal'} identity)`);
+  }
 
   v.ok = v.reasons.length === 0;
   return v;
