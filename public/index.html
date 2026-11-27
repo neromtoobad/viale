@@ -17,43 +17,13 @@
 <meta name="twitter:image" content="https://viale.nerom.site/brand/viale-og.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/site.css">
 <style>
-:root{--paper:#F6F1E7;--ink:#1E2B4A;--muted:#6b7385;--line:#e6dfd1;--brass:#C9A14A;--sky:#7FAEE3;--ok:#2f7d55;--okbg:#e6f2ea;--bad:#b0412e;--badbg:#f8e6e1;--wait:#9a7420;--waitbg:#f6edd6}
-*{box-sizing:border-box}
-body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 Geist,system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
-a{color:#2a4d8f}
-.mono{font-family:'Geist Mono',ui-monospace,monospace}
-.lab{font:500 11px/1.2 'Geist Mono',ui-monospace,monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:99px;font-size:12.5px;font-weight:500;white-space:nowrap}
-.ok{background:var(--okbg);color:var(--ok)}.bad{background:var(--badbg);color:var(--bad)}.wait{background:var(--waitbg);color:var(--wait)}
-
-nav{display:flex;align-items:center;justify-content:space-between;padding:22px 48px}
-nav img{height:30px;display:block}
-nav .r{display:flex;gap:22px;align-items:center;font-size:14px}
-nav .r a{color:var(--muted);text-decoration:none}nav .r a:hover{color:var(--ink)}
-.wwrap{position:relative}
-.wbtn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--ink);background:var(--ink);color:#fff;border-radius:99px;padding:8px 15px;font:600 13.5px Geist,system-ui,sans-serif;cursor:pointer;white-space:nowrap}
-.wbtn:hover{background:#2b3a5e}
-.wbtn.on{background:#fff;color:var(--ink);border-color:var(--line)}.wbtn.on:hover{border-color:#cfc6b4}
-.wbtn .d{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px var(--okbg)}
-.wbtn .net2{font:500 11px 'Geist Mono',ui-monospace,monospace;color:var(--muted);letter-spacing:.04em}
-.wbtn .addr{font:500 13px 'Geist Mono',ui-monospace,monospace}
-.wmenu{display:none;position:absolute;right:0;top:calc(100% + 8px);width:290px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 12px 32px rgba(30,43,74,.10);z-index:20;font-size:13.5px}
-.wwrap.open .wmenu{display:block}
-.wmenu .full{font:500 12.5px/1.45 'Geist Mono',ui-monospace,monospace;word-break:break-all;margin:6px 0 10px;color:var(--ink)}
-.wmenu p{margin:0 0 12px;color:var(--muted)}
-.wmenu .row{display:flex;gap:8px;flex-wrap:wrap}
-.wmenu .row a,.wmenu .row button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:6px 12px;font:13px Geist,system-ui,sans-serif;color:var(--ink);text-decoration:none;cursor:pointer}
-.wmenu .row a:hover,.wmenu .row button:hover{border-color:#cfc6b4}
-.wmenu .row .off{color:var(--bad)}
-
 .top{text-align:center;padding:6px 48px 22px}
 h1{font-size:48px;line-height:1.05;letter-spacing:-.03em;font-weight:600;margin:14px auto 12px;max-width:820px}
 .sub{color:var(--muted);font-size:17px;margin:0 auto 24px;max-width:640px}
 form.task{display:flex;gap:8px;background:#fff;border:1px solid var(--line);border-radius:99px;padding:6px 6px 6px 18px;align-items:center;max-width:640px;margin:0 auto}
 form.task input{flex:1;min-width:0;border:0;outline:0;font:15px Geist,system-ui,sans-serif;background:transparent;color:var(--ink)}
-.btn{background:var(--ink);color:#fff;border:0;border-radius:99px;padding:12px 20px;font:600 14px Geist,system-ui,sans-serif;cursor:pointer;white-space:nowrap}
-.btn:disabled{opacity:.45;cursor:default}
 .ideas{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px}
 .ideas button{border:1px solid var(--line);background:transparent;border-radius:99px;padding:6px 12px;font:13px Geist,system-ui,sans-serif;color:var(--muted);cursor:pointer}
 .ideas button:hover{background:#fff;color:var(--ink)}
@@ -81,7 +51,6 @@ form.task input{flex:1;min-width:0;border:0;outline:0;font:15px Geist,system-ui,
 .shoplist{display:none}
 
 .panel{margin:20px 48px 48px;display:grid;grid-template-columns:1.4fr 1fr;gap:20px;align-items:start}
-.card{background:#fff;border:1px solid var(--line);border-radius:24px;padding:26px 28px}
 .card .head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 18px}
 .steps{list-style:none;margin:0;padding:0}
 .steps>li{display:grid;grid-template-columns:22px 1fr;gap:14px;padding:0 0 18px;position:relative;animation:in .35s ease both}
@@ -102,15 +71,11 @@ form.task input{flex:1;min-width:0;border:0;outline:0;font:15px Geist,system-ui,
 .says{margin-top:6px;padding:10px 14px;background:var(--paper);border-radius:12px;font-size:14px;color:var(--ink);white-space:pre-wrap}
 .says summary{cursor:pointer;list-style:none}.says summary::-webkit-details-marker{display:none}
 .says summary:after{content:" · more";color:var(--muted)}.says[open] summary:after{content:""}
-.empty{color:var(--muted);font-size:14px}
 
 .rec{background:var(--ink);color:#fff;border:0;position:sticky;top:20px}
 .rec .lab{color:#aeb6c8}
 .big{font-size:44px;font-weight:300;letter-spacing:-.03em;margin:6px 0 2px}
-.row{display:flex;justify-content:space-between;gap:16px;padding:11px 0;border-top:1px solid rgba(255,255,255,.12);font-size:14px}
-.row span:first-child{color:#aeb6c8;flex:none}.row span:last-child{text-align:right;overflow-wrap:anywhere}
 .rec a{color:#cfe0ff}
-footer{padding:0 48px 40px;color:var(--muted);font-size:13px}
 
   .shoplist .card{padding:14px 16px;border-radius:16px}
   .shoplist .card ul{list-style:none;margin:8px 0 0;padding:0;font-size:13px;color:var(--muted)}
@@ -121,25 +86,52 @@ footer{padding:0 48px 40px;color:var(--muted);font-size:13px}
   .shoplist{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin:12px 24px 0}
 }
 @media (max-width:860px){
-  nav{padding:16px}nav .r{gap:14px}nav .r a.hide,nav .r .net,.wbtn .net2{display:none}nav .r a{white-space:nowrap}.wbtn{padding:8px 12px}.wmenu{width:min(290px,calc(100vw - 32px))}
   .top{padding:4px 16px 18px}h1{font-size:34px}.sub{font-size:16px}
   .stage{margin:0 16px;border-radius:20px}
   .agent{top:auto;bottom:6%;font-size:12px;padding:5px 10px 5px 6px}.agent i{width:14px;height:14px}
   .plate{border-width:1px;border-radius:3px}
   .shoplist{margin:12px 16px 0}
   .panel{grid-template-columns:1fr;margin:16px 16px 32px}
-  .card{padding:20px}
   .rec{position:static}
-  footer{padding:0 16px 32px}
 }
-@media (max-width:480px){nav{padding:14px 16px}nav img{height:24px;width:auto}nav .r{gap:12px}nav .r .xs{display:none}.wbtn{padding:7px 11px;font-size:13px}}
+
+
+/* Errand settings */
+.optsbtn{border:0;background:none;padding:0;font:inherit;color:var(--link);text-decoration:underline;cursor:pointer;text-transform:none;letter-spacing:0;font-size:13px}
+.opts{display:none;max-width:640px;margin:14px auto 0;text-align:left;background:#fff;border:1px solid var(--line);border-radius:20px;padding:18px 20px}
+.opts.open{display:block}
+.opts .g{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.opts .field{margin:0}
+.opts .shopsel{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.opts .shopsel label{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line);border-radius:99px;padding:6px 12px;font-size:13.5px;cursor:pointer}
+.opts .shopsel input{margin:0;width:auto;padding:0}
+.presetnote{max-width:640px;margin:10px auto 0;color:var(--wait);font-size:13.5px;display:none}
+.presetnote.on{display:block}
+.disclaim{color:var(--muted);font-size:13px;margin:0 48px}
+/* Long page */
+.checks5{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+.checks5 .card{padding:20px}
+.checks5 .n{font:500 12px 'Geist Mono',ui-monospace,monospace;color:var(--brass2)}
+.checks5 h3,.parties h3,.teaser h3{margin:8px 0 6px;font-size:17px;font-weight:600;letter-spacing:-.01em}
+.checks5 p,.parties p,.teaser p{margin:0;color:var(--muted);font-size:14px}
+.checks5 a.src{display:inline-block;margin-top:10px;font:12px 'Geist Mono',ui-monospace,monospace}
+.parties .card{display:flex;flex-direction:column;gap:6px}
+.parties .who{font-size:13px}
+.teaser{display:flex;flex-direction:column;justify-content:space-between;gap:16px}
+.teaser .big2{font-size:40px;font-weight:300;letter-spacing:-.03em;line-height:1}
+.faq details{border-top:1px solid var(--line);padding:16px 0}
+.faq details:last-child{border-bottom:1px solid var(--line)}
+.faq summary{cursor:pointer;font-size:16.5px;font-weight:500;list-style:none}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary:after{content:"+";float:right;color:var(--muted)}.faq details[open] summary:after{content:"–"}
+.faq details p{color:var(--muted);margin:10px 0 0;max-width:760px}
+.secline{display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap}
+@media (max-width:1000px){.checks5{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:760px){.opts .g{grid-template-columns:1fr 1fr}.checks5{grid-template-columns:1fr}.disclaim{margin:0 16px}}
 </style>
 </head>
-<body>
-<nav>
-  <a href="/"><img src="/brand/viale-lockup.svg" alt="Viale" width="144" height="30"></a>
-  <div class="r"><a href="/check">Check <span class="xs">any </span>agent</a><div class="wwrap" id="wwrap"><button type="button" class="wbtn" id="wbtn" aria-haspopup="true" aria-expanded="false">Connect wallet</button><div class="wmenu" id="wmenu" role="menu"></div></div></div>
-</nav>
+<body data-page="street">
+<header data-nav></header>
 
 <section class="top">
   <span class="lab">Errand agent · Claude</span>
@@ -149,8 +141,19 @@ footer{padding:0 48px 40px;color:var(--muted);font-size:13px}
   <div class="ideas">
     <button type="button" data-task="Buy me a small bouquet from Viale Flowers. Pay at most €3.">Small bouquet</button>
     <button type="button" data-task="Buy ten tulips from Viale Flowers. Pay at most €3.">Ten tulips</button>
+    <button type="button" data-task="Buy me the cheapest bottle of red from The Bottle Shop. Pay at most €3." data-note="bottle">Cheapest bottle (meets the fake shop)</button>
+    <button type="button" data-task="Buy a six-pack of lager from The Bottle Shop and a small bouquet from Viale Flowers. Pay at most €3 each." data-note="bottle">Lager and flowers</button>
   </div>
-  <p class="lab limits" id="limits">Budget €5 · max €3 a payment · 15 minutes · in a signed mandate</p>
+  <p class="presetnote" id="presetnote">This errand meets the fake Bottle Shop first and walks away from it. The real Bottle Shop sells only to adults, so it then asks for an 18+ proof in the Concordium ID app (testnet). Without that app the errand stops at the 18+ check and nothing is paid.</p>
+  <p class="lab limits"><span id="limits">Budget €5 · max €3 a payment · 15 minutes · any shop</span> · in a signed mandate · <button type="button" class="optsbtn" id="optsbtn" aria-expanded="false" aria-controls="opts">Change limits</button></p>
+  <div class="opts" id="opts">
+    <div class="g">
+      <div class="field"><label for="oBudget">Budget (€)</label><input id="oBudget" type="number" min="0.5" max="5" step="0.1" value="5"><small>Most it may spend in all. Street max €5.</small></div>
+      <div class="field"><label for="oCap">Per payment (€)</label><input id="oCap" type="number" min="0.5" max="3" step="0.1" value="3"><small>Most for one payment. Max €3.</small></div>
+      <div class="field"><label for="oMin">Mandate lasts</label><select id="oMin"><option value="5">5 minutes</option><option value="10">10 minutes</option><option value="15" selected>15 minutes</option><option value="30">30 minutes</option></select><small>After this the agent can't pay.</small></div>
+    </div>
+    <div class="field" style="margin-top:12px"><label>Shops it may pay</label><div class="shopsel" id="oShops"><span class="note">Loading shops…</span></div><small>Untick a shop and the code refuses to pay it, whatever the model decides.</small></div>
+  </div>
   <p class="signer" id="signer">Signed by Viale's demo account, because no Concordium wallet is connected. <button type="button" id="wallet">Sign with my Concordium wallet</button></p>
   <p class="msg" id="msg" role="status"></p>
 </section>
@@ -166,32 +169,83 @@ footer{padding:0 48px 40px;color:var(--muted);font-size:13px}
     <div class="head"><span class="lab">Errand, step by step</span><span class="lab" id="when"></span></div>
     <ol class="steps" id="steps"><li class="empty" style="display:block">Loading the street…</li></ol>
   </div>
-  <div class="card rec" id="receipt">
+  <div class="card dark rec" id="receipt">
     <span class="lab">Receipt</span>
     <div class="big" id="paid">€0.00</div>
     <p class="lab" id="paidFor" style="margin:0 0 18px">Nothing paid yet</p>
     <div id="rows"></div>
   </div>
 </section>
-<footer>Test euros (EUDemo) on Concordium testnet. No real money moves. Shop checks, quotes and payments are live calls; nothing on this page is simulated.</footer>
+<p class="disclaim">Test euros (EUDemo) on Concordium testnet. No real money moves. Shop checks, quotes and payments are live calls; nothing on this page is simulated. <a href="/errands">Every errand so far →</a></p>
 
+<div class="wrap">
+<section class="sec" id="numbers">
+  <div class="secline"><div><span class="lab">Live on testnet</span><h2>What the agent has done so far</h2></div><a class="btn ghost sm" href="/errands">Errand history →</a></div>
+  <div class="grid4" id="stats" style="margin-top:20px">
+    <div class="stat"><span class="lab">Errands run</span><b class="loading"></b></div>
+    <div class="stat"><span class="lab">Paid</span><b class="loading"></b></div>
+    <div class="stat"><span class="lab">Walk-aways</span><b class="loading"></b></div>
+    <div class="stat"><span class="lab">Logs sealed</span><b class="loading"></b></div>
+  </div>
+</section>
+
+<section class="sec">
+  <span class="lab">Before every payment</span>
+  <h2>Five checks, in code, before a cent moves</h2>
+  <p class="sub">The model chooses what to buy. The code decides whether it may pay. If any check fails, the payment is refused and the reason goes into the log.</p>
+  <div class="checks5">
+    <div class="card"><span class="n">01</span><h3>Registered and Active</h3><p>The shop is an agent in Concordium’s Agent Registry (CIS-8004), and its status is Active.</p><a class="src" href="https://github.com/neromtoobad/viale/blob/main/src/errand/shop-check.ts" target="_blank" rel="noopener">shop-check.ts ↗</a></div>
+    <div class="card"><span class="n">02</span><h3>Badge valid</h3><p>Its Verified-by-Concordium badge checks out: the card it serves hashes to what the chain holds.</p><a class="src" href="https://github.com/neromtoobad/viale/blob/main/src/errand/shop-check.ts" target="_blank" rel="noopener">shop-check.ts ↗</a></div>
+    <div class="card"><span class="n">03</span><h3>A business behind it</h3><p>The account that owns the agent holds a business identity (Global FinReg). A personal account copying a shop’s name fails here.</p><a class="src" href="https://github.com/neromtoobad/viale/blob/main/src/errand/shop-check.ts" target="_blank" rel="noopener">shop-check.ts ↗</a></div>
+    <div class="card"><span class="n">04</span><h3>Price signed by the owner</h3><p>The quote is signed by the owner’s account. The signature is checked against its keys on chain, and the agent pays exactly that price.</p><a class="src" href="https://github.com/neromtoobad/viale/blob/main/src/street/shop-agent.ts" target="_blank" rel="noopener">shop-agent.ts ↗</a></div>
+    <div class="card"><span class="n">05</span><h3>Inside your limits</h3><p>Budget, per-payment cap, expiry and allowed shops come from the mandate you signed. Then the payment goes over x402 and the log is sealed.</p><a class="src" href="https://github.com/neromtoobad/viale/blob/main/src/errand/guards.ts" target="_blank" rel="noopener">guards.ts ↗</a></div>
+  </div>
+</section>
+
+<section class="sec parties">
+  <span class="lab">Accountability</span>
+  <h2>Three parties to every errand, each traceable on chain</h2>
+  <p class="sub">If something goes wrong, every step leads back to an account with a Concordium identity behind it.</p>
+  <div class="grid3">
+    <div class="card"><span class="lab">You</span><h3>Sign the mandate</h3><p>Your Concordium wallet signs what the agent may do: the task, a budget, a cap per payment, an expiry and which shops. Your account carries your Concordium identity.</p><span class="who">Without a wallet, Viale’s demo account signs, and the log says so.</span></div>
+    <div class="card"><span class="lab">The shop</span><h3>Owned by a verified business</h3><p>Each shop is an agent in the registry, owned by an account with a Global FinReg business identity, which signs every price it quotes.</p><span class="who"><a href="/shops">See the shops →</a></span></div>
+    <div class="card"><span class="lab">The agent</span><h3>Acts, then leaves a sealed log</h3><p>Claude runs the errand from its own account <span class="mono">3bfc6N…</span>. Every check, quote and payment goes into a log whose hash is registered on chain.</p><span class="who"><a href="/verify">Check a log yourself →</a></span></div>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="secline"><div><span class="lab">Recent errands</span><h2>The last few runs</h2></div><a class="btn ghost sm" href="/errands">All errands →</a></div>
+  <div class="card scroll-x" style="margin-top:20px;padding:8px 12px"><table class="t" id="recent"><tbody><tr><td class="loading">Loading errands</td></tr></tbody></table></div>
+</section>
+
+<section class="sec">
+  <div class="grid3">
+    <a class="card teaser" href="/registry" style="text-decoration:none;color:inherit"><div><span class="lab">Registry census</span><h3>Who owns the registry’s agents?</h3><p>Every Active agent in Concordium’s testnet registry, by the identity behind its owner.</p></div><div><div class="big2" id="censusBig">…</div><p id="censusSub">agents owned by a business identity</p></div></a>
+    <a class="card teaser" href="/developers" style="text-decoration:none;color:inherit"><div><span class="lab">For your own agent</span><h3>Check before you pay</h3><p>The same check, as an MCP tool, an A2A skill and a REST call. One line to add it to Claude or any MCP client.</p></div><div><code>POST /mcp · check_agent</code></div></a>
+    <a class="card teaser" href="/mainnet" style="text-decoration:none;color:inherit"><div><span class="lab">Path to mainnet</span><h3>What it takes to go live</h3><p>The registry, business identities and sponsored transactions already run on mainnet. Here is what is left.</p></div><div><span class="chip line">Registry &lt;10082,0&gt; on mainnet</span></div></a>
+  </div>
+</section>
+
+<section class="sec faq">
+  <span class="lab">Questions</span>
+  <h2>Good to know</h2>
+  <details><summary>Is any of this real money?</summary><p>No. Payments are in EUDemo, a test euro token on Concordium testnet. The checks, signatures, payments and seals are real testnet transactions you can open on the explorer.</p></details>
+  <details><summary>Do I need a wallet?</summary><p>No. Without one, Viale’s demo account signs the mandate and the log says so. With the Concordium Browser Wallet on testnet, your own account signs, and the agent can only do what you signed.</p></details>
+  <details><summary>Why did the agent walk away from a Bottle Shop?</summary><p>The street has a planted fake: an agent named “The Bottle Shop” with a valid badge, owned by an account with only a personal identity. Check 3 fails, so the agent refuses to pay it.</p></details>
+  <details><summary>Why does the bottle errand stop?</summary><p>The real Bottle Shop sells only to adults, so it asks for an 18+ proof made in the Concordium ID app. The shop learns only yes or no. Without the app the errand stops there and nothing is paid.</p></details>
+  <details><summary>What if the model tries to overspend?</summary><p>It can’t. The limits are checked in code before every payment, outside the model. A payment over the cap or budget, after expiry, or to a shop you did not allow is refused and logged.</p></details>
+  <details><summary>How do I know a log wasn’t edited?</summary><p>Each log’s SHA-256 hash is registered on chain when the errand ends. Paste a log into the <a href="/verify">audit desk</a> and it recomputes the hash and compares it with the transaction.</p></details>
+  <details><summary>Can my business be on the street?</summary><p>Yes. <a href="/open">Open a shop</a> with your Concordium wallet: you register your own agent, sign your price list, and the errand agent checks you like any other shop.</p></details>
+</section>
+</div>
+<footer data-foot></footer>
+
+<script src="/site.js"></script>
 <script>
 // Where each shop stands in the street picture (the art is drawn for these three registered shops).
 const SPOT = { '1526': { x: 21.3, plate: 'dark', w: 18, name: 'The Bottle Shop' }, '1406': { x: 48, plate: 'dark', w: 15, tilt: -2, name: 'The Bottle Shop' }, '1527': { x: 80.4, plate: '', w: 22, name: 'Viale Flowers' } };
-const $ = (id) => document.getElementById(id);
-const h = (tag, attrs = {}, ...kids) => {
-  const el = document.createElement(tag);
-  for (const [k, v] of Object.entries(attrs)) {
-    if (v == null || v === false) continue;
-    if (k === 'class') el.className = v; else if (k === 'style') el.style.cssText = v; else el.setAttribute(k, v);
-  }
-  for (const k of kids.flat()) if (k != null && k !== false) el.append(k instanceof Node ? k : String(k));
-  return el;
-};
-const short = (a) => a ? `${String(a).slice(0, 6)}…` : '';
-const shortTx = (t) => t ? `${t.slice(0, 6)}…${t.slice(-4)}` : '';
-const eur = (n) => `€${Number(n).toFixed(2)}`;
-let explorer = 'https://ccdexplorer.io/testnet';
+const { $, h, short, shortTx, eur, wallet } = V;
+let explorer = V.EXPLORER;
 const txLink = (t) => h('a', { href: `${explorer}/transaction/${t}`, target: '_blank', rel: 'noopener', class: 'mono' }, `${shortTx(t)} ↗`);
 
 let shops = {};           // token_id -> live shop check from /api/street
@@ -268,7 +322,7 @@ function drawReceipt() {
   $('paid').textContent = eur(state.spent);
   $('paidFor').textContent = last ? state.payments.map((p) => `${p.item} · ${p.shop}`).join(' + ') : state.refused.length ? 'Nothing paid. The agent refused.' : 'Nothing paid yet';
   const rows = [];
-  const row = (k, v) => rows.push(h('div', { class: 'row' }, h('span', {}, k), h('span', {}, v)));
+  const row = (k, v) => rows.push(h('div', { class: 'kv' }, h('span', {}, k), h('span', {}, v)));
   if (state.signer) row('Mandate', h('span', {}, h('span', { class: 'mono' }, short(state.signer.human)), state.signer.demo ? ' · Viale demo' : mine() ? ' · your wallet' : ' · a wallet'));
   if (state.owner) row('Shop owner', h('span', { class: 'mono' }, `${short(state.owner.address)}${state.owner.business ? ' · Business ID' : ''}`));
   if (state.quote) row('Quote', `${state.quote.item}, ${eur(state.quote.price_eur)} · signed`);
@@ -378,8 +432,8 @@ async function start() {
     if (!r.ok) throw new Error();
     const st = await r.json();
     explorer = st.explorer ?? explorer;
-    if (st.limits) $('limits').textContent = `Budget €${st.limits.budgetEur} · max €${st.limits.maxPaymentEur} a payment · 15 minutes · in a signed mandate`;
     drawStreet(st.shops);
+    drawShopChoices(st.shops);
   } catch {
     $('stage').append(h('div', { class: 'offline' }, 'The street server is offline, so shops can’t be checked right now.'));
     $('run').disabled = true;
@@ -398,10 +452,11 @@ $('task').onsubmit = async (ev) => {
   $('run').disabled = true;
   try {
     const post = (url, data) => fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(data) });
-    let payload = { task: $('taskInput').value };
+    const options = limits();
+    let payload = { task: $('taskInput').value, options };
     if (wallet.account) {
-      // The mandate is drafted by the server (this agent, the street's limits) and signed in your wallet.
-      const d = await post('/api/mandates/draft', { task: $('taskInput').value, human: wallet.account });
+      // The mandate is drafted by the server (this agent, your limits inside the street's) and signed in your wallet.
+      const d = await post('/api/mandates/draft', { task: $('taskInput').value, human: wallet.account, options });
       const draft = await d.json();
       if (!d.ok) throw new Error(draft.error ?? 'Could not draft the mandate.');
       $('msg').textContent = 'Approve the mandate in your Concordium wallet…';
@@ -421,96 +476,62 @@ $('task').onsubmit = async (ev) => {
     $('run').disabled = false;
   }
 };
-// Concordium Browser Wallet: the extension injects window.concordium (same detection as
-// @concordium/browser-wallet-api-helpers). With it, your own testnet account signs each errand's mandate.
-const TESTNET_GENESIS = '4221332d34e1694168c2a0c0b3fd0f27';
-const wallet = { api: null, account: null };
-function detectWallet(timeout = 2000) {
-  return new Promise((resolve) => {
-    if (window.concordium) return resolve(window.concordium);
-    const t = setTimeout(() => resolve(window.concordium ?? null), timeout);
-    addEventListener('concordium#initialized', () => { clearTimeout(t); resolve(window.concordium ?? null); }, { once: true });
-  });
-}
+// Signer line: your Concordium wallet (shared connection in site.js) or Viale's demo account.
 function drawSigner() {
-  const useDemo = h('button', { type: 'button' }, "use Viale's demo account");
-  useDemo.onclick = () => { wallet.account = null; drawSigner(); };
-  const useWallet = h('button', { type: 'button' }, 'Sign with my Concordium wallet');
-  useWallet.onclick = connectWallet;
+  const useDemo = h('button', { type: 'button', onclick: () => wallet.disconnect() }, "use Viale's demo account");
+  const useWallet = h('button', { type: 'button', onclick: () => wallet.connect().catch((e) => ($('msg').textContent = e.message)) }, 'Sign with my Concordium wallet');
   $('signer').replaceChildren(...(wallet.account
     ? ['Your wallet signs the mandate: ', h('b', { class: 'mono' }, short(wallet.account)), ' · ', useDemo]
     : ["Signed by Viale's demo account, because no Concordium wallet is connected. ", useWallet]));
-  drawWalletButton();
 }
-// The wallet button in the nav: "Connect wallet", or the connected testnet account with a small menu.
-function drawWalletButton() {
-  const b = $('wbtn'), menu = $('wmenu');
-  $('wwrap').classList.remove('open'); b.setAttribute('aria-expanded', 'false');
-  if (!wallet.account) {
-    b.className = 'wbtn'; b.replaceChildren('Connect wallet'); b.title = 'Connect a Concordium wallet (testnet)';
-    menu.replaceChildren();
-    return;
-  }
-  b.className = 'wbtn on'; b.title = wallet.account;
-  b.replaceChildren(h('span', { class: 'd' }), h('span', { class: 'net2' }, 'Testnet'), h('span', { class: 'addr' }, short(wallet.account)));
-  const copy = h('button', { type: 'button' }, 'Copy address');
-  copy.onclick = async () => { try { await navigator.clipboard.writeText(wallet.account); copy.textContent = 'Copied'; } catch { copy.textContent = 'Copy failed'; } };
-  const off = h('button', { type: 'button', class: 'off' }, 'Disconnect');
-  off.onclick = () => { wallet.account = null; wallet.off = true; drawSigner(); };
-  menu.replaceChildren(
-    h('div', { class: 'lab' }, 'Connected · Concordium testnet'),
-    h('div', { class: 'full' }, wallet.account),
-    h('p', {}, 'Errands you run are signed by this account. Your wallet asks before each one.'),
-    h('div', { class: 'row' }, copy, h('a', { href: `${explorer}/account/${wallet.account}`, target: '_blank', rel: 'noopener' }, 'View on explorer'), off));
+wallet.onChange(drawSigner);
+
+// Errand limits the visitor picks, inside the street's (the server checks them again).
+function limits() {
+  const o = { budgetEur: Number($('oBudget').value), maxPaymentEur: Number($('oCap').value), minutes: Number($('oMin').value) };
+  const boxes = [...document.querySelectorAll('#oShops input')];
+  const picked = boxes.filter((b) => b.checked).map((b) => b.value);
+  if (boxes.length && picked.length < boxes.length) o.allowedShops = picked;
+  return o;
 }
-$('wbtn').onclick = (ev) => {
-  ev.stopPropagation();
-  if (!wallet.account) return connectWallet();
-  const open = $('wwrap').classList.toggle('open');
-  $('wbtn').setAttribute('aria-expanded', String(open));
-};
-document.addEventListener('click', (ev) => { if (!$('wwrap').contains(ev.target)) { $('wwrap').classList.remove('open'); $('wbtn').setAttribute('aria-expanded', 'false'); } });
-document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') $('wwrap').classList.remove('open'); });
-async function connectWallet() {
-  $('msg').textContent = '';
-  wallet.api ??= await detectWallet();
-  if (!wallet.api) {
-    $('signer').replaceChildren('No Concordium wallet found in this browser. Install the ', h('a', { href: 'https://chromewebstore.google.com/detail/concordium-wallet/mnnkpffndmickbiakofclnpoiajlegmg', target: '_blank', rel: 'noopener' }, 'Concordium Browser Wallet'), ', switch it to testnet, then try again. Until then, Viale\'s demo account signs.');
-    return;
-  }
+function drawLimits() {
+  const o = limits();
+  $('limits').textContent = `Budget ${eur(o.budgetEur)} · max ${eur(o.maxPaymentEur)} a payment · ${o.minutes} minutes · ${o.allowedShops ? (o.allowedShops.length ? `only ${o.allowedShops.join(', ')}` : 'no shops allowed') : 'any shop'}`;
+}
+function drawShopChoices(list) {
+  const names = [...new Set(list.map((s) => s.name))];
+  $('oShops').replaceChildren(...names.map((n) => h('label', {}, h('input', { type: 'checkbox', value: n, checked: true, onchange: drawLimits }), n)));
+}
+for (const id of ['oBudget', 'oCap', 'oMin']) $(id).addEventListener('input', drawLimits);
+$('optsbtn').onclick = () => { const open = $('opts').classList.toggle('open'); $('optsbtn').setAttribute('aria-expanded', String(open)); $('optsbtn').textContent = open ? 'Hide limits' : 'Change limits'; };
+
+// The long page: live numbers, recent errands, census.
+const OUTCOME = { paid: ['ok', 'Paid'], walked_away: ['bad', 'Walked away'], refused: ['bad', 'Refused'], stopped: ['wait', 'Stopped'], nothing_bought: ['wait', 'Nothing bought'] };
+async function drawLong() {
   try {
-    const accounts = await wallet.api.requestAccounts();
-    const chain = await wallet.api.getSelectedChain().catch(() => undefined);
-    if (chain && !String(chain).startsWith(TESTNET_GENESIS)) throw new Error('Your wallet is on another network. Switch it to Concordium testnet.');
-    if (!accounts?.length) throw new Error('No account was connected.');
-    wallet.account = accounts[0];
-    wallet.off = false;
-    drawSigner();
-    listenToWallet();
-  } catch (err) {
-    $('msg').textContent = err?.message ?? 'The wallet did not connect.';
-  }
-}
-$('wallet').onclick = connectWallet;
-function listenToWallet() {
-  if (wallet.listening) return;
-  wallet.listening = true;
-  wallet.api.on?.('accountChanged', (a) => { if (wallet.account) { wallet.account = a; drawSigner(); } });
-  wallet.api.on?.('accountDisconnected', () => { wallet.account = null; drawSigner(); });
-}
-// Like other web3 sites: if this site is already connected in the wallet, pick the account up without a prompt.
-(async () => {
-  const api = await detectWallet(1500);
-  if (!api || wallet.account) return;
-  wallet.api ??= api;
+    const s = await V.getJSON('/api/stats');
+    const e = s.errands;
+    const cells = [[e.total, `${e.wallet_signed} signed in a visitor’s wallet`], [eur(e.paid_eur), `${e.payments} payments · ${e.x402_http_payments} over HTTP x402`], [e.walked_away, 'errands that refused a shop'], [e.sealed, 'errand logs hashed on chain']];
+    [...$('stats').children].forEach((c, i) => { c.querySelector('b').className = ''; c.querySelector('b').textContent = cells[i][0]; c.append(h('small', {}, cells[i][1])); });
+    if (s.registry) { $('censusBig').textContent = `${s.registry.business} of ${s.registry.active.toLocaleString('en')}`; }
+  } catch { $('stats').replaceChildren(h('p', { class: 'empty' }, 'Numbers unavailable right now.')); }
   try {
-    const chain = await api.getSelectedChain();
-    if (!String(chain).startsWith(TESTNET_GENESIS)) return;
-    const a = await api.getMostRecentlySelectedAccount();
-    if (a && !wallet.account && !wallet.off) { wallet.account = a; drawSigner(); listenToWallet(); }
-  } catch { /* not connected yet: the button asks */ }
-})();
-document.querySelectorAll('.ideas button').forEach((b) => (b.onclick = () => { $('taskInput').value = b.dataset.task; $('taskInput').focus(); }));
+    const { errands } = await V.getJSON('/api/errands');
+    const rows = errands.slice(0, 5).map((r) => {
+      const [cls, label] = OUTCOME[r.outcome];
+      const tr = h('tr', { class: 'click', onclick: () => (location.href = `/errands/${encodeURIComponent(r.id)}`) },
+        h('td', { class: 'note', style: 'white-space:nowrap' }, V.ago(r.at)),
+        h('td', {}, h('a', { href: `/errands/${encodeURIComponent(r.id)}` }, r.task)),
+        h('td', {}, h('span', { class: `chip ${cls}` }, label)),
+        h('td', { class: 'mono', style: 'white-space:nowrap' }, eur(r.spent_eur)),
+        h('td', { class: 'note', style: 'white-space:nowrap' }, r.signer?.demo ? 'demo signer' : 'wallet-signed'));
+      return tr;
+    });
+    $('recent').replaceChildren(h('thead', {}, h('tr', {}, ['When', 'Task', 'Outcome', 'Spent', 'Signed by'].map((t) => h('th', {}, t)))), h('tbody', {}, rows.length ? rows : h('tr', {}, h('td', { class: 'empty' }, 'No errands yet.'))));
+  } catch { $('recent').replaceChildren(h('tbody', {}, h('tr', {}, h('td', { class: 'empty' }, 'Errands unavailable right now.')))); }
+}
+drawLong();
+document.querySelectorAll('.ideas button').forEach((b) => (b.onclick = () => { $('taskInput').value = b.dataset.task; $('presetnote').classList.toggle('on', b.dataset.note === 'bottle'); $('taskInput').focus(); }));
 start();
 </script>
 </body>
