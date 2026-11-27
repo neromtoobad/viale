@@ -13,6 +13,7 @@ import { EXPLORER } from '../chain/chain.ts';
 import { checkAgent, handleMcp, overLimit, registry, registryHistory, verdictView } from './check.ts';
 import { list as errandList, record as errandRecord, stats, verifySeal, verifySignature } from './history.ts';
 import { latestProof, scheduleProof } from './proof.ts';
+import { a2aRpc, agentCard } from './a2a.ts';
 
 export const PORT = Number(process.env.PORT ?? 3000);
 export const PUBLIC_URL = process.env.VIALE_PUBLIC_URL ?? `http://localhost:${PORT}`;
@@ -73,6 +74,16 @@ export function startServer(): Promise<http.Server> {
         return send(res, 200, verdictView(await checkAgent(parts[2])));
       }
       if (url.pathname === '/api/registry') return send(res, 200, await registry());
+      // A2A: the same check for agents that speak A2A instead of MCP.
+      if (url.pathname === '/.well-known/agent-card.json' || url.pathname === '/.well-known/agent.json') return send(res, 200, agentCard(PUBLIC_URL), { 'access-control-allow-origin': '*' });
+      if (url.pathname === '/a2a') {
+        if (req.method === 'OPTIONS') { res.writeHead(204, { 'access-control-allow-origin': '*', 'access-control-allow-methods': 'POST', 'access-control-allow-headers': 'content-type' }).end(); return; }
+        if (req.method !== 'POST') return send(res, 405, { error: 'POST JSON-RPC message/send to this A2A endpoint; the card is at /.well-known/agent-card.json' });
+        if (overLimit(req)) return send(res, 429, { jsonrpc: '2.0', id: null, error: { code: -32000, message: 'Too many checks from this address. Try again in a minute.' } });
+        let msg: any;
+        try { msg = await body(req); } catch { return send(res, 400, { jsonrpc: '2.0', id: null, error: { code: -32700, message: 'parse error' } }); }
+        return send(res, 200, await a2aRpc(msg), { 'access-control-allow-origin': '*' });
+      }
       if (url.pathname === '/mcp') {
         if (req.method === 'OPTIONS') { res.writeHead(204, { 'access-control-allow-origin': '*', 'access-control-allow-methods': 'POST', 'access-control-allow-headers': 'content-type, accept, mcp-protocol-version, mcp-session-id' }).end(); return; }
         if (req.method !== 'POST') { res.writeHead(405, { allow: 'POST', 'content-type': 'application/json' }).end(JSON.stringify({ error: 'POST JSON-RPC to this MCP endpoint' })); return; }
