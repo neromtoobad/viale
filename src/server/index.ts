@@ -14,6 +14,7 @@ import { checkAgent, handleMcp, overLimit, registry, registryHistory, verdictVie
 import { list as errandList, record as errandRecord, stats, verifySeal, verifySignature } from './history.ts';
 import { latestProof, scheduleProof } from './proof.ts';
 import { a2aRpc, agentCard } from './a2a.ts';
+import { account } from './account.ts';
 
 export const PORT = Number(process.env.PORT ?? 3000);
 export const PUBLIC_URL = process.env.VIALE_PUBLIC_URL ?? `http://localhost:${PORT}`;
@@ -120,6 +121,11 @@ export function startServer(): Promise<http.Server> {
       if (url.pathname === '/api/stats') {
         const reg = await registry();
         return send(res, 200, { ...stats(), registry: { active: reg.active_agents, business: reg.agents_owned_by_business_identity, owner_accounts: reg.owner_accounts, measured_at: reg.measured_at }, shops: SHOPS.filter((s) => s.tokenId).length });
+      }
+      if (parts[0] === 'api' && parts[1] === 'account' && parts[2] && !parts[3]) {
+        if (overLimit(req)) return send(res, 429, { error: 'Too many lookups from this address. Try again in a minute.' });
+        const r: any = await account(parts[2]);
+        return send(res, r.status ?? 200, r);
       }
       if (url.pathname === '/api/registry/history') return send(res, 200, { points: registryHistory() });
       if (url.pathname === '/api/proof') return send(res, 200, latestProof());

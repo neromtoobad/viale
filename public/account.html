@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your account · Viale</title>
+<meta name="description" content="Your Concordium testnet account on Viale: the identity behind it, your balances, and the errands you signed.">
+<link rel="icon" href="/brand/viale-favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/brand/viale-favicon-32.png" type="image/png" sizes="32x32">
+<meta name="theme-color" content="#1E2B4A">
+<meta property="og:title" content="Your account · Viale">
+<meta property="og:description" content="Your Concordium testnet account on Viale: the identity behind it, your balances, and the errands you signed.">
+<meta property="og:image" content="https://viale.nerom.site/brand/viale-og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/site.css">
+<style>.idc{font-size:28px;font-weight:600;letter-spacing:-.02em;margin:4px 0}</style>
+</head>
+<body data-page="account">
+<header data-nav></header>
+<main class="wrap">
+  <div class="pagehead">
+    <span class="lab">Your account</span>
+    <h1 id="title">Connect a wallet to see your account</h1>
+    <p class="sub" id="sub">Viale reads your account from Concordium testnet: the identity provider behind it, your balances and the errands you signed. Nothing is stored about you.</p>
+    <div id="cta" style="margin-top:18px"><button class="btn" id="connect" type="button">Connect Concordium wallet</button> </div>
+    <form id="any" style="display:flex;gap:8px;max-width:620px;margin-top:14px"><input id="addr" placeholder="Or paste any testnet account address" style="flex:1;min-width:0;border:1px solid var(--line);border-radius:99px;padding:10px 14px;font:13.5px 'Geist Mono',monospace"><button class="btn ghost sm">Look up</button></form>
+  </div>
+  <div id="body"></div>
+</main>
+<footer data-foot></footer>
+<script src="/site.js"></script>
+<script>
+const { $, h, eur, acct, ago, wallet } = V;
+let shown;
+$('connect').onclick = () => wallet.connect().catch((e) => ($('sub').textContent = e.message));
+$('any').onsubmit = (e) => { e.preventDefault(); const a = $('addr').value.trim(); if (a) show(a, false); };
+wallet.onChange((a) => { if (a) show(a, true); });
+const q = new URLSearchParams(location.search).get('address'); if (q) show(q, false);
+async function show(address, mine) {
+  if (shown === address) return; shown = address;
+  $('title').textContent = mine ? 'Your account' : 'Account';
+  $('sub').replaceChildren(acct(address, address));
+  $('body').replaceChildren(h('p', { class: 'loading' }, 'Reading the chain'));
+  let d;
+  try { d = await V.getJSON(`/api/account/${encodeURIComponent(address)}`); } catch (e) { $('body').replaceChildren(h('p', { class: 'empty' }, e.message)); shown = null; return; }
+  const kv = (k, v) => h('div', { class: 'kv' }, h('span', {}, k), h('span', {}, v));
+  $('body').replaceChildren(
+    h('div', { class: 'grid3' },
+      h('div', { class: 'card' }, h('span', { class: 'lab' }, 'Identity'), h('div', { class: 'idc', style: `color:${d.business ? 'var(--ok)' : 'inherit'}` }, d.business ? 'Business' : 'Personal'), ...d.identity.map((i) => kv('Provider', `${i.name}${i.business ? ' (business)' : ''}`)),
+        h('p', { class: 'note', style: 'margin-top:10px' }, d.business ? 'This account could own a shop that passes the business check. ' : 'Fine for signing errands. To own a shop that passes the check, the owner account needs a business identity. ', h('a', { href: '/open' }, 'Open a shop →'))),
+      h('div', { class: 'card' }, h('span', { class: 'lab' }, 'Balances'), kv('CCD', d.ccd.toLocaleString('en', { maximumFractionDigits: 2 })), kv('EUDemo', eur(d.eudemo)),
+        h('p', { class: 'note', style: 'margin-top:10px' }, 'You don’t need either to run an errand: the agent pays from its own account, and Viale pays fees. Testnet CCD comes from the faucet in the Concordium wallet (Request CCD); opening a shop costs a little CCD.')),
+      h('div', { class: 'card dark' }, h('span', { class: 'lab' }, 'Errands signed'), h('div', { class: 'idc' }, d.errands.length), h('p', { style: 'color:#aeb6c8;font-size:14px' }, 'Errands whose mandate this account signed.'), h('a', { class: 'btn', href: '/', style: 'background:#fff;color:var(--ink);margin-top:8px' }, 'Run an errand →'))),
+    h('section', { class: 'sec' }, h('span', { class: 'lab' }, 'Your errands'), h('div', { class: 'card scroll-x', style: 'margin-top:12px;padding:8px 12px' },
+      d.errands.length ? h('table', { class: 't' }, h('thead', {}, h('tr', {}, ['When', 'Task', 'Spent', 'Seal'].map((t) => h('th', {}, t)))), h('tbody', {}, d.errands.map((e) => h('tr', {}, h('td', { class: 'note' }, ago(e.at)), h('td', {}, h('a', { href: `/errands/${encodeURIComponent(e.id)}` }, e.task)), h('td', { class: 'mono' }, eur(e.spent_eur)), h('td', {}, e.seal ? V.txLink(e.seal) : '—')))))
+        : h('p', { class: 'empty', style: 'padding:12px' }, 'No errands signed by this account yet.'))));
+}
+</script>
+</body>
+</html>
