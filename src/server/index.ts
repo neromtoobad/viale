@@ -5,7 +5,8 @@ import http from 'node:http';
 import path from 'node:path';
 import { setting } from '../chain/keys.ts';
 import { createRequest, getProof, publicView, verifyPresentation } from '../proof/age.ts';
-import { menu, quote } from '../street/shop-agent.ts';
+import { buy, menu, quote, streetWallets } from '../street/shop-agent.ts';
+import { facilitate, supported } from '../pay/facilitator.ts';
 import { followErrand, errandLimits, latestErrand, mandateDraft, startErrand, street } from './errands.ts';
 import { EXPLORER } from '../chain/chain.ts';
 import { checkAgent, handleMcp, overLimit, registry, verdictView } from './check.ts';
@@ -15,8 +16,9 @@ export const PUBLIC_URL = process.env.VIALE_PUBLIC_URL ?? `http://localhost:${PO
 const ROOT = path.resolve(import.meta.dirname, '../..');
 const TYPES: Record<string, string> = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon', '.woff2': 'font/woff2' };
 
-function send(res: http.ServerResponse, status: number, body: unknown) {
-  res.writeHead(status, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+function send(res: http.ServerResponse, status: number, body: unknown, headers: Record<string, string> = {}) {
+  const expose = Object.keys(headers).length ? { 'access-control-expose-headers': Object.keys(headers).join(', ') } : {};
+  res.writeHead(status, { 'content-type': 'application/json', 'cache-control': 'no-store', ...headers, ...expose });
   res.end(JSON.stringify(body));
 }
 
@@ -98,6 +100,21 @@ export function startServer(): Promise<http.Server> {
           const { sku } = await body(req);
           if (typeof sku !== 'string' || !sku) return send(res, 400, { error: 'sku missing' });
           return send(res, 200, await quote(parts[1], sku));
+        }
+        // x402: the shop's paid resource. No PAYMENT-SIGNATURE header -> 402 with the payment requirements.
+        if (req.method === 'POST' && parts[2] === 'buy') {
+          const { quote: q } = await body(req);
+          const sale = await buy(parts[1], q, req.headers['payment-signature'] as string | undefined, `${PUBLIC_URL}/shops/${parts[1]}/buy`, `${PUBLIC_URL}/x402/facilitator`);
+          return send(res, sale.status, sale.body, sale.headers);
+        }
+        return send(res, 404, { error: 'not found' });
+      }
+      // Viale's x402 facilitator (verify, settle, supported), called by the shops over HTTP.
+      if (parts[0] === 'x402' && parts[1] === 'facilitator') {
+        if (req.method === 'GET' && parts[2] === 'supported') return send(res, 200, supported());
+        if (req.method === 'POST' && (parts[2] === 'verify' || parts[2] === 'settle')) {
+          const r = await facilitate(parts[2], await body(req), await streetWallets());
+          return send(res, r.status, r.body);
         }
         return send(res, 404, { error: 'not found' });
       }
