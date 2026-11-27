@@ -132,12 +132,13 @@ footer{padding:0 48px 40px;color:var(--muted);font-size:13px}
   .rec{position:static}
   footer{padding:0 16px 32px}
 }
+@media (max-width:480px){nav{padding:14px 16px}nav img{height:24px;width:auto}nav .r{gap:12px}nav .r .xs{display:none}.wbtn{padding:7px 11px;font-size:13px}}
 </style>
 </head>
 <body>
 <nav>
   <a href="/"><img src="/brand/viale-lockup.svg" alt="Viale" width="144" height="30"></a>
-  <div class="r"><a href="/check">Check any agent</a><div class="wwrap" id="wwrap"><button type="button" class="wbtn" id="wbtn" aria-haspopup="true" aria-expanded="false">Connect wallet</button><div class="wmenu" id="wmenu" role="menu"></div></div></div>
+  <div class="r"><a href="/check">Check <span class="xs">any </span>agent</a><div class="wwrap" id="wwrap"><button type="button" class="wbtn" id="wbtn" aria-haspopup="true" aria-expanded="false">Connect wallet</button><div class="wmenu" id="wmenu" role="menu"></div></div></div>
 </nav>
 
 <section class="top">
@@ -198,7 +199,7 @@ let source;               // EventSource of the errand being followed
 let state;                // receipt state for the errand on screen
 
 function idLabel(s) {
-  if (s.trade) return s.passed.some((p) => /business identity/.test(p)) ? '✓ Business ID · Trade' : '✓ Checks pass · Trade';
+  if (s.trade) return s.passed.some((p) => /^owner .*business identity/.test(p)) ? '✓ Business ID · Trade' : '✓ Checks pass · Trade';
   return `✗ ${s.failed.some((r) => /personal identity/.test(r)) ? 'Personal ID' : 'Failed check'} · Walk away`;
 }
 const checkList = (s) => [...s.passed.map((p) => h('li', { class: 'y' }, p)), ...s.failed.map((r) => h('li', { class: 'n' }, r))];
@@ -257,7 +258,7 @@ function resetErrand(task, limits, signer) {
   $('steps').replaceChildren();
   state = { spent: 0, budget: limits?.budgetEur ?? 5, payments: [], quote: null, owner: null, anchor: null, refused: [], signer };
   addStep('', 'You asked', h('p', {}, `“${task}”`), limits ? h('p', { class: 'lab', style: 'margin-top:6px' }, `Budget €${limits.budgetEur} · max €${limits.maxPaymentEur} a payment · in a signed mandate, enforced in code`) : null);
-  if (signer) addStep('ok', signer.demo ? "Mandate signed by Viale's demo account" : 'Mandate signed in your Concordium wallet',
+  if (signer) addStep('ok', signer.demo ? "Mandate signed by Viale's demo account" : mine() ? 'Mandate signed in your Concordium wallet' : 'Mandate signed in a Concordium wallet',
     h('p', {}, 'Signature checked against the keys of ', h('a', { href: `${explorer}/account/${signer.human}`, target: '_blank', rel: 'noopener', class: 'mono' }, short(signer.human)), ' on chain. Code pays nothing outside it.', signer.demo ? ' (No wallet was connected, so Viale signed for the demo.)' : ''));
   drawReceipt();
 }
@@ -268,10 +269,10 @@ function drawReceipt() {
   $('paidFor').textContent = last ? state.payments.map((p) => `${p.item} · ${p.shop}`).join(' + ') : state.refused.length ? 'Nothing paid. The agent refused.' : 'Nothing paid yet';
   const rows = [];
   const row = (k, v) => rows.push(h('div', { class: 'row' }, h('span', {}, k), h('span', {}, v)));
-  if (state.signer) row('Mandate', h('span', {}, h('span', { class: 'mono' }, short(state.signer.human)), state.signer.demo ? ' · Viale demo' : ' · your wallet'));
+  if (state.signer) row('Mandate', h('span', {}, h('span', { class: 'mono' }, short(state.signer.human)), state.signer.demo ? ' · Viale demo' : mine() ? ' · your wallet' : ' · a wallet'));
   if (state.owner) row('Shop owner', h('span', { class: 'mono' }, `${short(state.owner.address)}${state.owner.business ? ' · Business ID' : ''}`));
   if (state.quote) row('Quote', `${state.quote.item}, ${eur(state.quote.price_eur)} · signed`);
-  for (const p of state.payments) { row('Paid to', h('span', { class: 'mono' }, `${short(p.payTo)} (registered till)`)); row('Payment', txLink(p.tx)); }
+  for (const p of state.payments) { row('Paid to', h('span', { class: 'mono' }, `${short(p.payTo)} (registered till${state.owner?.tillPersonal ? ' · personal ID' : ''})`)); row('Payment', txLink(p.tx)); }
   for (const r of state.refused) row('Refused', r);
   if (state.anchor) row('Log seal', txLink(state.anchor));
   row('Budget left', `${eur(state.budget - state.spent)} of ${eur(state.budget)}`);
@@ -298,7 +299,7 @@ function onStep(e) {
     const name = shopName(e.token_id, e.expected_name);
     addStep(e.ok ? 'ok' : 'bad', `${e.ok ? 'Checked' : 'Walked away from'} ${name} #${e.token_id}`,
       h('ul', { class: 'checks' }, (e.passed ?? []).map((p) => h('li', { class: 'y' }, p)), (e.reasons ?? []).map((r) => h('li', { class: 'n' }, r))));
-    if (e.ok) state.owner = { address: e.owner, business: (e.passed ?? []).some((p) => /business identity/.test(p)) };
+    if (e.ok) state.owner = { address: e.owner, business: (e.passed ?? []).some((p) => /^owner .*business identity/.test(p)), tillPersonal: (e.passed ?? []).some((p) => /agent wallet .*personal identity/.test(p)) };
     moveAgent(e.token_id, e.ok ? `${name} passed` : `Walked away from #${e.token_id}`);
     drawReceipt();
   } else if (s === 'see_menu') {
@@ -350,7 +351,12 @@ function onStep(e) {
   }
 }
 
+// Errands this browser started: only these say "your wallet"; everyone else sees "a wallet".
+let currentId;
+const startedHere = () => { try { return JSON.parse(sessionStorage.getItem('viale.mine') ?? '[]'); } catch { return []; } };
+const mine = () => startedHere().includes(currentId);
 function follow(id, label) {
+  currentId = id;
   source?.close();
   $('when').textContent = label;
   $('run').disabled = true;
@@ -360,6 +366,7 @@ function follow(id, label) {
 }
 
 function replay(steps, id) {
+  currentId = id;
   const at = steps.find((x) => x.at)?.at;
   $('when').textContent = `Last errand · ${at ? new Date(at).toUTCString().slice(5, 22) + ' UTC' : id}`;
   for (const e of steps) onStep(e);
@@ -405,6 +412,7 @@ $('task').onsubmit = async (ev) => {
     const r = await post('/api/errands', payload);
     const j = await r.json();
     if (!r.ok || !j.id) throw new Error(j.error ?? 'Could not start the errand.');
+    try { sessionStorage.setItem('viale.mine', JSON.stringify([...startedHere(), j.id].slice(-20))); } catch {}
     $('agent').classList.remove('on');
     follow(j.id, 'Live now');
     $('steps').scrollIntoView({ behavior: 'smooth', block: 'center' });
