@@ -38,7 +38,7 @@ Full logs are in [evidence/](evidence/).
 |---|---|
 | Open [viale.nerom.site/check/1010](https://viale.nerom.site/check/1010) | Another team's agent. Registered, badge valid, owned by a personal identity: **Walk away**. |
 | Open [viale.nerom.site/check/600](https://viale.nerom.site/check/600) | An agent we didn't build, owned by a Global FinReg business identity: **Trade**. |
-| Scroll down on that page | Who owns the registry: 29 of 1,245 active agents are owned by a business identity, recounted every 6 hours. Click any id to check it. |
+| Scroll down on that page | Who owns the registry: 29 of about 1,250 active agents are owned by a business identity (the live number), recounted every 6 hours. Click any id to check it. |
 | `claude mcp add --transport http viale https://viale.nerom.site/mcp` | Your agent gets `check_agent` (returns `trade` or `walk_away` with reasons) and `registry_owners`. |
 
 ## 4. Check every claim yourself (30 s)

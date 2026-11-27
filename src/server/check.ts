@@ -43,7 +43,7 @@ export function verdictView(v: ShopVerdict) {
       "Verified-by-Concordium badge valid (Concordium's check_badge: card fetched, SHA-256 matches the chain)",
       "owner account holds a business identity (Global FinReg), read from the owner's credentials on chain",
       'card readable',
-      'payment wallet registered for the agent',
+      "where the payment goes: the agent wallet set in the registry, or the owner's account if none is set",
     ],
   };
 }
