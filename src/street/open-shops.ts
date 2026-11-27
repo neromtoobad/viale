@@ -31,7 +31,7 @@ export type PriceList = {
   items: { sku: string; name: string; price_eur: number }[]; pay_to: string; issued_at: string; expires_at: string;
 };
 export type SignedPriceList = { message: string; signature: AccountTransactionSignature };
-type Saved = { token_id: string; owner: string; status: 'registered' | 'card' | 'live'; register_tx: string; created_at: string; pricelist?: SignedPriceList; card_sha256?: string; uri_tx?: string; live_at?: string };
+type Saved = { token_id: string; owner: string; status: 'registered' | 'card' | 'live'; register_tx: string; created_at: string; pricelist?: SignedPriceList; card_sha256?: string; uri_param?: string; uri_tx?: string; live_at?: string };
 
 const file = (id: string, ext = 'json') => path.join(DIR, `${id}.${ext}`);
 function load(id: string): Saved | undefined { try { return JSON.parse(fs.readFileSync(file(id), 'utf8')); } catch { return undefined; } }
@@ -83,7 +83,7 @@ export async function registerCall(owner: unknown) {
 }
 
 /** Reads a finalized contract update and checks it was the owner's call to the registry. */
-async function ownerCall(tx: unknown, owner: string, entry: string) {
+async function ownerCall(tx: unknown, owner: string, entry: string, parameterHex?: string) {
   if (typeof tx !== 'string' || !/^[0-9a-f]{64}$/.test(tx)) throw new Error('Not a transaction hash.');
   const g = client();
   const out: any = await withRetry(() => g.waitForTransactionFinalization(TransactionHash.fromHexString(tx), 120_000) as any);
@@ -93,6 +93,8 @@ async function ownerCall(tx: unknown, owner: string, entry: string) {
   const ev = (s.events ?? [])[0];
   const addr = ev?.address;
   if (!addr || Number(addr.index) !== REGISTRY.index || Number(addr.subindex) !== REGISTRY.subindex || !String(ev.receiveName?.value ?? ev.receiveName).endsWith(`.${entry}`)) throw new Error(`That transaction is not a ${entry} call to the Agent Registry.`);
+  const sent = ev.message?.buffer ? Buffer.from(ev.message.buffer).toString('hex') : String(ev.message ?? '');
+  if (parameterHex && sent !== parameterHex) throw new Error('That transaction pins a different card than the one Viale built.');
   return s;
 }
 
@@ -156,8 +158,8 @@ export async function publish(input: any) {
   fs.writeFileSync(file(id, 'card.json'), card.json);
   const sha = crypto.createHash('sha256').update(card.json).digest('hex');
   if (sha !== card.sha256) return { error: 'The card hash did not match what the registry tool returned.' };
-  save({ ...saved, status: saved.status === 'live' ? 'live' : 'card', pricelist: signed, card_sha256: sha });
   const call = await forWallet(await callTool<Built>('build_set_agent_uri', { token_id: id, agent_uri: uri, metadata_hash_hex: sha, sender: saved.owner }));
+  save({ ...saved, status: saved.status === 'live' ? 'live' : 'card', pricelist: signed, card_sha256: sha, uri_param: call.parameter_hex });
   return { card_url: uri, card_sha256: sha, call };
 }
 
@@ -166,7 +168,7 @@ export async function finish(input: any) {
   const id = String(input?.token_id ?? '');
   const saved = load(id);
   if (!saved?.pricelist || !saved.card_sha256) return { error: 'Sign the price list first.' };
-  await ownerCall(input?.tx, saved.owner, 'set_agent_uri');
+  await ownerCall(input?.tx, saved.owner, 'setAgentURI', saved.uri_param);
   save({ ...saved, status: 'live', uri_tx: String(input.tx), live_at: new Date().toISOString() });
   return { token_id: id, live: true };
 }
