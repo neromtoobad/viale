@@ -19,7 +19,7 @@ const checks = new Map<string, { at: number; verdict: Promise<ShopVerdict> }>();
 export function checkAgent(tokenId: string): Promise<ShopVerdict> {
   const hit = checks.get(tokenId);
   if (hit && Date.now() - hit.at < CHECK_TTL_MS) return hit.verdict;
-  const verdict = checkShop(tokenId);
+  const verdict = checkShop(tokenId, undefined, { requireBusinessProof: false });
   checks.set(tokenId, { at: Date.now(), verdict });
   verdict.catch(() => checks.delete(tokenId));
   return verdict;
@@ -32,17 +32,20 @@ export function verdictView(v: ShopVerdict) {
     name: v.name ?? null,
     owner: v.owner ?? null,
     owner_identity: v.ownerIdentity ?? null,
+    operated_by: v.operator ?? null,
     pays_to: v.payTo ?? null,
     pays_to_identity: v.payToIdentity ?? null,
     badge: v.badge ?? null,
     agent_uri: v.agentUri ?? null,
     passed: v.passed,
     failed: v.reasons,
+    notes: v.notes ?? [],
     explorer: v.owner ? `${EXPLORER}/account/${v.owner}` : null,
     checked: [
       'registered and Active in the CIS-8004 Agent Registry <12802,0>',
       "Verified-by-Concordium badge valid (Concordium's check_badge: card fetched, SHA-256 matches the chain)",
       "owner account holds a business identity (Global FinReg), read from the owner's credentials on chain",
+      "shown, not required here: a business owner's proof of which business it is (zero-knowledge proof from its business credential revealing legal name and country, published next to the card, made for this agent and owner only); Viale's errands require it",
       'card readable',
       "where the payment goes: the agent wallet set in the registry, or the owner's account if none is set",
     ],

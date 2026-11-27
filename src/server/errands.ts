@@ -138,7 +138,7 @@ async function checkStreet() {
       const v: ShopVerdict = await checkShop(s.tokenId, s.name);
       return {
         token_id: s.tokenId, name: s.name, slug: s.slug, owner: v.owner, pay_to: v.payTo, outside: s.outside,
-        trade: v.ok, passed: v.passed, failed: v.reasons, age_gated: v.ageGated ?? false, menu: CATALOG[s.tokenId] ?? openMenu(s.tokenId) ?? [],
+        trade: v.ok, passed: v.passed, failed: v.reasons, operated_by: v.operator ?? null, age_gated: v.ageGated ?? false, menu: CATALOG[s.tokenId] ?? openMenu(s.tokenId) ?? [],
       };
     }),
   );

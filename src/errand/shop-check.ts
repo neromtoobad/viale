@@ -3,11 +3,15 @@
 //  2. its Verified-by-Concordium badge is valid (card fetched, SHA-256 matches the on-chain anchor),
 //  3. the account that owns it holds a BUSINESS identity (Global FinReg), not a personal one,
 //  4. the card it serves names the same shop the agent was asked to visit,
-//  5. it takes payment to its own registered wallet.
+//  5. it takes payment to its own registered wallet,
+//  6. its business owner proves WHICH business it is: a zero-knowledge proof from the owner's business credential,
+//     published next to the card at <card>.business.json, that reveals the company's legal name and country and
+//     is made for this agent and owner only (src/identity/business-proof.ts).
 // Any failure = walk away, with the reason.
 import { AccountAddress } from '@concordium/web-sdk';
 import { client, withRetry } from '../chain/chain.ts';
 import { agentOf, checkBadge } from '../registry/mcp.ts';
+import { verifyBusinessProof, type Business } from '../identity/business-proof.ts';
 
 export const BUSINESS_IDP_NAME = 'Global FinReg';
 
@@ -22,8 +26,10 @@ export type ShopVerdict = {
   agentUri?: string;
   ownerIdentity?: { providers: { id: number; name: string }[]; business: boolean };
   payToIdentity?: { business: boolean }; // identity behind the agent wallet, when it is a separate account
+  operator?: Business; // the legal business the owner proved it is (check 6)
   reasons: string[]; // why we refused (empty when ok)
   passed: string[]; // what we checked and saw pass
+  notes?: string[]; // checks that were shown but not required (the business proof, on /check)
 };
 
 let idpNames: Promise<Map<number, string>> | undefined;
@@ -55,13 +61,19 @@ export async function fetchCard(uri: string): Promise<any> {
   return JSON.parse(text);
 }
 
+/** Where an agent's business proof lives: next to its card, <card without .json>.business.json. */
+export const businessProofUrl = (agentUri: string) => agentUri.replace(/\.json$/, '') + '.business.json';
+
 /** Identity providers behind every credential on an account. */
 export async function accountIdentityProviders(address: string): Promise<number[]> {
   const info = await withRetry(() => client().getAccountInfo(AccountAddress.fromBase58(address)));
   return Object.values(info.accountCredentials).map((c: any) => Number(c.value.contents.ipIdentity));
 }
 
-export async function checkShop(tokenId: string, expectedName?: string): Promise<ShopVerdict> {
+/** requireBusinessProof: errands require check 6. "Check any agent" (/check) shows it as a note instead, since an
+ *  outside agent's owner has no reason to know where Viale looks for the proof. */
+export async function checkShop(tokenId: string, expectedName?: string, opts: { requireBusinessProof?: boolean } = {}): Promise<ShopVerdict> {
+  const requireBusinessProof = opts.requireBusinessProof ?? true;
   const v: ShopVerdict = { ok: false, tokenId, reasons: [], passed: [] };
 
   const agent = await agentOf(tokenId);
@@ -87,6 +99,19 @@ export async function checkShop(tokenId: string, expectedName?: string): Promise
   v.ownerIdentity = { providers: [...new Set(idps)].map((id) => ({ id, name: names.get(id) ?? `provider ${id}` })), business: idps.some((i) => business.has(i)) };
   if (idps.some((i) => business.has(i))) v.passed.push(`owner ${agent.owner_account.slice(0, 6)}… holds a business identity (${BUSINESS_IDP_NAME})`);
   else v.reasons.push(`owner ${agent.owner_account.slice(0, 6)}… holds only a personal identity, not a business one`);
+
+  if (v.ownerIdentity.business) {
+    const proof = !agent.agent_uri
+      ? { ok: false as const, reason: 'the agent has no card URL to publish a business proof next to' }
+      : await fetchCard(businessProofUrl(agent.agent_uri))
+          .then((j) => verifyBusinessProof(JSON.stringify(j), tokenId, agent.owner_account))
+          .catch((err) => ({ ok: false as const, reason: `no business proof at ${businessProofUrl(agent.agent_uri!)} (${err.message})` }));
+    if (proof.ok) {
+      v.operator = proof.business;
+      v.passed.push(`owner proves it is ${proof.business.legal_name} (${proof.business.country}, ${proof.business.registration_authority || 'no registry named'}): zero-knowledge proof from its business identity, checked on chain`);
+    } else if (requireBusinessProof) v.reasons.push(`owner has not proved which business it is: ${proof.reason}`);
+    else (v.notes ??= []).push(`owner has not published a business-name proof (${proof.reason}); errands on Viale require one`);
+  }
 
   if (agent.agent_uri && badge.badge_valid) {
     const card = await fetchCard(agent.agent_uri).catch((err) => ({ error: err.message }));
@@ -114,5 +139,6 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const verdict = await checkShop(tokenId, name);
   for (const p of verdict.passed) console.log('  ✓', p);
   for (const r of verdict.reasons) console.log('  ✗', r);
+  if (verdict.operator) console.log(`  operated by ${verdict.operator.legal_name} (${verdict.operator.country})`);
   console.log(verdict.ok ? `TRADE with #${tokenId} (${verdict.name})` : `WALK AWAY from #${tokenId}`);
 }

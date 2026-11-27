@@ -17,11 +17,14 @@ export type Mandate = {
 
 export type Ledger = { spentEur: number; payments: { tokenId: string; amount: number; tx: string; quoteId?: string }[] };
 
+/** Other registry agents whose cards use the same shop name: the ones this errand checked, and the ones it didn't. */
+export type Namesakes = { checked: ShopVerdict[]; unchecked: string[] };
+
 export type Decision = { ok: true } | { ok: false; reasons: string[] };
 
 const cents = (x: number) => Math.round(x * 100);
 
-export function authorizePayment(m: Mandate, ledger: Ledger, shop: ShopVerdict | undefined, amountEur: number, opts: { ageProven?: boolean; quote?: VerifiedQuote; now?: Date } = {}): Decision {
+export function authorizePayment(m: Mandate, ledger: Ledger, shop: ShopVerdict | undefined, amountEur: number, opts: { ageProven?: boolean; quote?: VerifiedQuote; now?: Date; namesakes?: Namesakes } = {}): Decision {
   const now = opts.now ?? new Date();
   const reasons: string[] = [];
   if (m.verified !== true || !m.signed) reasons.push('the mandate is not signed by a human, so nothing can be paid');
@@ -36,6 +39,13 @@ export function authorizePayment(m: Mandate, ledger: Ledger, shop: ShopVerdict |
     if (!shop.payTo) reasons.push('the shop has no registered wallet to pay');
     if (shop.ageGated && !opts.ageProven) reasons.push('this shop sells 18+ goods and your human has not proved they are 18 or older');
     if (m.allowedShops && !m.allowedShops.includes(shop.name ?? '')) reasons.push(`"${shop.name}" is not on the human's list of allowed shops`);
+    // Two agents can use one shop name. Pay only when every agent using it was checked, and all that passed
+    // proved the same business; if two businesses claim the name, the agent can't tell which one the human meant.
+    const ns = opts.namesakes;
+    if (ns?.unchecked.length) reasons.push(`other agents also call themselves "${shop.name}" (#${ns.unchecked.join(', #')}) and were not checked yet`);
+    const businesses = new Map<string, string>();
+    for (const s of [shop, ...(ns?.checked ?? [])]) if (s.ok && s.operator) businesses.set(`${s.operator.legal_name}|${s.operator.country}`, `${s.operator.legal_name} (#${s.tokenId})`);
+    if (businesses.size > 1) reasons.push(`more than one business claims the name "${shop.name}": ${[...businesses.values()].join(' and ')}`);
     // The price comes from the shop's signed quote, never from the model.
     const q = opts.quote;
     if (!q || q.verified !== true) reasons.push('there is no verified price quote from this shop');

@@ -106,3 +106,18 @@ test('mandate terms: right agent, not signed by the agent itself, within the str
   assert.match(mandateTermsProblems({ ...t, human: 'A' }, { agent: 'A', limits, now }).join(), /cannot sign its own mandate/);
   assert.match(mandateTermsProblems({ ...t, kind: 'other' } as any, { agent: 'A', limits, now }).join(), /not a Viale mandate/);
 });
+
+test('two businesses using one shop name: pay neither until every namesake is checked, refuse if they differ', () => {
+  const op = (legal_name: string) => ({ legal_name, country: 'DK', registration_authority: 'Central Business Register', business_number: '' });
+  const real = { ...goodShop, operator: op('Viale Street Test ApS') };
+  const copycat: ShopVerdict = { ...goodShop, tokenId: '9', operator: op('Copycat ApS') };
+  const payReal = (namesakes: { checked: ShopVerdict[]; unchecked: string[] }) =>
+    authorizePayment(mandate, fresh(), real, 2, { quote: quoteFor(2), namesakes });
+  assert.deepEqual(payReal({ checked: [], unchecked: [] }), { ok: true });
+  assert.match(why(payReal({ checked: [], unchecked: ['9'] })), /#9\) and were not checked yet/);
+  assert.match(why(payReal({ checked: [copycat], unchecked: [] })), /more than one business claims the name "The Bottle Shop": Viale Street Test ApS \(#1\) and Copycat ApS \(#9\)/);
+  // A namesake that failed its check (e.g. a personal-ID impostor) doesn't block the real shop.
+  assert.deepEqual(payReal({ checked: [{ ...impostor, tokenId: '1406' }], unchecked: [] }), { ok: true });
+  // The same business under two agents is fine.
+  assert.deepEqual(payReal({ checked: [{ ...real, tokenId: '1527' }], unchecked: [] }), { ok: true });
+});
