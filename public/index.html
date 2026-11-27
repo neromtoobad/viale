@@ -299,7 +299,7 @@ function onStep(e) {
     const name = shopName(e.token_id, e.expected_name);
     addStep(e.ok ? 'ok' : 'bad', `${e.ok ? 'Checked' : 'Walked away from'} ${name} #${e.token_id}`,
       h('ul', { class: 'checks' }, (e.passed ?? []).map((p) => h('li', { class: 'y' }, p)), (e.reasons ?? []).map((r) => h('li', { class: 'n' }, r))));
-    if (e.ok) state.owner = { address: e.owner, business: (e.passed ?? []).some((p) => /^owner .*business identity/.test(p)), tillPersonal: (e.passed ?? []).some((p) => /agent wallet .*personal identity/.test(p)) };
+    if (e.ok) state.owner = { address: e.owner, business: (e.passed ?? []).some((p) => /^owner .*business identity/.test(p)), tillPersonal: [...(e.passed ?? []), ...(shops[e.token_id]?.passed ?? [])].some((p) => /agent wallet .*personal identity/.test(p)) };
     moveAgent(e.token_id, e.ok ? `${name} passed` : `Walked away from #${e.token_id}`);
     drawReceipt();
   } else if (s === 'see_menu') {
