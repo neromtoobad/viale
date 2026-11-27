@@ -7,8 +7,9 @@ import { setting } from '../chain/keys.ts';
 import { createRequest, getProof, publicView, verifyPresentation } from '../proof/age.ts';
 import { buy, menu, quote, streetWallets } from '../street/shop-agent.ts';
 import { SHOPS } from '../street/shops.ts';
+import * as open from '../street/open-shops.ts';
 import { facilitate, supported } from '../pay/facilitator.ts';
-import { followErrand, errandLimits, latestErrand, mandateDraft, startErrand, street } from './errands.ts';
+import { followErrand, errandLimits, forgetStreet, latestErrand, mandateDraft, startErrand, street } from './errands.ts';
 import { EXPLORER } from '../chain/chain.ts';
 import { checkAgent, handleMcp, overLimit, registry, registryHistory, verdictView } from './check.ts';
 import { list as errandList, record as errandRecord, stats, verifySeal, verifySignature } from './history.ts';
@@ -120,7 +121,7 @@ export function startServer(): Promise<http.Server> {
       }
       if (url.pathname === '/api/stats') {
         const reg = await registry();
-        return send(res, 200, { ...stats(), registry: { active: reg.active_agents, business: reg.agents_owned_by_business_identity, owner_accounts: reg.owner_accounts, measured_at: reg.measured_at }, shops: SHOPS.filter((s) => s.tokenId).length });
+        return send(res, 200, { ...stats(), registry: { active: reg.active_agents, business: reg.agents_owned_by_business_identity, owner_accounts: reg.owner_accounts, measured_at: reg.measured_at }, shops: SHOPS.filter((s) => s.tokenId).length + open.liveOpenShops().length });
       }
       if (parts[0] === 'api' && parts[1] === 'account' && parts[2] && !parts[3]) {
         if (overLimit(req)) return send(res, 429, { error: 'Too many lookups from this address. Try again in a minute.' });
@@ -138,12 +139,37 @@ export function startServer(): Promise<http.Server> {
         if (overLimit(req)) return send(res, 429, { error: 'Too many checks from this address. Try again in a minute.' });
         return send(res, 200, await verifySignature(await body(req)));
       }
+      // Open a shop: an outside owner registers with their own wallet, signs a price list, pins the hosted card.
+      if (parts[0] === 'api' && parts[1] === 'open') {
+        if (req.method === 'GET' && parts[2] === 'shops') return send(res, 200, { shops: (await street()).filter((s: any) => s.outside), max: open.MAX_OPEN_SHOPS });
+        if (req.method === 'GET' && parts[2] === 'progress') return send(res, 200, { shops: open.progress(String(url.searchParams.get('owner') ?? '')) });
+        if (req.method !== 'POST') return send(res, 405, { error: 'POST' });
+        if (overLimit(req)) return send(res, 429, { error: 'Too many requests from this address. Try again in a minute.' });
+        const b = await body(req);
+        const step: Record<string, () => Promise<any>> = {
+          register: () => open.registerCall(b.owner),
+          registered: () => open.registered(b.owner, b.tx),
+          pricelist: () => open.priceListDraft(b),
+          publish: () => open.publish(b),
+          finish: async () => { const r = await open.finish(b); if (!r.error) forgetStreet(); return r; },
+        };
+        if (!step[parts[2]]) return send(res, 404, { error: 'not found' });
+        const r = await step[parts[2]]().catch((e: any) => ({ error: e.message }));
+        return send(res, r.error ? 400 : 200, r);
+      }
+      // Cards of shops opened by outside owners: the exact bytes whose SHA-256 the owner pinned on chain.
+      if (req.method === 'GET' && parts[0] === 'agents' && /^\d{1,10}\.json$/.test(parts[1] ?? '') && !fs.existsSync(path.join(ROOT, 'public/agents', parts[1]))) {
+        const bytes = open.cardBytes(parts[1].replace('.json', ''));
+        if (!bytes) return send(res, 404, { error: 'no card' });
+        res.writeHead(200, { 'content-type': 'application/json', 'access-control-allow-origin': '*', 'cache-control': 'no-cache' }).end(bytes);
+        return;
+      }
       if (parts[0] === 'api' && parts[1] === 'shops' && /^\d{1,10}$/.test(parts[2] ?? '') && !parts[3]) {
         const shop = (await street()).find((s: any) => s.token_id === parts[2]);
         const sales = errandList().flatMap((e) => e.payments.filter((p) => p.token_id === parts[2]).map((p) => ({ ...p, errand: e.id, at: e.at })));
         const visits = errandList().filter((e) => e.shops_checked.some((c) => c.token_id === parts[2])).length;
-        const card = (() => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, 'public/agents', `${parts[2]}.json`), 'utf8')); } catch { return null; } })();
-        const meta = SHOPS.find((s) => s.tokenId === parts[2]);
+        const card = (() => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, 'public/agents', `${parts[2]}.json`), 'utf8')); } catch { try { return JSON.parse(String(open.cardBytes(parts[2]))); } catch { return null; } } })();
+        const meta = SHOPS.find((s) => s.tokenId === parts[2]) ?? (open.priceList(parts[2]) ? { impostor: false, description: open.priceList(parts[2])!.description || null } : undefined);
         if (!shop && !card) return send(res, 404, { error: 'Not a shop on this street. Use /check/<id> for any registry agent.' });
         return send(res, 200, { shop: shop ?? null, card, impostor: !!meta?.impostor, description: meta?.description ?? null, sales, visits });
       }

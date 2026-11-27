@@ -9,6 +9,7 @@ import { runErrand } from '../agent/errand.ts';
 import { checkShop, type ShopVerdict } from '../errand/shop-check.ts';
 import { SHOPS } from '../street/shops.ts';
 import { CATALOG } from '../street/catalog.ts';
+import { liveOpenShops, openMenu, priceList } from '../street/open-shops.ts';
 import { AccountAddress } from '@concordium/web-sdk';
 import { agentWallet, shopOwnerWallet, sponsorWallet } from '../chain/keys.ts';
 import { draftMandate, signMandate, verifyMandate, type SignedMandate } from '../errand/mandate.ts';
@@ -131,11 +132,13 @@ let refreshing: Promise<any[]> | undefined;
 
 async function checkStreet() {
   const shops = await Promise.all(
-    SHOPS.filter((s) => s.tokenId).map(async (s) => {
-      const v: ShopVerdict = await checkShop(s.tokenId!, s.name);
+    [...SHOPS.filter((s) => s.tokenId).map((s) => ({ tokenId: s.tokenId!, name: s.name, slug: s.slug, outside: false })),
+     ...liveOpenShops().map((s) => ({ tokenId: s.token_id, name: priceList(s.token_id)?.name ?? `Shop #${s.token_id}`, slug: `open-${s.token_id}`, outside: true }))]
+    .map(async (s) => {
+      const v: ShopVerdict = await checkShop(s.tokenId, s.name);
       return {
-        token_id: s.tokenId, name: s.name, slug: s.slug, owner: v.owner, pay_to: v.payTo,
-        trade: v.ok, passed: v.passed, failed: v.reasons, age_gated: v.ageGated ?? false, menu: CATALOG[s.tokenId!] ?? [],
+        token_id: s.tokenId, name: s.name, slug: s.slug, owner: v.owner, pay_to: v.payTo, outside: s.outside,
+        trade: v.ok, passed: v.passed, failed: v.reasons, age_gated: v.ageGated ?? false, menu: CATALOG[s.tokenId] ?? openMenu(s.tokenId) ?? [],
       };
     }),
   );
@@ -145,6 +148,7 @@ async function checkStreet() {
 
 /** The street as the agent would see it: every shop with its live check from the registry and the chain.
  *  Checks are at most a minute old; an older result is served while a fresh check runs in the background. */
+export function forgetStreet() { streetCache = undefined; }
 export async function street() {
   const fresh = streetCache && Date.now() - streetCache.at < 60_000;
   if (!fresh && !refreshing) refreshing = checkStreet().finally(() => (refreshing = undefined));
