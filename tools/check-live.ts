@@ -9,6 +9,7 @@ import { execFileSync } from 'node:child_process';
 import { AccountAddress, TransactionHash, verifyMessageSignature } from '@concordium/web-sdk';
 import { client } from '../src/chain/chain.ts';
 import { agentOf } from '../src/registry/mcp.ts';
+import { verifyBusinessProof } from '../src/identity/business-proof.ts';
 
 const SITE = process.env.VIALE_SITE ?? 'https://viale.nerom.site';
 const TESTNET_GENESIS = '4221332d34e1694168c2a0c0b3fd0f27';
@@ -298,6 +299,24 @@ await claim('C15', "Open a shop: each shop opened by an outside owner carries a 
     const forged = await fetch(`${SITE}/shops/${s.token_id}/buy`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ quote: { ...quote, message: JSON.stringify({ ...terms, price_eur: 0.01 }) } }) });
     must(forged.status === 400, `a quote off the price list got HTTP ${forged.status}`);
     out.push(`#${s.token_id} "${s.name}" list signed by ${a!.owner_account.slice(0, 6)}… (${s.trade ? 'Trade' : 'Walk away'}); off-list price refused`);
+  }
+  return out.join('; ');
+});
+
+await claim('C16', "Each honest shop's owner proves which business it is: the proof next to its card verifies on chain, names the operator the street shows, and fails when copied to the impostor", async () => {
+  const { shops } = await json(`${SITE}/api/street`);
+  const by = Object.fromEntries(shops.map((s: any) => [s.token_id, s]));
+  const out: string[] = [];
+  for (const id of HONEST) {
+    const a = await agentOf(id);
+    const proof = await fetch(a!.agent_uri!.replace(/\.json$/, '') + '.business.json').then((r) => r.text());
+    const r = await verifyBusinessProof(proof, id, a!.owner_account);
+    must(r.ok, `#${id}: ${r.ok ? '' : r.reason}`);
+    if (!r.ok) continue;
+    must(by[id].operated_by?.legal_name === r.business.legal_name, `#${id}: street shows ${JSON.stringify(by[id].operated_by)}, proof says ${r.business.legal_name}`);
+    const copied = await verifyBusinessProof(proof, IMPOSTOR, (await agentOf(IMPOSTOR))!.owner_account);
+    must(!copied.ok, `#${id}'s proof also passes for the impostor`);
+    out.push(`#${id} proves ${r.business.legal_name} (${r.business.country}); copy to #${IMPOSTOR} refused`);
   }
   return out.join('; ');
 });

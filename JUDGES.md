@@ -6,7 +6,7 @@ No wallet, sign-in or keys needed. Everything runs on Concordium testnet.
 
 | Do this | You see |
 |---|---|
-| Open [viale.nerom.site](https://viale.nerom.site) | Three shops. **The Bottle Shop** (#1526) and **Viale Flowers** (#1527) say *Business ID · Trade*. A second **The Bottle Shop** (#1406) says *Personal ID · Walk away*. The checks run live against the registry and the chain, and are at most a minute old. The list under the street also shows any shop opened through [/open](https://viale.nerom.site/open). |
+| Open [viale.nerom.site](https://viale.nerom.site) | Three shops. **The Bottle Shop** (#1526) and **Viale Flowers** (#1527) say *Business ID · Trade*, each operated by Viale Street Test ApS: the owner proves that legal name with a zero-knowledge proof from its business identity (open a shop's checks to see it; the proof files are [1526.business.json](https://viale.nerom.site/agents/1526.business.json) and [1527.business.json](https://viale.nerom.site/agents/1527.business.json)). A second **The Bottle Shop** (#1406) says *Personal ID · Walk away*. The checks run live against the registry and the chain, and are at most a minute old. The list under the street also shows any shop opened through [/open](https://viale.nerom.site/open). |
 | Click any shop | Each check with ✓ or ✗: registered and Active, badge valid, owner's identity, card name, payment wallet. #1406 passes every check except the owner's identity. |
 | `curl -s https://viale.nerom.site/api/street` | The same checks as JSON, including shops opened through [/open](https://viale.nerom.site/open) (`"outside": true`). |
 | Open [viale.nerom.site/shops](https://viale.nerom.site/shops) | Every shop with its checks and menu. **Corner Kiosk** (#1543) was opened through the public open-a-shop flow by our own test account, which holds a personal identity: its badge is valid and its card hash matches the chain, but it says **Walk away**. |
@@ -38,7 +38,7 @@ Full logs are in [evidence/](evidence/). On the site, [/errands](https://viale.n
 | Do this | You see |
 |---|---|
 | Open [viale.nerom.site/check/1010](https://viale.nerom.site/check/1010) | Another team's agent. Registered, badge valid, owned by a personal identity: **Walk away**. |
-| Open [viale.nerom.site/check/600](https://viale.nerom.site/check/600) | An agent we didn't build, owned by a Global FinReg business identity: **Trade**. |
+| Open [viale.nerom.site/check/600](https://viale.nerom.site/check/600) | An agent we didn't build, owned by a Global FinReg business identity: **Trade**. Its owner hasn't published a business-name proof, so the page notes that Viale's errands would require one. |
 | Scroll down on that page | Who owns the registry: 29 of about 1,250 active agents are owned by a business identity (the live number; two of them are our shops), recounted every 6 hours. Click any id to check it. |
 | `claude mcp add --transport http viale https://viale.nerom.site/mcp` | Your agent gets `check_agent` (returns `trade` or `walk_away` with reasons) and `registry_owners`. |
 
@@ -76,6 +76,7 @@ npm run check:live
 - C13: the wallet-signed errand's mandate (from an account Viale holds no key for) verifies against the signer's keys on chain (a changed budget fails), its payments stay within the signed cap, and the live site refuses a mandate with the wrong signature, a €50 budget, or the agent's own account
 - C14: a fresh quote's unpaid `/buy` answers 402 with `PAYMENT-REQUIRED` asking exactly the quoted price to the shop's wallet, a quote with a changed price is refused, and the recorded HTTP x402 payment matches its requirements on chain
 - C15: each opened shop's quote carries a price list signed by the shop's registry owner (checked against the owner's keys on chain), its unpaid `/buy` answers 402, and a quote off the list is refused
+- C16: each honest shop's business-name proof, fetched from next to its card, verifies against the chain, names the operator the street shows, and fails when checked for the impostor
 
 ## The five things to look at in the code
 
