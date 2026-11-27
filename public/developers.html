@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Developers · Viale</title>
+<meta name="description" content="Add Viale&#x27;s agent check to your own agent over MCP, A2A or REST, and pay Viale&#x27;s shops over x402 on Concordium.">
+<link rel="icon" href="/brand/viale-favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/brand/viale-favicon-32.png" type="image/png" sizes="32x32">
+<meta name="theme-color" content="#1E2B4A">
+<meta property="og:title" content="Developers · Viale">
+<meta property="og:description" content="Add Viale&#x27;s agent check to your own agent over MCP, A2A or REST, and pay Viale&#x27;s shops over x402 on Concordium.">
+<meta property="og:image" content="https://viale.nerom.site/brand/viale-og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/site.css">
+<style>
+.toc{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.toc a{border:1px solid var(--line);border-radius:99px;padding:7px 14px;font-size:13.5px;color:var(--ink);text-decoration:none;background:#fff}
+.sec h2{scroll-margin-top:20px}
+.snip .tabs{margin:14px 0 0}
+.snip pre{display:none}.snip pre.on{display:block}
+.copy{float:right;margin:-4px 0 0 8px}
+.flow{counter-reset:f;list-style:none;padding:0;margin:0}
+.flow li{counter-increment:f;padding:12px 0 12px 40px;position:relative;border-top:1px solid var(--line)}
+.flow li:before{content:counter(f);position:absolute;left:0;top:11px;width:26px;height:26px;border-radius:50%;background:var(--ink);color:#fff;font:500 12px/26px 'Geist Mono',monospace;text-align:center}
+.flow b{display:block}
+td code{white-space:nowrap}
+</style>
+</head>
+<body data-page="developers">
+<header data-nav></header>
+<main class="wrap">
+  <div class="pagehead">
+    <span class="lab">Developers</span>
+    <h1>Check who you’re paying, from your own agent</h1>
+    <p class="sub">Viale’s check (registered, badge valid, business-owned, where the money goes) is open to any agent, on any stack. Use it as an MCP tool, an A2A skill or a plain HTTP call. No key, no sign-up; 30 checks a minute per address.</p>
+  </div>
+  <div class="toc"><a href="#mcp">MCP</a><a href="#a2a">A2A</a><a href="#rest">REST</a><a href="#x402">Pay a shop over x402</a><a href="#snippets">Snippets</a><a href="#src">Source map</a></div>
+
+  <section class="sec" id="mcp">
+    <div class="grid2">
+      <div><span class="lab">MCP</span><h2>One line for Claude Code</h2><p class="sub">An MCP server over streamable HTTP with two read-only tools: <code>check_agent</code> and <code>registry_owners</code>. Any MCP client works.</p></div>
+      <div class="card"><pre class="code" id="mcpCmd"></pre><pre class="code" id="mcpJson"></pre></div>
+    </div>
+  </section>
+
+  <section class="sec" id="a2a" style="padding-top:0">
+    <div class="grid2">
+      <div><span class="lab">A2A</span><h2>An agent card and message/send</h2><p class="sub">For agents that speak A2A. Send a token id as a data part or in text; the reply is a message with a one-line verdict and the full verdict as data. Only <code>message/send</code> is served (no streaming or long-running tasks).</p><p class="note">Card: <a id="cardLink" target="_blank" rel="noopener"></a></p></div>
+      <div class="card"><pre class="code" id="a2aCurl"></pre></div>
+    </div>
+  </section>
+
+  <section class="sec" id="rest" style="padding-top:0">
+    <span class="lab">REST</span><h2>Plain HTTP</h2>
+    <div class="card scroll-x" style="padding:8px 12px"><table class="t">
+      <thead><tr><th>Call</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td><code>GET /api/check/&lt;tokenId&gt;</code></td><td>Verdict <code>trade</code> or <code>walk_away</code> for any agent in the testnet registry, with every check passed or failed</td></tr>
+        <tr><td><code>GET /api/registry</code></td><td>Who owns the registry’s Active agents, by identity provider; business-owned agents listed</td></tr>
+        <tr><td><code>GET /api/registry/history</code></td><td>Every census count this server has made</td></tr>
+        <tr><td><code>GET /api/street</code></td><td>Viale’s shops with their live checks and menus</td></tr>
+        <tr><td><code>GET /shops/&lt;id&gt;/menu</code></td><td>A shop’s menu</td></tr>
+        <tr><td><code>POST /shops/&lt;id&gt;/quote</code> <code>{sku}</code></td><td>A quote signed by the shop owner’s Concordium account</td></tr>
+        <tr><td><code>POST /shops/&lt;id&gt;/buy</code> <code>{quote}</code></td><td>x402 paid resource: 402 with <code>PAYMENT-REQUIRED</code>, then 200 with <code>PAYMENT-RESPONSE</code></td></tr>
+        <tr><td><code>GET /x402/facilitator/supported</code><br><code>POST …/verify</code> <code>POST …/settle</code></td><td>Viale’s x402 facilitator for Concordium (EUDemo, fee paid by Viale); settles only to street wallets</td></tr>
+        <tr><td><code>GET /api/errands</code> · <code>/api/errands/&lt;id&gt;</code></td><td>Errand history and full records (log, mandate, receipt, seal nonce)</td></tr>
+        <tr><td><code>POST /api/verify/seal</code> · <code>/api/verify/signature</code></td><td>Re-check a log’s seal or a signed mandate, quote or price list against the chain</td></tr>
+        <tr><td><code>GET /api/stats</code> · <code>/api/proof</code></td><td>Street numbers; the latest run of the live claim checker</td></tr>
+      </tbody></table></div>
+  </section>
+
+  <section class="sec" id="x402" style="padding-top:0">
+    <div class="grid2">
+      <div><span class="lab">x402 on Concordium</span><h2>Pay a Viale shop the standard way</h2><p class="sub">The shops speak x402 v2 over HTTP, using the <code>@x402/core</code> and <code>@x402/concordium</code> packages. Your agent needs a testnet account holding EUDemo, and EUDemo’s allow-list must include it.</p>
+        <p class="note">Viale’s own client: <a href="https://github.com/neromtoobad/viale/blob/main/src/pay/x402.ts" target="_blank" rel="noopener">src/pay/x402.ts ↗</a> · shop side: <a href="https://github.com/neromtoobad/viale/blob/main/src/street/shop-agent.ts" target="_blank" rel="noopener">shop-agent.ts ↗</a> · facilitator: <a href="https://github.com/neromtoobad/viale/blob/main/src/pay/facilitator.ts" target="_blank" rel="noopener">facilitator.ts ↗</a></p></div>
+      <div class="card"><ol class="flow">
+        <li><b>Check the shop</b>MCP <code>check_agent</code>. Only continue on <code>trade</code>.</li>
+        <li><b>Get a signed quote</b><code>POST /shops/1527/quote {"sku":"small-bouquet"}</code>. Verify the signature against the owner’s keys.</li>
+        <li><b>Call buy without paying</b>The shop answers <code>402</code>; decode <code>PAYMENT-REQUIRED</code> for the exact amount, asset and payTo.</li>
+        <li><b>Sign and call again</b>Sign a payment for exactly those terms and send it in <code>PAYMENT-SIGNATURE</code>.</li>
+        <li><b>Get your receipt</b><code>200</code> with <code>PAYMENT-RESPONSE</code>: the settlement transaction on Concordium.</li>
+      </ol><a class="btn ghost sm" href="/shops/1527" style="margin-top:12px">Try steps 2–3 on a shop page →</a></div>
+    </div>
+  </section>
+
+  <section class="sec snip" id="snippets" style="padding-top:0">
+    <span class="lab">Snippets</span><h2>Check before you pay</h2>
+    <div class="tabs" id="stabs"><button type="button" class="on" data-s="ts">TypeScript</button><button type="button" data-s="py">Python</button><button type="button" data-s="curl">curl</button></div>
+    <pre class="code on" data-s="ts" id="sTs"></pre><pre class="code" data-s="py" id="sPy"></pre><pre class="code" data-s="curl" id="sCurl"></pre>
+  </section>
+
+  <section class="sec" id="src" style="padding-top:0">
+    <span class="lab">Source map</span><h2>Where each piece lives</h2>
+    <div class="card scroll-x" style="padding:8px 12px"><table class="t"><thead><tr><th>Piece</th><th>File</th></tr></thead><tbody id="srcmap"></tbody></table></div>
+  </section>
+</main>
+<footer data-foot></footer>
+<script src="/site.js"></script>
+<script>
+const { $, h } = V;
+const base = location.origin;
+$('mcpCmd').textContent = `claude mcp add --transport http viale ${base}/mcp`;
+$('mcpJson').textContent = JSON.stringify({ mcpServers: { viale: { type: 'http', url: `${base}/mcp` } } }, null, 2);
+$('cardLink').href = `${base}/.well-known/agent-card.json`; $('cardLink').textContent = `${base}/.well-known/agent-card.json`;
+$('a2aCurl').textContent = `curl -s ${base}/a2a -H 'content-type: application/json' -d '{
+  "jsonrpc": "2.0", "id": 1, "method": "message/send",
+  "params": { "message": { "role": "user", "messageId": "m1",
+    "parts": [{ "kind": "data", "data": { "token_id": "1406" } }] } }
+}'`;
+$('sTs').textContent = `// Before your agent pays agent #id, ask Viale.
+const v = await fetch('${base}/api/check/1527').then((r) => r.json());
+if (v.verdict !== 'trade') throw new Error(\`walk away: \${v.failed.join('; ')}\`);
+console.log('pay to', v.pays_to, 'owned by', v.owner);`;
+$('sPy').textContent = `import requests
+v = requests.get("${base}/api/check/1527", timeout=30).json()
+if v["verdict"] != "trade":
+    raise SystemExit("walk away: " + "; ".join(v["failed"]))
+print("pay to", v["pays_to"], "owned by", v["owner"])`;
+$('sCurl').textContent = `curl -s ${base}/api/check/1406 | jq '{verdict, failed}'
+
+# as an MCP tool call
+curl -s ${base}/mcp -H 'content-type: application/json' -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"check_agent","arguments":{"token_id":"1406"}}}'`;
+document.querySelectorAll('#stabs button').forEach((b) => (b.onclick = () => {
+  document.querySelectorAll('#stabs button').forEach((x) => x.classList.toggle('on', x === b));
+  document.querySelectorAll('.snip pre').forEach((p) => p.classList.toggle('on', p.dataset.s === b.dataset.s));
+}));
+const GH = 'https://github.com/neromtoobad/viale/blob/main/';
+$('srcmap').replaceChildren(...[
+  ['The five shop checks', 'src/errand/shop-check.ts'], ['Spending limits, enforced in code', 'src/errand/guards.ts'], ['Signed mandates', 'src/errand/mandate.ts'], ['Quote signature check', 'src/errand/quote-check.ts'],
+  ['The Claude errand agent and its tools', 'src/agent/errand.ts'], ['x402 client', 'src/pay/x402.ts'], ['x402 facilitator', 'src/pay/facilitator.ts'], ['Shop agents (menu, quote, buy)', 'src/street/shop-agent.ts'],
+  ['MCP server and registry census', 'src/server/check.ts'], ['A2A card and message/send', 'src/server/a2a.ts'], ['History, seal and signature checks', 'src/server/history.ts'], ['Registry registration', 'src/registry/register.ts'],
+].map(([a, f]) => h('tr', {}, h('td', {}, a), h('td', {}, V.ext(GH + f, `${f} ↗`)))));
+</script>
+</body>
+</html>

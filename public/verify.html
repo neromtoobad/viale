@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Audit desk · Viale</title>
+<meta name="description" content="Check an errand log&#x27;s seal, or a mandate, quote or price list signature, against Concordium testnet yourself.">
+<link rel="icon" href="/brand/viale-favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/brand/viale-favicon-32.png" type="image/png" sizes="32x32">
+<meta name="theme-color" content="#1E2B4A">
+<meta property="og:title" content="Audit desk · Viale">
+<meta property="og:description" content="Check an errand log&#x27;s seal, or a mandate, quote or price list signature, against Concordium testnet yourself.">
+<meta property="og:image" content="https://viale.nerom.site/brand/viale-og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/site.css">
+<style>
+.res{margin-top:14px;padding:14px 16px;border-radius:16px;font-size:14px}
+.res.ok{background:var(--okbg)}.res.bad{background:var(--badbg)}
+.res .mono{font-size:12px;word-break:break-all;display:block;margin-top:6px}
+.pane{display:none}.pane.on{display:block}
+.row2{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.row2 select{border:1px solid var(--line);border-radius:99px;padding:9px 12px;font:14px Geist,system-ui,sans-serif;max-width:100%}
+</style>
+</head>
+<body data-page="verify">
+<header data-nav></header>
+<main class="wrap">
+  <div class="pagehead">
+    <span class="lab">Audit desk</span>
+    <h1>Don’t trust Viale. Check it.</h1>
+    <p class="sub">Paste an errand log and see whether it matches the hash sealed on chain. Paste a mandate, a quote or a price list and see whether the account it names really signed it. Everything is read from Concordium testnet as you click.</p>
+  </div>
+  <div class="tabs" id="tabs"><button type="button" class="on" data-p="seal">Errand log seal</button><button type="button" data-p="sig">Signature</button><a class="btn ghost sm" href="/check" style="margin-left:4px">Check an agent →</a></div>
+  <div class="split">
+    <div class="card">
+      <div class="pane on" id="p-seal">
+        <span class="lab">1 · An errand log</span>
+        <div class="row2" style="margin:10px 0 12px"><select id="pick"><option value="">Load a recent errand…</option></select><label class="btn ghost sm" style="cursor:pointer">Open a .json file<input type="file" id="file" accept="application/json,.json" hidden></label></div>
+        <div class="field"><label for="log">Errand log (JSON, as downloaded from a receipt)</label><textarea id="log" placeholder='{"id": "…", "receipt": {…}, "anchor": {"hash": "…", "nonce": "…"}}'></textarea><small>Try changing one character in the receipt, then check again: the seal stops matching.</small></div>
+        <button class="btn" id="goSeal" type="button">Check the seal</button>
+        <div id="outSeal"></div>
+      </div>
+      <div class="pane" id="p-sig">
+        <span class="lab">2 · A signed message</span>
+        <div class="row2" style="margin:10px 0 12px"><select id="pickSig"><option value="">Load from a recent errand…</option></select></div>
+        <div class="field"><label for="sig">Signed message (JSON with message and signature)</label><textarea id="sig" placeholder='{"message": "{\"kind\":\"viale-quote\", …}", "signature": {"0": {"0": "…"}}}'></textarea><small>Works for Viale mandates (signer: the human), quotes (the shop owner) and price lists (the shop owner). Add "signer" to check against another account.</small></div>
+        <button class="btn" id="goSig" type="button">Check the signature</button>
+        <div id="outSig"></div>
+      </div>
+    </div>
+    <div class="card dark">
+      <span class="lab">How the check works</span>
+      <div class="kv"><span>Seal</span><span>sha256(JSON(receipt) ‖ nonce) must equal the 32 bytes after <span class="mono">VIALE/R1</span> in the register-data transaction</span></div>
+      <div class="kv"><span>Signature</span><span>Concordium account message signature, checked against the signer’s current keys read from a node</span></div>
+      <div class="kv"><span>Where</span><span>Viale’s server calls a public testnet node; the code is <a href="https://github.com/neromtoobad/viale/blob/main/src/server/history.ts" target="_blank" rel="noopener">history.ts ↗</a></span></div>
+      <p style="color:#aeb6c8;font-size:13.5px;margin:16px 0 6px">Or recompute the hash yourself, with nothing from Viale:</p>
+      <pre class="code" style="background:#16203a">node -e '
+const r = require("./log.json");
+const h = require("crypto").createHash("sha256")
+  .update(JSON.stringify(r.receipt))
+  .update(Buffer.from(r.anchor.nonce, "hex"))
+  .digest("hex");
+console.log(h, r.anchor.hash)'</pre>
+      <p style="color:#aeb6c8;font-size:13.5px;margin:10px 0 0">Then open the transaction on <a href="https://ccdexplorer.io/testnet" target="_blank" rel="noopener">CCDExplorer ↗</a> and compare its registered data.</p>
+    </div>
+  </div>
+</main>
+<footer data-foot></footer>
+<script src="/site.js"></script>
+<script>
+const { $, h, postJSON, getJSON, when } = V;
+document.querySelectorAll('#tabs button').forEach((b) => (b.onclick = () => {
+  document.querySelectorAll('#tabs button').forEach((x) => x.classList.toggle('on', x === b));
+  document.querySelectorAll('.pane').forEach((p) => p.classList.toggle('on', p.id === `p-${b.dataset.p}`));
+}));
+const show = (out, r) => out.replaceChildren(h('div', { class: `res ${r.ok ? 'ok' : 'bad'}` }, h('b', {}, r.ok ? '✓ Matches' : '✗ Does not match'), h('div', { style: 'margin-top:4px' }, r.why ?? r.error),
+  r.computed_digest ? h('span', { class: 'mono' }, `computed ${r.computed_digest}`, h('br'), `on chain ${r.on_chain_data}`, h('br'), `tx `, V.txLink(r.tx)) : null,
+  r.identity_providers ? h('span', { class: 'mono' }, `${r.kind} · signer ${r.signer} · identity: ${r.identity_providers.map((i) => i.name + (i.business ? ' (business)' : '')).join(', ')}`) : null));
+const parse = (id) => { try { return JSON.parse($(id).value); } catch { throw new Error('That is not valid JSON.'); } };
+$('goSeal').onclick = async () => { $('outSeal').replaceChildren(h('p', { class: 'loading note' }, 'Reading the transaction')); try { show($('outSeal'), await postJSON('/api/verify/seal', parse('log'))); } catch (e) { show($('outSeal'), { ok: false, error: e.message }); } };
+$('goSig').onclick = async () => { $('outSig').replaceChildren(h('p', { class: 'loading note' }, 'Reading the signer’s keys')); try { show($('outSig'), await postJSON('/api/verify/signature', parse('sig'))); } catch (e) { show($('outSig'), { ok: false, error: e.message }); } };
+$('file').onchange = async () => { const f = $('file').files[0]; if (f) $('log').value = await f.text(); };
+(async () => {
+  const { errands } = await getJSON('/api/errands').catch(() => ({ errands: [] }));
+  const sealed = errands.filter((e) => e.seal).slice(0, 15);
+  $('pick').append(...sealed.map((e) => h('option', { value: e.id }, `${when(e.at)} · ${e.task.slice(0, 50)}`)));
+  $('pickSig').append(...sealed.flatMap((e) => [h('option', { value: `${e.id}|mandate` }, `Mandate · ${e.task.slice(0, 44)}`), e.payments.length ? h('option', { value: `${e.id}|quote` }, `Quote · ${e.payments[0].item}, ${e.payments[0].shop}`) : null].filter(Boolean)));
+  $('pick').onchange = async () => { if (!$('pick').value) return; const d = await getJSON(`/api/errands/${encodeURIComponent($('pick').value)}`); $('log').value = JSON.stringify(d.record, null, 2); };
+  $('pickSig').onchange = async () => {
+    const [id, kind] = $('pickSig').value.split('|'); if (!id) return;
+    const d = await getJSON(`/api/errands/${encodeURIComponent(id)}`);
+    const signed = kind === 'mandate' ? d.record.mandate.signed : d.record.log.find((e) => e.step === 'quote')?.signed;
+    $('sig').value = signed ? JSON.stringify({ message: signed.message, signature: signed.signature }, null, 2) : 'This errand has no signed ' + kind;
+  };
+})();
+</script>
+</body>
+</html>
