@@ -11,6 +11,7 @@ import { client } from '../src/chain/chain.ts';
 import { agentOf } from '../src/registry/mcp.ts';
 
 const SITE = process.env.VIALE_SITE ?? 'https://viale.nerom.site';
+const TESTNET_GENESIS = '4221332d34e1694168c2a0c0b3fd0f27';
 const ROOT = path.resolve(import.meta.dirname, '..');
 const REGISTRY = '<12802,0>';
 const HONEST = ['1526', '1527'];
@@ -249,6 +250,28 @@ await claim('C13', "Errands run under a mandate signed by a human's own Concordi
   const self = await fetch(`${SITE}/api/mandates/draft`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ task: 'x', human: vialeHeld[0] }) });
   must(self.status === 400, `the agent's own account could draft a mandate (HTTP ${self.status})`);
   return `${e.file}: signed in a wallet by ${human.slice(0, 8)}… (no Viale key), verifies on chain, paid ≤ €${terms.max_payment_eur} cap; live site refused a wrong signature, a €50 budget and the agent signing for itself`;
+});
+
+await claim('C14', 'Shops sell over HTTP x402: an unpaid POST /buy gets 402 with requirements matching the signed quote; the paid run settled on chain', async () => {
+  const sup = await json(`${SITE}/x402/facilitator/supported`);
+  const kind = sup.kinds?.find((k: any) => k.scheme === 'exact' && k.network === `ccd:${TESTNET_GENESIS}`);
+  must(kind?.extra?.feePayer, 'the facilitator lists no exact scheme on Concordium testnet with a fee payer');
+  const quote = await json(`${SITE}/shops/1527/quote`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ sku: 'small-bouquet' }) });
+  const terms = JSON.parse(quote.message);
+  const r = await fetch(`${SITE}/shops/1527/buy`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ quote }) });
+  must(r.status === 402, `unpaid buy answered HTTP ${r.status}, not 402`);
+  const header = r.headers.get('payment-required');
+  must(header, 'no PAYMENT-REQUIRED header');
+  const req = JSON.parse(Buffer.from(header!, 'base64').toString()).accepts?.[0];
+  must(req?.scheme === 'exact' && req.asset === 'EUDemo' && req.amount === String(Math.round(terms.price_eur * 1e6)) && req.payTo === terms.pay_to && req.extra?.feePayer === kind.extra.feePayer,
+    `requirements ${JSON.stringify(req)} do not match the quote (€${terms.price_eur} to ${terms.pay_to.slice(0, 8)}…)`);
+  const forged = await fetch(`${SITE}/shops/1527/buy`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ quote: { ...quote, message: JSON.stringify({ ...terms, price_eur: 0.01 }) } }) });
+  must(forged.status === 400, `a quote with a changed price got HTTP ${forged.status}`);
+  const e = evidence.find((x) => x.file.includes('x402-http'));
+  must(e, 'no x402-http evidence file');
+  const t = (await txSummary(e!.data.tx)).events?.find((x: any) => x.tag === 'TokenTransfer');
+  must(t?.tokenId === 'EUDemo' && String(t.amount.value) === e!.data.payment_required.amount && t.to.address === e!.data.payment_required.payTo, 'the recorded x402 payment does not match its requirements on chain');
+  return `402 asks €${terms.price_eur} EUDemo to ${terms.pay_to.slice(0, 8)}… with fee payer ${kind.extra.feePayer.slice(0, 8)}…; changed price refused; ${e!.file} settled ${e!.data.tx.slice(0, 8)}… on chain`;
 });
 
 console.log(failed ? `\n${failed} claim(s) failed` : '\nAll claims pass');
