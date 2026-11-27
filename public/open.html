@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Open a shop · Viale</title>
+<meta name="description" content="Put your own shop agent on Viale&#x27;s street with your Concordium wallet: register it in the Agent Registry, sign your price list, and the errand agent checks you like any other shop.">
+<link rel="icon" href="/brand/viale-favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/brand/viale-favicon-32.png" type="image/png" sizes="32x32">
+<meta name="theme-color" content="#1E2B4A">
+<meta property="og:title" content="Open a shop · Viale">
+<meta property="og:description" content="Put your own shop agent on Viale&#x27;s street with your Concordium wallet: register it in the Agent Registry, sign your price list, and the errand agent checks you like any other shop.">
+<meta property="og:image" content="https://viale.nerom.site/brand/viale-og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/site.css">
+<style>
+.steps{counter-reset:s;display:grid;gap:14px;margin-top:8px}
+.step{position:relative;padding-left:56px}
+.step:before{counter-increment:s;content:counter(s);position:absolute;left:18px;top:22px;width:26px;height:26px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;font:500 13px 'Geist Mono',monospace;color:var(--muted)}
+.step.done:before{content:'✓';background:var(--ok);border-color:var(--ok);color:#fff}
+.step.now:before{background:var(--ink);border-color:var(--ink);color:#fff}
+.step.later{opacity:.55}
+.step h3{margin:0 0 4px;font-size:17px;font-weight:600;letter-spacing:-.01em}
+.step .msg{margin-top:10px;font-size:14px}
+.items{display:grid;gap:8px;margin-top:10px}
+.items .it{display:grid;grid-template-columns:1fr 110px 36px;gap:8px}
+.items input,.mfield input,.mfield textarea{border:1px solid var(--line);border-radius:10px;padding:9px 12px;font:14px Geist,sans-serif;width:100%;min-width:0;background:#fff}
+.mfield{display:grid;gap:6px;margin-top:10px}
+.mfield label{font-size:13px;color:var(--muted)}
+.x{border:1px solid var(--line);border-radius:10px;background:none;cursor:pointer;font-size:16px;color:var(--muted)}
+pre.msgbox{white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.5 'Geist Mono',monospace;background:var(--paper);border-radius:10px;padding:12px;margin-top:10px;max-height:220px;overflow:auto}
+.idline{font-size:22px;font-weight:600;letter-spacing:-.02em;margin:4px 0}
+@media (max-width:640px){.step{padding-left:46px}.step:before{left:12px}.items .it{grid-template-columns:1fr 84px 34px}}
+</style>
+<main class="wrap">
+  <div class="pagehead">
+    <span class="lab">Open a shop</span>
+    <h1>Put your own shop on the street</h1>
+    <p class="sub">Your shop agent goes into Concordium's Agent Registry from your own wallet. You sign your price list once, Viale hosts the card and the shop's quote and buy endpoints, and the errand agent checks you exactly as it checks every other shop: Trade or Walk away, by the identity behind your account.</p>
+    <div class="grid3" style="margin-top:20px">
+      <div class="card"><span class="lab">What you need</span><p style="margin-top:6px">The Concordium Browser Wallet on testnet with a little CCD for two transactions (Request CCD in the wallet is free).</p></div>
+      <div class="card"><span class="lab">What decides Trade</span><p style="margin-top:6px">A business identity from Global FinReg behind the owner account. A personal identity opens fine, but the agent walks away from it. That is the check working.</p></div>
+      <div class="card"><span class="lab">What Viale holds</span><p style="margin-top:6px">No key of yours. It stores your signed price list and your card's exact bytes; their hash is pinned on chain by your wallet.</p></div>
+    </div>
+  </div>
+
+  <section class="sec">
+    <div class="steps" id="steps">
+      <div class="card step" id="s1"><h3>Connect your wallet</h3><p class="note">Viale reads the identity provider behind the account from the chain.</p><div id="b1"></div></div>
+      <div class="card step later" id="s2"><h3>Register your shop agent</h3><p class="note">The Registry MCP builds the CIS-8004 <span class="mono">register</span> call for your account. Your wallet shows it, signs it and sends it. A new agent token is minted to you.</p><div id="b2"></div></div>
+      <div class="card step later" id="s3"><h3>Write and sign your price list</h3><p class="note">Up to five items, €0.10 to €3 each. You sign the list in your wallet; every quote your shop gives carries it, so an agent can check each price against your keys on chain. It lasts 30 days.</p><div id="b3"></div></div>
+      <div class="card step later" id="s4"><h3>Pin your card on chain</h3><p class="note">Viale builds your A2A card with the Concordium badge and hosts its exact bytes. Your wallet pins the card's address and SHA-256 in the registry, so anyone can tell if the card changes.</p><div id="b4"></div></div>
+      <div class="card step later" id="s5"><h3>You're on the street</h3><p class="note">The errand agent finds your shop in the registry and checks it on every errand.</p><div id="b5"></div></div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <span class="lab">Shops opened by outside owners</span>
+    <div id="opened" style="margin-top:12px"><p class="loading">Reading the street</p></div>
+  </section>
+
+  <section class="sec">
+    <span class="lab">Good to know</span>
+    <div class="grid2" style="margin-top:12px">
+      <div class="card"><h3 style="margin:0 0 6px;font-size:16px">Payments</h3><p class="note">The agent pays in EUDemo, a test euro token on Concordium with an allow-list. If the token's issuer hasn't listed your account, the payment fails at settlement and the errand log says so. Nothing is paid by mistake.</p></div>
+      <div class="card"><h3 style="margin:0 0 6px;font-size:16px">Hosting</h3><p class="note">Your shop's menu, quote and buy endpoints run on Viale's server, at <span class="mono">/shops/&lt;id&gt;</span>. Your card is served at <span class="mono">/agents/&lt;id&gt;.json</span>. This street is for testnet demos and holds at most 25 outside shops.</p></div>
+      <div class="card"><h3 style="margin:0 0 6px;font-size:16px">Fees</h3><p class="note">Two contract calls from your account, paid in testnet CCD by you (sponsored contract updates fail on testnet today). The wallet shows each fee before you approve.</p></div>
+      <div class="card"><h3 style="margin:0 0 6px;font-size:16px">Source</h3><p class="note"><a href="https://github.com/neromtoobad/viale/blob/main/src/street/open-shops.ts">src/street/open-shops.ts</a> checks each step on chain: the register call came from your account, the registry lists you as the owner, the price list signature matches your keys, and the card call came from you.</p></div>
+    </div>
+  </section>
+</main>
+<footer data-foot></footer>
+<script src="/site.js"></script>
+<script src="/open/app.js"></script>
+<script>
+const { $, h, eur, wallet, txLink, acct, short } = V;
+const S = { owner: null, business: null, token: null, items: [{ name: '', price_eur: '' }] };
+const msg = (el, text, bad) => { el.querySelector('.msg')?.remove(); if (text) el.append(h('p', { class: 'msg', style: bad ? 'color:var(--bad)' : '' }, text)); };
+function stage(n) {
+  for (let i = 1; i <= 5; i++) $(`s${i}`).className = `card step ${i < n ? 'done' : i === n ? 'now' : 'later'}`;
+}
+async function post(step, b) {
+  const r = await fetch(`/api/open/${step}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(b) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok || j.error) throw new Error(j.error ?? `Step ${step} failed.`);
+  return j;
+}
+
+// 1. Wallet and identity
+function drawConnect() {
+  stage(1);
+  $('b1').replaceChildren(h('button', { class: 'btn', type: 'button', style: 'margin-top:12px', onclick: () => wallet.connect().catch((e) => msg($('b1'), e.message, true)) }, 'Connect Concordium wallet'));
+}
+wallet.onChange(async (a) => {
+  if (!a) { S.owner = null; return drawConnect(); }
+  S.owner = a;
+  $('b1').replaceChildren(h('p', { class: 'loading', style: 'margin-top:10px' }, 'Reading your identity from the chain'));
+  try {
+    const d = await V.getJSON(`/api/account/${encodeURIComponent(a)}`);
+    S.business = d.business;
+    $('b1').replaceChildren(
+      h('div', { class: 'idline', style: `color:${d.business ? 'var(--ok)' : 'inherit'}` }, d.business ? 'Business identity: your shop will pass' : 'Personal identity: the agent will walk away'),
+      h('p', { class: 'note' }, acct(a, short(a)), ' · ', d.identity.map((i) => i.name).join(', '), ` · ${d.ccd.toLocaleString('en', { maximumFractionDigits: 2 })} CCD`),
+      d.ccd < 1 ? h('p', { class: 'note', style: 'color:var(--bad)' }, 'You need a little CCD for the two transactions. Use Request CCD in your wallet first.') : '',
+      d.business ? '' : h('p', { class: 'note' }, 'You can still open the shop and watch the check reject it. To pass, the owner account needs a business identity (Global FinReg Testnet in the wallet).'));
+    const p = await V.getJSON(`/api/open/progress?owner=${encodeURIComponent(a)}`);
+    const open = p.shops.find((s) => s.status !== 'live');
+    if (open) { S.token = open.token_id; return drawMenu(); }
+    drawRegister(p.shops.filter((s) => s.status === 'live'));
+  } catch (e) { msg($('b1'), e.message, true); }
+});
+
+// 2. Register
+function drawRegister(live = []) {
+  stage(2);
+  $('b2').replaceChildren(
+    live.length ? h('p', { class: 'note', style: 'margin-top:8px' }, 'Your live shops: ', ...live.map((s) => h('a', { href: `/shops/${s.token_id}`, style: 'margin-right:8px' }, `#${s.token_id}`))) : '',
+    h('button', { class: 'btn', type: 'button', style: 'margin-top:12px', onclick: register }, 'Register with my wallet'));
+}
+async function register() {
+  const b = $('b2');
+  try {
+    msg(b, 'Building the registry call…');
+    const call = await post('register', { owner: S.owner });
+    msg(b, 'Approve the register call in your wallet…');
+    const tx = await ViaOpen.sendUpdate(wallet.api, S.owner, call);
+    msg(b, 'Sent. Waiting for the chain to finalize it (about 10 seconds)…');
+    const r = await post('registered', { owner: S.owner, tx });
+    S.token = r.token_id;
+    b.replaceChildren(h('p', { class: 'note', style: 'margin-top:8px' }, `Agent #${r.token_id} is yours. `, txLink(tx)));
+    drawMenu();
+  } catch (e) { msg(b, e.message, true); }
+}
+
+// 3. Menu and price list
+function drawMenu() {
+  stage(3);
+  if (!$('b2').textContent.includes('#')) $('b2').replaceChildren(h('p', { class: 'note', style: 'margin-top:8px' }, `Agent #${S.token} is registered to you.`));
+  const name = h('input', { id: 'nm', maxlength: 40, placeholder: 'Shop name, e.g. Corner Kiosk' });
+  const desc = h('textarea', { id: 'ds', maxlength: 200, rows: 2, placeholder: 'One line about the shop (optional)' });
+  const list = h('div', { class: 'items' });
+  const drawItems = () => list.replaceChildren(...S.items.map((it, i) => h('div', { class: 'it' },
+    h('input', { value: it.name, maxlength: 40, placeholder: 'Item', oninput: (e) => (it.name = e.target.value) }),
+    h('input', { value: it.price_eur, inputmode: 'decimal', placeholder: '€ price', oninput: (e) => (it.price_eur = e.target.value) }),
+    h('button', { class: 'x', type: 'button', title: 'Remove', onclick: () => { S.items.splice(i, 1); if (!S.items.length) S.items.push({ name: '', price_eur: '' }); drawItems(); } }, '×'))));
+  drawItems();
+  $('b3').replaceChildren(
+    h('div', { class: 'mfield' }, h('label', { for: 'nm' }, 'Shop name'), name),
+    h('div', { class: 'mfield' }, h('label', { for: 'ds' }, 'Description'), desc),
+    h('div', { class: 'mfield' }, h('label', {}, 'Menu'), list),
+    h('div', { style: 'display:flex;gap:8px;flex-wrap:wrap;margin-top:12px' },
+      h('button', { class: 'btn ghost sm', type: 'button', onclick: () => { if (S.items.length < 5) { S.items.push({ name: '', price_eur: '' }); drawItems(); } } }, 'Add item'),
+      h('button', { class: 'btn', type: 'button', onclick: () => signList(name.value, desc.value) }, 'Sign price list and pin card')));
+}
+async function signList(name, description) {
+  const b = $('b3');
+  try {
+    const items = S.items.filter((i) => i.name.trim()).map((i) => ({ name: i.name.trim(), price_eur: Number(String(i.price_eur).replace(',', '.')) }));
+    const { message } = await post('pricelist', { owner: S.owner, token_id: S.token, name, description, items });
+    msg(b, 'Approve the price list in your wallet. This is the exact text you sign:');
+    b.append(h('pre', { class: 'msgbox' }, JSON.stringify(JSON.parse(message), null, 2)));
+    const signature = await wallet.api.signMessage(S.owner, message);
+    msg(b, 'Signed. Building your card…');
+    const pub = await post('publish', { token_id: S.token, pricelist: { message, signature } });
+    b.replaceChildren(h('p', { class: 'note', style: 'margin-top:8px' }, 'Price list signed. ', h('a', { href: pub.card_url, target: '_blank', rel: 'noopener' }, 'Your card'), ` · SHA-256 ${pub.card_sha256.slice(0, 16)}…`));
+    pin(pub);
+  } catch (e) { msg(b, e.message, true); }
+}
+
+// 4. Pin the card
+function pin(pub) {
+  stage(4);
+  const b = $('b4');
+  const go = async () => {
+    try {
+      msg(b, 'Approve the card call in your wallet…');
+      const tx = await ViaOpen.sendUpdate(wallet.api, S.owner, pub.call);
+      msg(b, 'Sent. Waiting for the chain…');
+      await post('finish', { token_id: S.token, tx });
+      b.replaceChildren(h('p', { class: 'note', style: 'margin-top:8px' }, 'Card pinned. ', txLink(tx)));
+      live();
+    } catch (e) { msg(b, e.message, true); }
+  };
+  b.replaceChildren(h('button', { class: 'btn', type: 'button', style: 'margin-top:12px', onclick: go }, 'Pin card with my wallet'));
+  go();
+}
+
+// 5. Live
+function live() {
+  stage(6);
+  const first = S.items.find((i) => i.name.trim());
+  $('b5').replaceChildren(h('div', { style: 'display:flex;gap:8px;flex-wrap:wrap;margin-top:12px' },
+    h('a', { class: 'btn', href: `/shops/${S.token}` }, 'Your shop page'),
+    h('a', { class: 'btn ghost', href: `/check/${S.token}` }, 'Check it like an agent'),
+    first ? h('a', { class: 'btn ghost', href: `/?task=${encodeURIComponent(`Buy ${first.name} from ${$('nm')?.value || 'my shop'}`)}` }, 'Send the agent') : ''));
+  loadOpened();
+}
+
+async function loadOpened() {
+  try {
+    const d = await V.getJSON('/api/open/shops');
+    $('opened').replaceChildren(d.shops.length
+      ? h('div', { class: 'grid3' }, d.shops.map((s) => h('a', { class: 'card', href: `/shops/${s.token_id}`, style: 'text-decoration:none;color:inherit' },
+          h('span', { class: `chip ${s.trade ? 'ok' : 'bad'}` }, s.trade ? 'Trade' : 'Walk away'),
+          h('h3', { style: 'margin:10px 0 4px;font-size:17px' }, s.name), h('p', { class: 'note' }, `#${s.token_id} · ${s.menu.length} items from ${eur(Math.min(...s.menu.map((m) => m.priceEur)))}`),
+          s.trade ? '' : h('p', { class: 'note' }, s.failed[0] ?? ''))))
+      : h('p', { class: 'empty' }, `None yet. Be the first (${d.max} places).`));
+  } catch (e) { $('opened').replaceChildren(h('p', { class: 'empty' }, e.message)); }
+}
+loadOpened();
+</script>
