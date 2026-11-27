@@ -81,7 +81,10 @@ form.task textarea:focus{box-shadow:inset 0 0 0 1.5px var(--ink)}
 .offline{position:absolute;inset:auto 0 0 0;padding:12px 16px;background:rgba(16,25,52,.88);color:#fff;font-size:14px;text-align:center;z-index:3}
 .legend{position:absolute;left:24px;bottom:20px;z-index:3;display:flex;gap:8px;flex-wrap:wrap}
 .legend span{background:rgba(16,25,52,.72);backdrop-filter:blur(8px);color:#e7eaf2;border-radius:99px;padding:6px 12px;font-size:12.5px}
-.shoplist{display:none}
+.shoplist{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin:20px 0 0}
+.shoplist .card:not(.nospot){display:none}
+.shoplist:before{content:"Also on the street, opened through /open";grid-column:1/-1;font:500 11px/1.2 'Geist Mono',ui-monospace,monospace;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.shoplist:not(:has(.nospot)){display:none}
 .shoplist .card{padding:14px 16px;border-radius:16px}
 .shoplist details summary{cursor:pointer;margin-top:10px;font-size:13px;color:var(--link)}
 .shoplist .card ul{list-style:none;margin:8px 0 0;padding:0;font-size:13px;color:var(--muted)}
@@ -179,6 +182,7 @@ form.task textarea:focus{box-shadow:inset 0 0 0 1.5px var(--ink)}
 @media (max-width:1000px){
   .pin,.legend{display:none}
   .shoplist{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin:16px 0 0}
+  .shoplist,.shoplist:not(:has(.nospot)){display:grid}.shoplist .card:not(.nospot){display:block}.shoplist:before{display:none}
   .panel{grid-template-columns:1fr}.rec{position:relative;top:0}
   .faqgrid{grid-template-columns:1fr;gap:20px}.faqgrid .lead{position:static}
 }
@@ -223,7 +227,7 @@ form.task textarea:focus{box-shadow:inset 0 0 0 1.5px var(--ink)}
           <button type="button" data-task="Buy me a small bouquet from Viale Flowers. Pay at most €3.">Small bouquet</button>
           <button type="button" data-task="Buy ten tulips from Viale Flowers. Pay at most €3.">Ten tulips</button>
           <button type="button" class="warn" data-task="Buy me the cheapest bottle of red from The Bottle Shop. Pay at most €3." data-note="bottle">Cheapest bottle (meets the fake)</button>
-          <button type="button" class="warn" data-task="Buy a six-pack of lager from The Bottle Shop and a small bouquet from Viale Flowers. Pay at most €3 each." data-note="bottle">Lager and flowers</button>
+          <button type="button" data-task="Buy ten tulips and a small bouquet from Viale Flowers. Pay at most €3 each.">Tulips and a bouquet</button>
         </div>
         <div class="crow">
           <div class="lim"><b id="limits">Budget €5 · max €3 a payment · 15 minutes · any shop</b><br>Signed mandate · <button type="button" class="optsbtn" id="optsbtn" aria-expanded="false" aria-controls="opts">Change limits</button></div>
@@ -379,7 +383,7 @@ function drawStreet(list) {
   for (const s of list) {
     const spot = SPOT[s.token_id];
     const tag = `#${s.token_id}${s.age_gated ? ' · 18+' : ''}`;
-    $('shoplist').append(h('div', { class: 'card' }, h('span', { class: 'lab' }, tag), ' ', h('b', {}, s.name), h('div', { style: 'margin-top:8px' }, h('span', { class: `chip ${s.trade ? 'ok' : 'bad'}` }, idLabel(s))), h('details', {}, h('summary', {}, 'See the checks'), h('ul', {}, checkList(s)))));
+    $('shoplist').append(h('div', { class: `card${spot ? '' : ' nospot'}` }, h('span', { class: 'lab' }, tag), ' ', h('b', {}, s.name), h('div', { style: 'margin-top:8px' }, h('span', { class: `chip ${s.trade ? 'ok' : 'bad'}` }, idLabel(s))), h('details', {}, h('summary', {}, 'See the checks'), h('ul', {}, checkList(s)))));
     if (!spot) continue;
     const pin = h('button', { class: 'pin', id: `pin-${s.token_id}`, style: `left:${spot.x}%`, type: 'button', 'aria-expanded': 'false', title: 'Show the checks' },
       h('span', { class: 'lab' }, tag), h('span', { class: `chip ${s.trade ? 'ok' : 'bad'}` }, idLabel(s)), h('ul', {}, checkList(s)));
@@ -628,7 +632,7 @@ async function drawLong() {
         h('td', {}, h('a', { href: `/errands/${encodeURIComponent(r.id)}` }, r.task)),
         h('td', {}, h('span', { class: `chip ${cls}` }, label)),
         h('td', { class: 'mono', style: 'white-space:nowrap' }, eur(r.spent_eur)),
-        h('td', { class: 'note', style: 'white-space:nowrap' }, r.signer?.demo ? 'demo signer' : 'wallet-signed'));
+        h('td', { class: 'note', style: 'white-space:nowrap' }, !r.signer ? 'no mandate (early run)' : r.signer.demo ? 'demo signer' : 'wallet-signed'));
       return tr;
     });
     $('recent').replaceChildren(h('thead', {}, h('tr', {}, ['When', 'Task', 'Outcome', 'Spent', 'Signed by'].map((t) => h('th', {}, t)))), h('tbody', {}, rows.length ? rows : h('tr', {}, h('td', { class: 'empty' }, 'No errands yet.'))));
