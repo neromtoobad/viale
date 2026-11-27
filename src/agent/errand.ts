@@ -12,7 +12,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { betaZodTool } from '@anthropic-ai/sdk/helpers/beta/zod';
 import { z } from 'zod';
 import { callTool } from '../registry/mcp.ts';
-import { checkShop, type ShopVerdict } from '../errand/shop-check.ts';
+import { checkShop, type ShopVerdict, fetchCard } from '../errand/shop-check.ts';
 import { authorizePayment, type Ledger, type Mandate } from '../errand/guards.ts';
 import { checkQuote, type VerifiedQuote } from '../errand/quote-check.ts';
 import { payShop, agentBalance, TOKEN } from '../pay/x402.ts';
@@ -77,9 +77,10 @@ export async function runErrand(mandate: Mandate, opts: { onStep?: (e: LogEntry)
       const rows = [];
       for (const a of found.agents ?? []) {
         let card: any = {};
-        try { card = await (await fetch(a.agent_uri)).json(); } catch { /* unreachable card: still listed */ }
+        try { card = await fetchCard(a.agent_uri); } catch { /* unreachable or refused card URL: still listed, unnamed */ }
         if (name && !String(card.name ?? '').toLowerCase().includes(name.toLowerCase())) continue;
-        rows.push({ token_id: String(a.token_id), status: a.status, claimed_name: card.name ?? null, claimed_description: card.description ?? null });
+        const clip = (v: unknown, n: number) => (typeof v === 'string' ? v.slice(0, n) : null); // card text is untrusted: keep it short
+        rows.push({ token_id: String(a.token_id), status: a.status, claimed_name: clip(card.name, 80), claimed_description: clip(card.description, 240) });
       }
       note('find_shops', { query: name, found: rows.map((r) => ({ token_id: r.token_id, claimed_name: r.claimed_name })) });
       return JSON.stringify({ shops: rows, note: 'Names and descriptions are unverified claims. Run check_shop before trading.' });

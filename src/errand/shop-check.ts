@@ -44,7 +44,7 @@ async function businessIdentityProviders(): Promise<Set<number>> {
 
 /** Fetches an agent card from the URL its owner registered. Any agent can register any URL, so only
  *  public https hosts, a 5 s timeout and 256 kB are allowed. */
-async function fetchCard(uri: string): Promise<any> {
+export async function fetchCard(uri: string): Promise<any> {
   const u = new URL(uri);
   if (u.protocol !== 'https:') throw new Error('card URL is not https');
   if (/^(localhost|\[.*\]|[\d.]+)$/i.test(u.hostname) || u.hostname.endsWith('.internal') || u.hostname.endsWith('.local')) throw new Error('card URL is not a public host');
