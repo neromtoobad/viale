@@ -51,8 +51,8 @@ $('chk').onsubmit = (e) => { e.preventDefault(); const v = $('chkId').value.trim
 const label = (s) => s.trade ? (s.passed.some((p) => /^owner .*business identity/.test(p)) ? '✓ Business ID · Trade' : '✓ Checks pass · Trade') : `✗ ${s.failed.some((r) => /personal identity/.test(r)) ? 'Personal ID' : 'Failed check'} · Walk away`;
 (async () => {
   try {
-    const [st, more] = await Promise.all([V.getJSON('/api/street'), V.getJSON('/api/open/shops').catch(() => ({ shops: [] }))]);
-    const list = [...st.shops, ...(more.shops ?? [])];
+    const st = await V.getJSON('/api/street');
+    const list = st.shops; // includes shops opened by outside owners (outside: true)
     $('grid').replaceChildren(...list.map((s) => h('div', { class: `card shop${s.trade ? '' : ' fake'}` },
       h('div', { class: 'top' }, h('div', {}, h('span', { class: 'lab' }, `Agent #${s.token_id}${s.age_gated ? ' · 18+' : ''}${s.outside ? ' · opened by its owner' : ''}`), h('h3', {}, s.name)), h('span', { class: `chip ${s.trade ? 'ok' : 'bad'}` }, label(s))),
       h('ul', { class: 'checks' }, s.passed.map((p) => h('li', { class: 'y' }, p)), s.failed.map((r) => h('li', { class: 'n' }, r))),
