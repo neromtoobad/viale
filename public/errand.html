@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Errand receipt · Viale</title>
+<meta name="description" content="One errand&#x27;s full receipt: the signed mandate, the shops checked, the signed quote, the x402 payment and the log&#x27;s seal on Concordium.">
+<link rel="icon" href="/brand/viale-favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/brand/viale-favicon-32.png" type="image/png" sizes="32x32">
+<meta name="theme-color" content="#1E2B4A">
+<meta property="og:title" content="Errand receipt · Viale">
+<meta property="og:description" content="One errand&#x27;s full receipt: the signed mandate, the shops checked, the signed quote, the x402 payment and the log&#x27;s seal on Concordium.">
+<meta property="og:image" content="https://viale.nerom.site/brand/viale-og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/site.css">
+<style>
+.tl{list-style:none;margin:0;padding:0}
+.tl>li{display:grid;grid-template-columns:22px 1fr;gap:14px;padding:0 0 16px;position:relative}
+.tl>li:before{content:"";position:absolute;left:10px;top:20px;bottom:0;width:1px;background:var(--line)}
+.tl>li:last-child:before{display:none}
+.dot{width:21px;height:21px;border-radius:50%;border:1.5px solid var(--line);background:#fff;margin-top:1px}
+.dot.ok{background:var(--okbg);border-color:#bfdcc9}.dot.bad{background:var(--badbg);border-color:#ebc3b9}
+.dot.pay{background:#f3e7c8;border-color:#e3cf98}.dot.seal{background:var(--ink);border-color:var(--ink)}.dot.wait{background:var(--waitbg);border-color:#e3cf98}
+.tl b{font-weight:600}.tl p{margin:3px 0 0;color:var(--muted);font-size:14px}
+.tl .t{font:12px 'Geist Mono',ui-monospace,monospace;color:var(--muted);float:right}
+.says{margin-top:6px;padding:10px 14px;background:var(--paper);border-radius:12px;font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere}
+.tl>li>div{min-width:0}
+.big{font-size:44px;font-weight:300;letter-spacing:-.03em;margin:6px 0 2px}
+.sticky{position:sticky;top:20px}
+.res{margin-top:12px;padding:12px 14px;border-radius:14px;font-size:14px}
+.res.ok{background:var(--okbg)}.res.bad{background:var(--badbg)}
+.res .mono{font-size:12px;word-break:break-all}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.card.dark .btn.ghost{color:#fff;border-color:rgba(255,255,255,.25)}.card.dark .btn.ghost:hover{background:rgba(255,255,255,.08)}
+.card h3{margin:6px 0 4px;font-size:19px;letter-spacing:-.01em}
+.a12 td:first-child{width:34%;font-weight:500}
+.party{border-top:1px solid var(--line);padding:12px 0}.party:first-of-type{border-top:0}
+@media (max-width:760px){.sticky{position:static}}
+</style>
+</head>
+<body data-page="errands">
+<header data-nav></header>
+<main class="wrap">
+  <div class="pagehead">
+    <a class="lab" href="/errands" style="text-decoration:none">← Errand history</a>
+    <h1 id="title" class="loading">Loading the errand</h1>
+    <p class="sub" id="sub"></p>
+  </div>
+  <div class="split">
+    <div class="card"><span class="lab">What happened, step by step</span><ol class="tl" id="tl" style="margin-top:18px"></ol></div>
+    <div class="card dark sticky" id="sum"><span class="lab">Receipt</span><div class="big" id="spent">€0.00</div><p class="lab" id="what" style="margin:0 0 16px"></p><div id="rows"></div>
+      <div class="btnrow"><button class="btn" id="verify" type="button" style="background:#fff;color:var(--ink)">Verify this log on chain</button><button class="btn ghost" id="dl" type="button">Download log</button></div>
+      <div id="vres"></div>
+    </div>
+  </div>
+
+  <section class="sec">
+    <div class="grid2">
+      <div class="card" id="mandate"><span class="lab">The mandate</span><h3>What the agent was allowed to do</h3><div id="mrows"></div><div class="btnrow"><button class="btn ghost sm" id="vm" type="button">Check the signature</button></div><div id="vmres"></div></div>
+      <div class="card" id="quote"><span class="lab">The quote</span><h3>The price the shop signed</h3><div id="qrows"><p class="empty">No quote in this errand.</p></div><div class="btnrow" id="vqrow" hidden><button class="btn ghost sm" id="vq" type="button">Check the signature</button></div><div id="vqres"></div></div>
+    </div>
+  </section>
+
+  <section class="sec" style="padding-top:0">
+    <div class="grid2">
+      <div class="card"><span class="lab">x402 payment</span><h3>HTTP 402, then pay, then 200</h3><p class="note">The agent asked the shop’s buy endpoint, got <code>402 Payment Required</code> with these terms, signed a payment for exactly them, and sent it back in the <code>PAYMENT-SIGNATURE</code> header. Viale’s facilitator settled it on chain.</p><div id="xrows"><p class="empty">No payment in this errand.</p></div></div>
+      <div class="card"><span class="lab">Who is accountable</span><h3>Each party, back to an identity</h3><div id="parties"></div></div>
+    </div>
+  </section>
+
+  <section class="sec" style="padding-top:0">
+    <div class="card">
+      <span class="lab">Record-keeping</span><h3>This log, laid out against the EU AI Act’s logging article (Art. 12)</h3>
+      <p class="note">Article 12 asks high-risk AI systems to keep automatic logs: the period of each use, the reference data checked, the input, and who verified the results. Viale is not a high-risk system and makes no compliance claim; this is how its log maps onto those fields.</p>
+      <div class="scroll-x"><table class="t a12" id="a12" style="margin-top:12px"></table></div>
+    </div>
+  </section>
+</main>
+<footer data-foot></footer>
+<script src="/site.js"></script>
+<script>
+const { $, h, eur, short, txLink, acct, when, getJSON, postJSON, EXPLORER } = V;
+const id = decodeURIComponent(location.pathname.split('/')[2] ?? '');
+const kv = (k, v) => h('div', { class: 'kv' }, h('span', {}, k), h('span', {}, v));
+const OUT = { paid: 'Paid', walked_away: 'Walked away', refused: 'Refused', stopped: 'Stopped', nothing_bought: 'Nothing bought' };
+let rec;
+
+function step(dot, title, at, ...body) { return h('li', {}, h('span', { class: `dot ${dot}` }), h('div', {}, at ? h('span', { class: 't' }, new Date(at).toISOString().slice(11, 19)) : null, h('b', {}, title), ...body)); }
+function timeline(log) {
+  const out = [];
+  for (const e of log) {
+    const s = e.step;
+    if (s === 'tool_call' || s === 'report') continue;
+    if (s === 'mandate') out.push(step('ok', `Mandate ${e.mandate?.signed ? 'signed' : 'set'}: budget ${eur(e.mandate.budgetEur)}, max ${eur(e.mandate.maxPaymentEur)} a payment`, e.at, h('p', {}, `Expires ${when(e.mandate.expiresAt)}.`, e.mandate.allowedShops ? ` Only: ${e.mandate.allowedShops.join(', ')}.` : '')));
+    else if (s === 'find_shops') out.push(step('', `Found ${(e.found ?? []).length} shop(s) in the Agent Registry`, e.at, h('p', {}, (e.found ?? []).map((f) => `${f.claimed_name ?? 'unnamed'} #${f.token_id}`).join(', '))));
+    else if (s === 'check_shop') out.push(step(e.ok ? 'ok' : 'bad', `${e.ok ? 'Checked' : 'Walked away from'} #${e.token_id} ${e.expected_name ?? ''}`, e.at, h('ul', { class: 'checks' }, (e.passed ?? []).map((p) => h('li', { class: 'y' }, p)), (e.reasons ?? []).map((r) => h('li', { class: 'n' }, r)))));
+    else if (s === 'see_menu') out.push(step('', `Read the menu at #${e.token_id}`, e.at, h('p', {}, e.error ?? (e.items ?? []).map((i) => `${i.name} ${eur(i.priceEur)}`).join(' · '))));
+    else if (s === 'quote') out.push(step('ok', `Signed quote: ${e.quote.item}, ${eur(e.quote.price_eur)}`, e.at, h('p', {}, 'Signed by owner ', acct(e.quote.shop_owner), ', checked against its keys on chain.')));
+    else if (s === 'quote_rejected' || s === 'quote_failed') out.push(step('bad', `Refused a quote from #${e.token_id}`, e.at, h('ul', { class: 'checks' }, (e.reasons ?? [e.error]).map((r) => h('li', { class: 'n' }, r)))));
+    else if (s === 'age_proof_requested') out.push(step('wait', `${e.shop} asked for an 18+ proof`, e.at, h('p', {}, 'Zero-knowledge proof in the Concordium ID app; the shop learns only yes or no.')));
+    else if (s === 'age_proof_result') out.push(step(e.state === 'verified' ? 'ok' : 'bad', e.state === 'verified' ? 'Age proof verified' : `No age proof (${e.state})`, e.at, e.verifyTx ? h('p', {}, txLink(e.verifyTx)) : null));
+    else if (s === 'payment_refused') out.push(step('bad', `Payment of ${eur(e.amount_eur)} refused by the limits`, e.at, h('ul', { class: 'checks' }, (e.reasons ?? []).map((r) => h('li', { class: 'n' }, r)))));
+    else if (s === 'payment_failed') out.push(step('bad', `Payment of ${eur(e.amount_eur)} failed`, e.at, h('p', {}, e.reason)));
+    else if (s === 'payment') out.push(step('pay', `Paid ${eur(e.amount_eur)} for ${e.item}${e.x402 ? ' over x402' : ''}`, e.at, h('p', {}, 'To ', acct(e.payTo), ' · ', txLink(e.tx))));
+    else if (s === 'agent_says') out.push(step('', 'The agent reported', e.at, h('div', { class: 'says' }, String(e.text).replace(/\*\*/g, '').trim())));
+    else if (s === 'log_anchored') out.push(step('seal', 'Log sealed on chain', e.at, h('p', {}, txLink(e.tx))));
+    else if (s === 'failed' || s === 'tool_error' || s === 'model_refused') out.push(step('bad', s === 'tool_error' ? `A ${e.tool} call failed` : 'The errand stopped', e.at, h('p', {}, e.error ?? '')));
+  }
+  if (rec.anchor?.hash && !log.some((e) => e.step === 'log_anchored')) out.push(step('seal', 'Log sealed on chain', null, h('p', {}, txLink(rec.anchor.hash))));
+  return out;
+}
+
+async function verifySig(signed, out) {
+  out.replaceChildren(h('p', { class: 'loading note' }, 'Reading the signer’s keys from the chain'));
+  try {
+    const r = await postJSON('/api/verify/signature', { message: signed.message, signature: signed.signature });
+    out.replaceChildren(h('div', { class: `res ${r.ok ? 'ok' : 'bad'}` }, h('b', {}, r.ok ? '✓ Signature valid' : '✗ Signature does not match'), h('p', { style: 'margin:4px 0 0' }, r.why ?? r.error), r.identity_providers ? h('p', { class: 'note', style: 'margin:4px 0 0' }, `Signer’s identity on chain: ${r.identity_providers.map((i) => `${i.name}${i.business ? ' (business)' : ''}`).join(', ')}`) : null));
+  } catch (err) { out.replaceChildren(h('div', { class: 'res bad' }, err.message)); }
+}
+
+(async () => {
+  let d;
+  try { d = await getJSON(`/api/errands/${encodeURIComponent(id)}`); }
+  catch { $('title').className = ''; $('title').textContent = 'No errand with that id'; $('sub').replaceChildren('It may still be running. ', h('a', { href: '/errands' }, 'See every errand →')); return; }
+  rec = d.record; const sm = d.summary; const m = rec.mandate;
+  document.title = `${sm.task} · Viale`;
+  $('title').className = ''; $('title').textContent = sm.task;
+  $('sub').replaceChildren(`${OUT[sm.outcome]} · ${when(sm.at)} · model ${sm.model} · errand ${sm.id}`);
+  $('tl').replaceChildren(...timeline(rec.log));
+
+  $('spent').textContent = eur(sm.spent_eur);
+  $('what').textContent = sm.payments.length ? sm.payments.map((p) => `${p.item} · ${p.shop}`).join(' + ') : OUT[sm.outcome];
+  const owner = rec.log.find((e) => e.step === 'check_shop' && e.ok)?.owner;
+  $('rows').replaceChildren(
+    kv('Signed by', m.signed ? h('span', {}, acct(m.signed.human), sm.signer?.demo ? ' · Viale demo' : ' · own wallet') : 'unsigned (older run)'),
+    ...sm.shops_checked.map((c) => kv(`Shop #${c.token_id}`, c.ok ? '✓ passed' : `✗ ${c.reasons[0] ?? 'failed'}`)),
+    ...sm.payments.map((p) => kv('Payment', txLink(p.tx))),
+    kv('Log seal', rec.anchor?.hash ? txLink(rec.anchor.hash) : 'not sealed'),
+    kv('Budget left', `${eur(m.budgetEur - sm.spent_eur)} of ${eur(m.budgetEur)}`));
+
+  $('verify').onclick = async () => {
+    $('vres').replaceChildren(h('p', { class: 'loading', style: 'color:#aeb6c8' }, 'Recomputing sha256(log ‖ nonce) and reading the transaction'));
+    try {
+      const r = await postJSON('/api/verify/seal', rec);
+      $('vres').replaceChildren(h('div', { class: `res ${r.ok ? 'ok' : 'bad'}`, style: 'color:var(--ink)' }, h('b', {}, r.ok ? '✓ The log matches its seal' : '✗ The log does not match'), h('p', { style: 'margin:4px 0' }, r.why ?? r.error), r.computed_digest ? h('div', { class: 'mono' }, `computed  ${r.computed_digest}`, h('br'), `on chain  ${r.on_chain_data}`) : null));
+    } catch (err) { $('vres').replaceChildren(h('div', { class: 'res bad', style: 'color:var(--ink)' }, err.message)); }
+  };
+  $('dl').onclick = () => { const a = h('a', { href: URL.createObjectURL(new Blob([JSON.stringify(rec, null, 2)], { type: 'application/json' })), download: `viale-errand-${rec.id}.json` }); a.click(); };
+
+  const terms = m.signed ? JSON.parse(m.signed.message) : null;
+  $('mrows').replaceChildren(kv('Task', m.task), kv('Budget', eur(m.budgetEur)), kv('Max per payment', eur(m.maxPaymentEur)), kv('Expires', when(m.expiresAt)), kv('Allowed shops', m.allowedShops?.join(', ') ?? 'any'),
+    terms ? kv('Agent named', acct(terms.agent)) : null, terms ? kv('Mandate id', h('span', { class: 'mono' }, terms.mandate_id)) : null);
+  if (m.signed) $('vm').onclick = () => verifySig(m.signed, $('vmres')); else $('vm').hidden = true;
+
+  const q = rec.log.find((e) => e.step === 'quote');
+  if (q) {
+    $('qrows').replaceChildren(kv('Item', `${q.quote.item} (${q.quote.sku})`), kv('Price', eur(q.quote.price_eur)), kv('Shop', `#${q.quote.shop_token_id}`), kv('Signed by owner', acct(q.quote.shop_owner)), kv('Pay to', acct(q.quote.pay_to)), kv('Valid until', when(q.quote.expires_at)));
+    if (q.signed) { $('vqrow').hidden = false; $('vq').onclick = () => verifySig(q.signed, $('vqres')); }
+  }
+
+  const p = rec.log.find((e) => e.step === 'payment');
+  if (p) {
+    const x = p.x402?.accepted;
+    $('xrows').replaceChildren(...(x ? [kv('First reply', h('span', { class: 'chip wait' }, `HTTP ${p.x402.status}`)), kv('Scheme', x.scheme), kv('Network', h('span', { class: 'mono' }, x.network)), kv('Asset', x.asset), kv('Amount', `${x.amount} (${eur(Number(x.amount) / 1e6)})`), kv('Pay to', acct(x.payTo)), kv('Fee paid by', acct(x.extra?.feePayer)), kv('Settled', txLink(p.tx))]
+      : [kv('Payment', txLink(p.tx)), h('p', { class: 'note' }, 'This older run paid directly, before the shops served x402 over HTTP.')]));
+  }
+
+  const checkStep = rec.log.find((e) => e.step === 'check_shop' && e.ok);
+  const party = (who, what, ...more) => h('div', { class: 'party' }, h('span', { class: 'lab' }, who), h('div', { style: 'margin-top:4px' }, what), ...more);
+  $('parties').replaceChildren(
+    party('The human', m.signed ? h('span', {}, 'Account ', acct(m.signed.human), sm.signer?.demo ? ' (Viale’s demo signer, used when no wallet is connected)' : ', whose own wallet signed the mandate') : 'No signed mandate in this older run.'),
+    party('The shop', owner ? h('span', {}, 'Owner ', acct(owner), (checkStep?.passed ?? []).some((x) => /business identity/.test(x)) ? ', which holds a Global FinReg business identity' : '') : 'No shop passed the check.'),
+    party('The agent', h('span', {}, 'Claude (', sm.model, '), acting from account ', acct(terms?.agent ?? V.ACCOUNTS.agent), '. Its log is sealed by ', acct(V.ACCOUNTS.viale), '.')));
+
+  const first = rec.log.find((e) => e.at)?.at, last = [...rec.log].reverse().find((e) => e.at)?.at;
+  const rows = [
+    ['Period of use', `${when(first)} → ${when(last)}`],
+    ['Reference data checked', h('span', {}, 'Concordium Agent Registry ', V.ext(`${EXPLORER}/instance/12802/0`, '<12802,0> ↗', ''), ` · shops ${sm.shops_checked.map((c) => '#' + c.token_id).join(', ') || 'none'} · owner identities read from the chain`)],
+    ['Input', `“${m.task}”`],
+    ['Matches and decisions', `${sm.shops_checked.filter((c) => c.ok).length} shop(s) passed, ${sm.shops_checked.filter((c) => !c.ok).length} refused, ${sm.payments.length} payment(s)`],
+    ['Who verified the results', m.signed ? h('span', {}, 'The human who signed the mandate, ', acct(m.signed.human), ', plus the code guards on every payment') : 'Code guards on every payment'],
+    ['Tamper evidence', rec.anchor?.hash ? h('span', {}, 'SHA-256 of the log registered on chain ', txLink(rec.anchor.hash)) : 'Not sealed'],
+  ];
+  $('a12').replaceChildren(h('tbody', {}, rows.map(([k, v]) => h('tr', {}, h('td', {}, k), h('td', {}, v)))));
+})();
+</script>
+</body>
+</html>

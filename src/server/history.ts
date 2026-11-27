@@ -7,6 +7,7 @@ import path from 'node:path';
 import { AccountAddress, TransactionHash, verifyMessageSignature } from '@concordium/web-sdk';
 import { client, withRetry } from '../chain/chain.ts';
 import { sponsorWallet } from '../chain/keys.ts';
+import { BUSINESS_IDP_NAME, identityProviderNames } from '../errand/shop-check.ts';
 
 const ROOT = path.resolve(import.meta.dirname, '../..');
 const MAGIC = Buffer.from('VIALE/R1');
@@ -141,7 +142,9 @@ export async function verifySignature(input: any) {
   try { info = await withRetry(() => client().getAccountInfo(AccountAddress.fromBase58(signer))); }
   catch { return { ok: false, error: `${signer.slice(0, 6)}… is not an account on Concordium testnet.` }; }
   const ok = await verifyMessageSignature(message, signature, info).catch(() => false);
-  const idps = [...new Set(Object.values((info as any).accountCredentials).map((c: any) => Number(c.value.contents.ipIdentity)))];
+  const names = await identityProviderNames().catch(() => new Map<number, string>());
+  const idps = [...new Set(Object.values((info as any).accountCredentials).map((c: any) => Number(c.value.contents.ipIdentity)))]
+    .map((id) => ({ id, name: names.get(id) ?? `provider ${id}`, business: (names.get(id) ?? '').includes(BUSINESS_IDP_NAME) }));
   return {
     ok, kind: kind ?? 'unknown', signer, identity_providers: idps,
     terms,

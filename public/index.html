@@ -398,6 +398,7 @@ function onStep(e) {
     addStep('bad', 'Could not seal the log on chain', h('p', {}, e.error));
   } else if (s === 'finished' || s === 'failed') {
     if (s === 'failed') addStep('bad', 'The errand stopped', h('p', {}, e.error));
+    if (e.errand_id) addStep('', 'Full receipt', h('p', {}, h('a', { href: `/errands/${encodeURIComponent(e.errand_id)}` }, 'Open this errand’s receipt, check its seal and signatures →')));
     $('agentText').textContent = s === 'failed' ? 'Errand stopped' : state.payments.length ? 'Errand done' : 'Errand done · nothing bought';
     document.querySelectorAll('.pin').forEach((p) => p.classList.remove('here'));
     source?.close(); source = undefined;
@@ -424,6 +425,7 @@ function replay(steps, id) {
   const at = steps.find((x) => x.at)?.at;
   $('when').textContent = `Last errand · ${at ? new Date(at).toUTCString().slice(5, 22) + ' UTC' : id}`;
   for (const e of steps) onStep(e);
+  if (!steps.some((e) => e.errand_id)) addStep('', 'Full receipt', h('p', {}, h('a', { href: `/errands/${encodeURIComponent(id)}` }, 'Open this errand’s receipt, check its seal and signatures →')));
 }
 
 async function start() {
