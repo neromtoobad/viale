@@ -81,7 +81,7 @@ The first errand, before signed quotes, paid its full €3 limit: [payment](http
 
 ## The problem
 
-An AI agent that shops for you has to decide who to pay. A name proves nothing: anyone can register an agent called "The Bottle Shop". A Verified-by-Concordium badge proves the agent's card hasn't changed, not who owns it. Of the 1,245 active agents in Concordium's testnet registry, 29 (2.3%) are owned by an account with a business identity; the rest are personal accounts ([tools/measure-registry.ts](tools/measure-registry.ts), Nov 26). And an agent that sets its own payment amounts will overpay: our first errand did.
+An AI agent that shops for you has to decide who to pay. A name proves nothing: anyone can register an agent called "The Bottle Shop". A Verified-by-Concordium badge proves the agent's card hasn't changed, not who owns it. Of the 1,245 active agents in Concordium's testnet registry, 29 (2.3%) are owned by an account with a business identity; the rest are personal accounts ([tools/measure-registry.ts](tools/measure-registry.ts), Nov 26). And an agent that sets its own payment amounts can overpay: our first errand did.
 
 ## How it works
 
@@ -158,7 +158,7 @@ With the server running, one errand from the command line: `npm run errand -- "B
 
 ## Built at the event
 
-The event opened on Nov 2. The first commit is from Nov 17, and everything in this repo was written during the event, in small commits. No code was carried over from our earlier projects.
+The event opened on Nov 2. The first commit is from Nov 17, and everything in this repo was written during the event, in small commits. No code was carried over from our earlier projects. Each working session's changes were split into one commit per feature and committed together at the end of the session, which is why some commits are seconds apart; the code was written over hours, not in seconds.
 
 From others: Concordium's SDKs and services (`@concordium/web-sdk`, `@x402/concordium`, `@concordium/verification-web-ui`, the hosted Registry MCP, and the verifier container in [verifier/](verifier/)), Anthropic's SDK, zod and @noble/ed25519. The street picture was made with an image model during the event.
 
