@@ -102,6 +102,7 @@ export async function runErrand(mandate: Mandate, opts: { onStep?: (e: LogEntry)
   });
 
   const quotes = new Map<string, VerifiedQuote>();
+  const signedQuotes = new Map<string, { message: string; signature: any }>(); // kept to hand back to the shop at /buy
   const shopApi = (tokenId: string, what: string) => `${PUBLIC_URL}/shops/${tokenId}/${what}`;
 
   const seeMenu = betaZodTool({
@@ -130,6 +131,7 @@ export async function runErrand(mandate: Mandate, opts: { onStep?: (e: LogEntry)
       const c = await checkQuote(signed, checked.get(token_id));
       if (!c.ok) { note('quote_rejected', { token_id, sku, reasons: c.reasons }); return JSON.stringify({ quote: null, rejected: c.reasons }); }
       quotes.set(c.quote.quote_id, c.quote);
+      signedQuotes.set(c.quote.quote_id, signed);
       note('quote', { token_id, quote: c.quote, signed });
       const { quote_id, item, price_eur, expires_at } = c.quote;
       return JSON.stringify({ quote_id, item, price_eur, expires_at, signed_by_shop_owner: true });
@@ -152,14 +154,14 @@ export async function runErrand(mandate: Mandate, opts: { onStep?: (e: LogEntry)
         note('payment_refused', { token_id, amount_eur, item, reasons: d.reasons });
         return JSON.stringify({ paid: false, refused_by: 'mandate', reasons: d.reasons });
       }
-      const p = await payShop(shop!.payTo!, amount_eur);
+      const p = await payShop(shopApi(token_id, 'buy'), signedQuotes.get(quote_id)!, shop!.payTo!, amount_eur);
       if (!p.ok) {
         note('payment_failed', { token_id, amount_eur, item, reason: p.reason });
         return JSON.stringify({ paid: false, reason: p.reason });
       }
       ledger.spentEur += amount_eur;
       ledger.payments.push({ tokenId: token_id, amount: amount_eur, tx: p.tx, quoteId: quote_id });
-      note('payment', { token_id, shop: shop!.name, amount_eur, item, quote_id, payTo: p.payTo, tx: p.tx });
+      note('payment', { token_id, shop: shop!.name, amount_eur, item, quote_id, payTo: p.payTo, tx: p.tx, x402: { status: 402, accepted: p.required } });
       return JSON.stringify({ paid: true, amount_eur, token: TOKEN, tx: p.tx, explorer: txUrl(p.tx), spent_so_far_eur: ledger.spentEur });
     },
   });

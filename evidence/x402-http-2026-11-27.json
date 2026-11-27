@@ -1,0 +1,20 @@
+{
+  "what": "One x402 payment over HTTP, made with tools/try-x402.ts against the Viale server: POST /shops/1527/buy answered 402 with PAYMENT-REQUIRED, the agent retried with PAYMENT-SIGNATURE, the shop had Viale's facilitator verify and settle over HTTP, and answered 200 with PAYMENT-RESPONSE. Paying the same quote again was refused with 409.",
+  "made_at": "2026-11-27T05:17:00Z",
+  "shop": "1527",
+  "item": "Small bouquet",
+  "payment_required": {
+    "scheme": "exact",
+    "network": "ccd:4221332d34e1694168c2a0c0b3fd0f27",
+    "asset": "EUDemo",
+    "amount": "1800000",
+    "payTo": "3HNiUGKvauG2NZXSabcsQ5eaYRbtqWYfYVUkGtzxJ37kfj64ji",
+    "maxTimeoutSeconds": 120,
+    "extra": {
+      "feePayer": "3bV1C2T7j8oNGPfZsMSP51KCgdzuTuUMjDcHFak3rHM43i46zX"
+    }
+  },
+  "payer": "3bfc6N7NivEQmvyMWeei1eBYv4mD21FzKfLA5nAtjhuWXHNwhZ",
+  "same_quote_again": 409,
+  "tx": "e7843e015292fa247978e3d24ea48e2cf26e18af906d0dd8048d6b83c0101629"
+}
