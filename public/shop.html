@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shop · Viale</title>
+<meta name="description" content="A shop agent on Viale&#x27;s street: its registry record, owner identity, menu, x402 terms and recent sales on Concordium testnet.">
+<link rel="icon" href="/brand/viale-favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/brand/viale-favicon-32.png" type="image/png" sizes="32x32">
+<meta name="theme-color" content="#1E2B4A">
+<meta property="og:title" content="Shop · Viale">
+<meta property="og:description" content="A shop agent on Viale&#x27;s street: its registry record, owner identity, menu, x402 terms and recent sales on Concordium testnet.">
+<meta property="og:image" content="https://viale.nerom.site/brand/viale-og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/site.css">
+<style>
+.menu .it{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line);font-size:14.5px}
+.res{margin-top:12px}
+pre.code{max-height:360px}
+.verdict{font-size:28px;font-weight:600;letter-spacing:-.02em;margin:4px 0}
+.verdict.y{color:var(--ok)}.verdict.n{color:var(--bad)}
+.card h3{margin:6px 0 4px;font-size:19px}
+.stepper{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 0}
+</style>
+</head>
+<body data-page="shops">
+<header data-nav></header>
+<main class="wrap">
+  <div class="pagehead">
+    <a class="lab" href="/shops" style="text-decoration:none">← All shops</a>
+    <h1 id="title" class="loading">Checking the shop</h1>
+    <p class="sub" id="sub"></p>
+  </div>
+  <div class="split">
+    <div class="card"><span class="lab">The errand agent’s check, live</span><div class="verdict" id="verdict"></div><ul class="checks" id="checks"></ul>
+      <div id="facts" style="margin-top:16px"></div></div>
+    <div class="card"><span class="lab">Menu</span><h3>What it sells</h3><div class="menu" id="menu"></div>
+      <p class="note" style="margin-top:12px">“Send the agent” fills in the errand on the street page. You still run it, and your limits still apply.</p></div>
+  </div>
+
+  <section class="sec">
+    <div class="grid2">
+      <div class="card"><span class="lab">x402 · try it, no money moves</span><h3>Ask for the price the way an agent does</h3>
+        <p class="note">This asks the shop for a signed quote, then calls its paid endpoint <code id="buyUrl"></code> without paying. The shop answers <b>402 Payment Required</b> with its terms in the <code>PAYMENT-REQUIRED</code> header. An agent pays by signing those terms and calling again.</p>
+        <div class="stepper"><select id="sku" style="border:1px solid var(--line);border-radius:99px;padding:8px 12px;font:14px Geist,system-ui,sans-serif"></select><button class="btn sm" id="try" type="button">Get quote, then call buy</button></div>
+        <div id="tryOut"></div></div>
+      <div class="card"><span class="lab">Recent sales</span><h3>Paid by the errand agent</h3><div id="sales"><p class="loading">Loading</p></div></div>
+    </div>
+  </section>
+
+  <section class="sec" style="padding-top:0">
+    <div class="card"><span class="lab">Agent card</span><h3>What the shop publishes about itself</h3>
+      <p class="note">An A2A agent card with the Concordium badge extension. Its SHA-256 is stored in the registry, which is how the badge check knows the card wasn’t swapped.</p>
+      <pre class="code" id="card">…</pre></div>
+  </section>
+</main>
+<footer data-foot></footer>
+<script src="/site.js"></script>
+<script>
+const { $, h, eur, acct, txLink, ago, getJSON, postJSON } = V;
+const id = location.pathname.split('/')[2];
+const kv = (k, v) => h('div', { class: 'kv' }, h('span', {}, k), h('span', {}, v));
+$('buyUrl').textContent = `POST /shops/${id}/buy`;
+(async () => {
+  let d;
+  try { d = await getJSON(`/api/shops/${id}`); }
+  catch (err) { $('title').className = ''; $('title').textContent = `Agent #${id} is not on this street`; $('sub').replaceChildren(h('a', { href: `/check/${id}` }, 'Check it in the registry anyway →')); return; }
+  const s = d.shop ?? {};
+  document.title = `${s.name ?? d.card?.name ?? 'Shop'} #${id} · Viale`;
+  $('title').className = ''; $('title').textContent = s.name ?? d.card?.name ?? `Agent #${id}`;
+  $('sub').replaceChildren(d.description ?? d.card?.description ?? '', d.impostor ? h('span', { class: 'chip bad', style: 'margin-left:8px' }, 'Planted fake, on purpose') : null);
+  $('verdict').className = `verdict ${s.trade ? 'y' : 'n'}`; $('verdict').textContent = s.trade ? 'Trade' : 'Walk away';
+  $('checks').replaceChildren(...(s.passed ?? []).map((p) => h('li', { class: 'y' }, p)), ...(s.failed ?? []).map((r) => h('li', { class: 'n' }, r)));
+  $('facts').replaceChildren(kv('Registry', V.ext(`${V.EXPLORER}/instance/12802/0`, 'CIS-8004 <12802,0> ↗', '')), kv('Token id', `#${id}`), kv('Owner', acct(s.owner)), kv('Payments go to', acct(s.pay_to)), kv('Age-gated', s.age_gated ? 'Yes: 18+ proof required' : 'No'), kv('Errands that checked it', String(d.visits)));
+  $('menu').replaceChildren(...(s.menu ?? []).map((i) => h('div', { class: 'it' }, h('span', {}, i.name, h('span', { class: 'note' }, ` · ${i.sku}`)), h('span', {}, h('b', { class: 'mono' }, eur(i.priceEur)), ' ', h('a', { class: 'btn ghost sm', href: `/?task=${encodeURIComponent(`Buy ${i.name.toLowerCase()} from ${s.name}. Pay at most €3.`)}` }, 'Send the agent')))));
+  $('sku').replaceChildren(...(s.menu ?? []).map((i) => h('option', { value: i.sku }, `${i.name} · ${eur(i.priceEur)}`)));
+  $('card').textContent = d.card ? JSON.stringify(d.card, null, 2) : 'No card hosted here.';
+  $('sales').replaceChildren(...(d.sales.length ? d.sales.map((p) => kv(h('a', { href: `/errands/${encodeURIComponent(p.errand)}` }, `${p.item} · ${ago(p.at)}`), h('span', {}, eur(p.amount_eur), ' · ', txLink(p.tx)))) : [h('p', { class: 'empty' }, d.impostor ? 'None. The agent refuses this shop every time.' : 'No sales yet.')]));
+})();
+$('try').onclick = async () => {
+  const out = $('tryOut');
+  out.replaceChildren(h('p', { class: 'loading note' }, 'Asking for a signed quote'));
+  try {
+    const quote = await postJSON(`/shops/${id}/quote`, { sku: $('sku').value });
+    const r = await fetch(`/shops/${id}/buy`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ quote }) });
+    const hdr = r.headers.get('PAYMENT-REQUIRED');
+    let decoded = null; try { decoded = hdr ? JSON.parse(atob(hdr)) : null; } catch {}
+    const body = await r.json().catch(() => ({}));
+    out.replaceChildren(
+      h('div', { class: 'kv' }, h('span', {}, '1. Quote'), h('span', {}, `${JSON.parse(quote.message).item}, signed by `, acct(JSON.parse(quote.message).shop_owner))),
+      h('div', { class: 'kv' }, h('span', {}, '2. POST buy, no payment'), h('span', {}, h('span', { class: `chip ${r.status === 402 ? 'wait' : 'bad'}` }, `HTTP ${r.status}`))),
+      h('pre', { class: 'code' }, `PAYMENT-REQUIRED: ${hdr ? hdr.slice(0, 48) + '…' : '(none)'}\n\n// decoded\n${JSON.stringify(decoded ?? body, null, 2)}`),
+      h('p', { class: 'note' }, 'To finish, an agent signs a payment for exactly these terms and calls again with a PAYMENT-SIGNATURE header. ', h('a', { href: '/developers#x402' }, 'How →')));
+  } catch (err) { out.replaceChildren(h('p', { class: 'empty' }, err.message)); }
+};
+</script>
+</body>
+</html>

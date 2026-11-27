@@ -533,6 +533,7 @@ async function drawLong() {
   } catch { $('recent').replaceChildren(h('tbody', {}, h('tr', {}, h('td', { class: 'empty' }, 'Errands unavailable right now.')))); }
 }
 drawLong();
+{ const t = new URLSearchParams(location.search).get('task'); if (t) { $('taskInput').value = t.slice(0, 300); $('presetnote').classList.toggle('on', /bottle shop/i.test(t)); } }
 document.querySelectorAll('.ideas button').forEach((b) => (b.onclick = () => { $('taskInput').value = b.dataset.task; $('presetnote').classList.toggle('on', b.dataset.note === 'bottle'); $('taskInput').focus(); }));
 start();
 </script>

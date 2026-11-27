@@ -132,6 +132,7 @@ export function startServer(): Promise<http.Server> {
       }
       // Shop agents: GET /shops/<tokenId>/menu, POST /shops/<tokenId>/quote {sku} -> quote signed by the shop owner.
       if (parts[0] === 'shops' && /^\d+$/.test(parts[1] ?? '')) {
+        if (req.method === 'GET' && !parts[2]) return file(res, path.join(ROOT, 'public/shop.html'));
         if (req.method === 'GET' && parts[2] === 'menu') return send(res, 200, { shop_token_id: parts[1], items: menu(parts[1]) });
         if (req.method === 'POST' && parts[2] === 'quote') {
           const { sku } = await body(req);
@@ -159,7 +160,6 @@ export function startServer(): Promise<http.Server> {
       const PAGES: Record<string, string> = { errands: 'errands', shops: 'shops', verify: 'verify', developers: 'developers', registry: 'registry', mainnet: 'mainnet', proof: 'proof', account: 'account', open: 'open' };
       if (req.method === 'GET' && parts.length === 1 && PAGES[parts[0]]) return file(res, path.join(ROOT, `public/${PAGES[parts[0]]}.html`));
       if (req.method === 'GET' && parts.length === 2 && parts[0] === 'errands') return file(res, path.join(ROOT, 'public/errand.html'));
-      if (req.method === 'GET' && parts.length === 2 && parts[0] === 'shops' && /^\d+$/.test(parts[1])) return file(res, path.join(ROOT, 'public/shop.html'));
       if (parts[0] === 'prove' && parts[1] === 'app.js') return file(res, path.join(ROOT, 'dist/prove/app.js'));
       if (parts[0] === 'prove' && parts[1] === 'app.css') return file(res, path.join(ROOT, 'dist/prove/app.css'));
       if (parts[0] === 'prove' && parts[1]) return file(res, path.join(ROOT, 'web/prove.html'));

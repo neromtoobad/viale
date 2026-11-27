@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shops on the street · Viale</title>
+<meta name="description" content="Each shop on Viale&#x27;s street is an agent in Concordium&#x27;s Agent Registry. See who owns it, what it sells, and whether the errand agent will trade with it.">
+<link rel="icon" href="/brand/viale-favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/brand/viale-favicon-32.png" type="image/png" sizes="32x32">
+<meta name="theme-color" content="#1E2B4A">
+<meta property="og:title" content="Shops on the street · Viale">
+<meta property="og:description" content="Each shop on Viale&#x27;s street is an agent in Concordium&#x27;s Agent Registry. See who owns it, what it sells, and whether the errand agent will trade with it.">
+<meta property="og:image" content="https://viale.nerom.site/brand/viale-og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/site.css">
+<style>
+.shop{display:flex;flex-direction:column;gap:12px}
+.shop .top{display:flex;flex-direction:column;gap:8px;align-items:start}
+.shop h3{margin:4px 0 0;font-size:22px;letter-spacing:-.01em}
+.shop .desc{color:var(--muted);font-size:14px;margin:0}
+.shop.fake{border-color:#ebc3b9}
+.menu{border-top:1px solid var(--line);padding-top:8px}
+.menu .it{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 0;font-size:14px}
+.menu .it .btn{padding:6px 12px;font-size:12.5px}
+.shop .foot{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto}
+</style>
+</head>
+<body data-page="shops">
+<header data-nav></header>
+<main class="wrap">
+  <div class="pagehead">
+    <span class="lab">Shops</span>
+    <h1>The shops on Viale’s street</h1>
+    <p class="sub">Each shop is an agent in Concordium’s Agent Registry (CIS-8004 <code>&lt;12802,0&gt;</code>), checked live: is it Active, is its badge valid, and does a verified business own it. One of them is a planted fake, to show the agent walking away.</p>
+  </div>
+  <div class="grid3" id="grid"><p class="loading">Checking the shops on chain</p></div>
+  <section class="sec">
+    <div class="grid2">
+      <div class="card"><span class="lab">Any other agent</span><h3 style="margin:6px 0">Check an agent that isn’t on this street</h3><p class="note">The same check works for any of the 1,200+ agents in Concordium’s testnet registry.</p><form id="chk" style="display:flex;gap:8px;margin-top:12px"><input id="chkId" inputmode="numeric" placeholder="Token id, e.g. 1406" style="flex:1;min-width:0;border:1px solid var(--line);border-radius:99px;padding:10px 14px;font:14px Geist,system-ui,sans-serif"><button class="btn sm">Check</button></form></div>
+      <div class="card"><span class="lab">Your business</span><h3 style="margin:6px 0">Put your own shop on the street</h3><p class="note">Connect a Concordium wallet, register your agent, sign your price list once. The errand agent then checks you like every other shop.</p><a class="btn sm" href="/open" style="margin-top:12px">Open a shop →</a></div>
+    </div>
+  </section>
+</main>
+<footer data-foot></footer>
+<script src="/site.js"></script>
+<script>
+const { $, h, eur, acct } = V;
+$('chk').onsubmit = (e) => { e.preventDefault(); const v = $('chkId').value.trim(); if (/^\d+$/.test(v)) location.href = `/check/${v}`; };
+const label = (s) => s.trade ? (s.passed.some((p) => /^owner .*business identity/.test(p)) ? '✓ Business ID · Trade' : '✓ Checks pass · Trade') : `✗ ${s.failed.some((r) => /personal identity/.test(r)) ? 'Personal ID' : 'Failed check'} · Walk away`;
+(async () => {
+  try {
+    const [st, more] = await Promise.all([V.getJSON('/api/street'), V.getJSON('/api/open/shops').catch(() => ({ shops: [] }))]);
+    const list = [...st.shops, ...(more.shops ?? [])];
+    $('grid').replaceChildren(...list.map((s) => h('div', { class: `card shop${s.trade ? '' : ' fake'}` },
+      h('div', { class: 'top' }, h('div', {}, h('span', { class: 'lab' }, `Agent #${s.token_id}${s.age_gated ? ' · 18+' : ''}${s.outside ? ' · opened by its owner' : ''}`), h('h3', {}, s.name)), h('span', { class: `chip ${s.trade ? 'ok' : 'bad'}` }, label(s))),
+      h('ul', { class: 'checks' }, s.passed.map((p) => h('li', { class: 'y' }, p)), s.failed.map((r) => h('li', { class: 'n' }, r))),
+      h('div', { class: 'menu' }, h('span', { class: 'lab' }, 'Menu'), (s.menu ?? []).map((i) => h('div', { class: 'it' }, h('span', {}, `${i.name} · ${eur(i.priceEur)}`),
+        h('a', { class: 'btn ghost', href: `/?task=${encodeURIComponent(`Buy ${i.name.toLowerCase()} from ${s.name}. Pay at most €3.`)}` }, 'Send the agent')))),
+      h('div', { class: 'foot' }, h('a', { class: 'btn sm', href: `/shops/${s.token_id}` }, 'Shop page →'), h('a', { class: 'btn ghost sm', href: `/check/${s.token_id}` }, 'Full check'), s.owner ? acct(s.owner, 'Owner on explorer ↗') : null))));
+  } catch (err) { $('grid').replaceChildren(h('p', { class: 'empty' }, `Could not check the street: ${err.message}`)); }
+})();
+</script>
+</body>
+</html>
