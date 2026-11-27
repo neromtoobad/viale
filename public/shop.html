@@ -70,7 +70,9 @@ $('buyUrl').textContent = `POST /shops/${id}/buy`;
   const s = d.shop ?? {};
   document.title = `${s.name ?? d.card?.name ?? 'Shop'} #${id} · Viale`;
   $('title').className = ''; $('title').textContent = s.name ?? d.card?.name ?? `Agent #${id}`;
-  $('sub').replaceChildren(d.description ?? d.card?.description ?? '', d.impostor ? h('span', { class: 'chip bad', style: 'margin-left:8px' }, 'Planted fake, on purpose') : null);
+  $('sub').replaceChildren(d.description ?? d.card?.description ?? '',
+    d.impostor ? h('span', { class: 'chip bad', style: 'margin-left:8px' }, 'Planted fake, on purpose') : '',
+    d.shop?.outside ? h('a', { class: 'chip line', style: 'margin-left:8px', href: '/open' }, 'Opened by its owner at /open') : '');
   $('verdict').className = `verdict ${s.trade ? 'y' : 'n'}`; $('verdict').textContent = s.trade ? 'Trade' : 'Walk away';
   $('checks').replaceChildren(...(s.passed ?? []).map((p) => h('li', { class: 'y' }, p)), ...(s.failed ?? []).map((r) => h('li', { class: 'n' }, r)));
   $('facts').replaceChildren(kv('Registry', V.ext(`${V.EXPLORER}/instance/12802/0`, 'CIS-8004 <12802,0> ↗', '')), kv('Token id', `#${id}`), kv('Owner', acct(s.owner)), kv('Payments go to', acct(s.pay_to)), kv('Age-gated', s.age_gated ? 'Yes: 18+ proof required' : 'No'), kv('Errands that checked it', String(d.visits)));
