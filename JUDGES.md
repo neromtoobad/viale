@@ -49,7 +49,7 @@ npm ci
 npm run check:live
 ```
 
-[tools/check-live.ts](tools/check-live.ts) prints PASS or FAIL for the 13 claims in the README. It reads the live site, Concordium's Registry MCP and a testnet node:
+[tools/check-live.ts](tools/check-live.ts) prints PASS or FAIL for the 14 claims in the README. It reads the live site, Concordium's Registry MCP and a testnet node:
 
 - C1: every shop is an Active agent in the registry
 - C2: every card hashes to its on-chain metadata hash
@@ -64,13 +64,14 @@ npm run check:live
 - C11: check any agent (another team's, a business-owned one, the impostor, an unknown id) matches each owner's identity on chain
 - C12: the MCP endpoint lists its tools and `check_agent` gives the right verdicts
 - C13: the wallet-signed errand's mandate (from an account Viale holds no key for) verifies against the signer's keys on chain (a changed budget fails), its payments stay within the signed cap, and the live site refuses a mandate with the wrong signature, a €50 budget, or the agent's own account
+- C14: a fresh quote's unpaid `/buy` answers 402 with `PAYMENT-REQUIRED` asking exactly the quoted price to the shop's wallet, a quote with a changed price is refused, and the recorded HTTP x402 payment matches its requirements on chain
 
 ## The four things to look at in the code
 
-1. **The shop check:** [src/errand/shop-check.ts:63-103](src/errand/shop-check.ts#L63). The business-identity test is at line 83: it reads the identity provider behind each of the owner's credentials on chain.
-2. **The model never picks the amount:** `pay_shop` takes only a quote id ([src/agent/errand.ts:142](src/agent/errand.ts#L142)); the guard refuses any amount but the quoted price ([src/errand/guards.ts:45](src/errand/guards.ts#L45)); the quote's signature is checked against the owner's keys on chain ([src/errand/quote-check.ts:32-33](src/errand/quote-check.ts#L32)).
+1. **The shop check:** [src/errand/shop-check.ts:63-110](src/errand/shop-check.ts#L63). The business-identity test is at line 83: it reads the identity provider behind each of the owner's credentials on chain.
+2. **The model never picks the amount:** `pay_shop` takes only a quote id ([src/agent/errand.ts:144](src/agent/errand.ts#L144)); the guard refuses any amount but the quoted price ([src/errand/guards.ts:45](src/errand/guards.ts#L45)); the quote's signature is checked against the owner's keys on chain ([src/errand/quote-check.ts:32-33](src/errand/quote-check.ts#L32)).
 3. **The signed mandate:** [src/errand/mandate.ts:70-82](src/errand/mandate.ts#L70) checks the terms and the signature against the signer's account keys on chain; the errand refuses to start without it ([src/agent/errand.ts:57](src/agent/errand.ts#L57)), and the guard refuses to pay without it ([src/errand/guards.ts:27](src/errand/guards.ts#L27)).
-4. **The payment:** x402 exact scheme, with Viale's facilitator verifying and settling a transfer the agent signed ([src/pay/x402.ts:37-43](src/pay/x402.ts#L37)).
+4. **The payment, over HTTP x402:** the shop's `/buy` answers 402 with requirements from its signed quote ([src/street/shop-agent.ts:92-136](src/street/shop-agent.ts#L92)); the agent checks them against the quote and pays with a `PAYMENT-SIGNATURE` ([src/pay/x402.ts:23-48](src/pay/x402.ts#L23)); Viale's facilitator verifies and settles over HTTP ([src/pay/facilitator.ts:38](src/pay/facilitator.ts#L38)). To see the 402 yourself, get a quote with `curl -s -X POST https://viale.nerom.site/shops/1527/quote -H 'content-type: application/json' -d '{"sku":"small-bouquet"}'`, then POST `{"quote": <that JSON>}` to `/shops/1527/buy` with `curl -i`.
 
 ## What doesn't work yet
 
