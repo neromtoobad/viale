@@ -21,12 +21,16 @@ const MAGIC = Buffer.from('VIALE/R1');
 const grpc = client();
 
 let failed = 0;
+const results: { id: string; claim: string; pass: boolean; detail: string; ms: number }[] = [];
 async function claim(id: string, text: string, check: () => Promise<string>) {
+  const t0 = Date.now();
   try {
     const detail = await check();
+    results.push({ id, claim: text, pass: true, detail, ms: Date.now() - t0 });
     console.log(`PASS  ${id}  ${text}\n        ${detail}`);
   } catch (err: any) {
     failed++;
+    results.push({ id, claim: text, pass: false, detail: err.message, ms: Date.now() - t0 });
     console.log(`FAIL  ${id}  ${text}\n        ${err.message}`);
   }
 }
@@ -275,4 +279,9 @@ await claim('C14', 'Shops sell over HTTP x402: an unpaid POST /buy gets 402 with
 });
 
 console.log(failed ? `\n${failed} claim(s) failed` : '\nAll claims pass');
+// VIALE_PROOF_OUT=<file>: also write the results as JSON (the server's /proof page shows the latest run).
+if (process.env.VIALE_PROOF_OUT) {
+  fs.mkdirSync(path.dirname(process.env.VIALE_PROOF_OUT), { recursive: true });
+  fs.writeFileSync(process.env.VIALE_PROOF_OUT, JSON.stringify({ site: SITE, ran_at: new Date().toISOString(), passed: results.filter((r) => r.pass).length, failed, results }, null, 2));
+}
 process.exit(failed ? 1 : 0);
