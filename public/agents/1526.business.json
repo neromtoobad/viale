@@ -1,0 +1,65 @@
+{
+  "presentationContext": "7672144b4c1a8b97ec4cbe68ebb5038feac81ba3fed5ad07e32f28213d2d64d8",
+  "proof": {
+    "created": "2026-11-27T07:53:29.289Z",
+    "proofValue": [],
+    "type": "ConcordiumWeakLinkingProofV1"
+  },
+  "type": "VerifiablePresentation",
+  "verifiableCredential": [
+    {
+      "credentialSubject": {
+        "id": "did:ccd:testnet:cred:892f9774925dbb245b4f682b06da7fdbfbbbdfbfe41db71432053bdba8cde1be58ddd59f6e11807c6eba909b87bfa5c1",
+        "proof": {
+          "created": "2026-11-27T07:53:29.289Z",
+          "proofValue": [
+            {
+              "attribute": "Viale Street Test ApS",
+              "proof": "2b204e1fa2df757f3dc6ccf47516062779d3f8bd7a1cb582399e5752d689c2eb0df187467b58e14ea8b547f7421ad39bca9e20290f785656333bd8d9c5ac0376",
+              "type": "RevealAttribute"
+            },
+            {
+              "attribute": "DK",
+              "proof": "6a9a760225ad57ce5400be9844eb3079d157625c138268ed5755ce31ccda60e73aada37ee57434e0527bf57aa3c4a869689181c9e89a7b11955af08582ade13d",
+              "type": "RevealAttribute"
+            },
+            {
+              "attribute": "Central Business Register",
+              "proof": "66f268f161a8eac315c5b6d482d03f4f7d96f3a5d5516c6e84059ec7c2c25bce72ca071d08008f2412dc5afbcdd8fccbcc95769ff0b4f899896d8dfbef9a47f0",
+              "type": "RevealAttribute"
+            },
+            {
+              "attribute": "",
+              "proof": "1d54acf713386cfcc071ead40eccf5afd7bf70d0cfdd3d78211165c2a41001611363f81c86cdfe347a9b880fc1fc5a653dc34d648df35415cc09538e393b2dd2",
+              "type": "RevealAttribute"
+            }
+          ],
+          "type": "ConcordiumZKProofV3"
+        },
+        "statement": [
+          {
+            "attributeTag": "legalName",
+            "type": "RevealAttribute"
+          },
+          {
+            "attributeTag": "legalCountry",
+            "type": "RevealAttribute"
+          },
+          {
+            "attributeTag": "registrationAuth",
+            "type": "RevealAttribute"
+          },
+          {
+            "attributeTag": "businessNumber",
+            "type": "RevealAttribute"
+          }
+        ]
+      },
+      "issuer": "did:ccd:testnet:idp:4",
+      "type": [
+        "VerifiableCredential",
+        "ConcordiumVerifiableCredential"
+      ]
+    }
+  ]
+}
