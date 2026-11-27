@@ -30,7 +30,7 @@ export async function submit(owner: Wallet, built: Built) {
 }
 
 /** CIS-2 Mint event: tag 0xFE, token id (u8 length + bytes), amount (LEB128), owner address. */
-function mintedTokenId(summary: any): string | undefined {
+export function mintedTokenId(summary: any): string | undefined {
   for (const ev of summary.events ?? []) {
     for (const log of ev.events ?? []) {
       const hex = typeof log === 'string' ? log : log?.toString?.();
