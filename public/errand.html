@@ -171,7 +171,7 @@ async function verifySig(signed, out) {
   const party = (who, what, ...more) => h('div', { class: 'party' }, h('span', { class: 'lab' }, who), h('div', { style: 'margin-top:4px' }, what), ...more);
   $('parties').replaceChildren(
     party('The human', m.signed ? h('span', {}, 'Account ', acct(m.signed.human), sm.signer?.demo ? ' (Viale’s demo signer, used when no wallet is connected)' : ', whose own wallet signed the mandate') : 'No signed mandate in this older run.'),
-    party('The shop', owner ? h('span', {}, 'Owner ', acct(owner), (checkStep?.passed ?? []).some((x) => /business identity/.test(x)) ? ', which holds a Global FinReg business identity' : '') : 'No shop passed the check.'),
+    party('The shop', owner ? h('span', {}, checkStep?.operated_by ? `${checkStep.operated_by.legal_name} (${checkStep.operated_by.country}), owner ` : 'Owner ', acct(owner), (checkStep?.passed ?? []).some((x) => /business identity/.test(x)) ? ', which holds a Global FinReg business identity' : '') : 'No shop passed the check.'),
     party('The agent', h('span', {}, 'Claude (', sm.model, '), acting from account ', acct(terms?.agent ?? V.ACCOUNTS.agent), '. Its log is sealed by ', acct(V.ACCOUNTS.viale), '.')));
 
   const first = rec.log.find((e) => e.at)?.at, last = [...rec.log].reverse().find((e) => e.at)?.at;

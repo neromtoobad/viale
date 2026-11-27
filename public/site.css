@@ -45,7 +45,7 @@ a.card:hover{box-shadow:var(--sh2),inset 0 0 0 1px var(--line);transform:transla
 .checks{list-style:none;margin:6px 0 0;padding:0;font-size:13.5px;color:var(--muted)}
 .checks li{padding:3px 0 3px 20px;position:relative}
 .checks li:before{position:absolute;left:0;top:3px;font-weight:600}
-.checks li.y:before{content:"✓";color:var(--ok)}.checks li.n:before{content:"✕";color:var(--bad)}
+.checks li.y:before{content:"✓";color:var(--ok)}.checks li.n:before{content:"✕";color:var(--bad)}.checks li.i:before{content:"–";color:var(--muted)}
 .kv{display:flex;justify-content:space-between;gap:16px;padding:11px 0;border-top:1px solid var(--line);font-size:14px}
 .kv>span:first-child{color:var(--muted);flex:none}.kv>span:last-child{text-align:right;overflow-wrap:anywhere;min-width:0}
 .card.dark .kv{border-color:rgba(255,255,255,.1)}.card.dark .kv>span:first-child{color:#9fa9c1}

@@ -383,7 +383,7 @@ function drawStreet(list) {
   for (const s of list) {
     const spot = SPOT[s.token_id];
     const tag = `#${s.token_id}${s.age_gated ? ' · 18+' : ''}`;
-    $('shoplist').append(h('div', { class: `card${spot ? '' : ' nospot'}` }, h('span', { class: 'lab' }, tag), ' ', h('b', {}, s.name), h('div', { style: 'margin-top:8px' }, h('span', { class: `chip ${s.trade ? 'ok' : 'bad'}` }, idLabel(s))), h('details', {}, h('summary', {}, 'See the checks'), h('ul', {}, checkList(s)))));
+    $('shoplist').append(h('div', { class: `card${spot ? '' : ' nospot'}` }, h('span', { class: 'lab' }, tag), ' ', h('b', {}, s.name), s.operated_by ? h('div', { class: 'note', style: 'margin-top:4px' }, `Operated by ${s.operated_by.legal_name} (${s.operated_by.country})`) : null, h('div', { style: 'margin-top:8px' }, h('span', { class: `chip ${s.trade ? 'ok' : 'bad'}` }, idLabel(s))), h('details', {}, h('summary', {}, 'See the checks'), h('ul', {}, checkList(s)))));
     if (!spot) continue;
     const pin = h('button', { class: 'pin', id: `pin-${s.token_id}`, style: `left:${spot.x}%`, type: 'button', 'aria-expanded': 'false', title: 'Show the checks' },
       h('span', { class: 'lab' }, tag), h('span', { class: `chip ${s.trade ? 'ok' : 'bad'}` }, idLabel(s)), h('ul', {}, checkList(s)));

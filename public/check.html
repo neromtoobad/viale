@@ -75,6 +75,7 @@ p.note{color:var(--muted);font-size:14px;margin:6px 0 0}
     <div class="row" style="margin-top:8px"><span>Registry</span><span>Registered and Active in CIS-8004 &lt;12802,0&gt;</span></div>
     <div class="row"><span>Badge</span><span>Verified by Concordium: card hash matches the chain</span></div>
     <div class="row"><span>Owner</span><span>Business identity (Global FinReg), read from the owner's credentials on chain</span></div>
+    <div class="row"><span>Business</span><span>Which business: a zero-knowledge proof of its legal name from that identity (required for errands, shown here)</span></div>
     <div class="row"><span>Card</span><span>Readable at the URL the owner registered</span></div>
     <div class="row"><span>Payments</span><span>The wallet the registry holds for the agent</span></div>
   </div>
@@ -139,19 +140,20 @@ async function check(id, push = true) {
 function show(v) {
   const trade = v.verdict === 'trade';
   const personal = v.failed.some((r) => /personal identity/.test(r));
-  const why = trade ? 'Every check passed. The account behind this agent is a verified business.'
+  const why = trade ? `Every check passed. The account behind this agent is ${v.operated_by ? v.operated_by.legal_name + ', ' : ''}a verified business.`
     : personal && v.failed.length === 1 ? 'Everything else checks out, but the account behind it is a person, not a verified business.'
     : v.failed.length ? `${v.failed.length} check${v.failed.length > 1 ? 's' : ''} failed.` : 'The check failed.';
   $('#result').replaceChildren(
     h('div', { class: 'head' }, h('span', { class: 'lab' }, `Agent #${v.token_id}${v.name ? ' · ' + v.name : ''}`), h('span', { class: `chip ${trade ? 'ok' : 'bad'}` }, trade ? '✓ Business ID' : personal ? '✗ Personal ID' : '✗ Failed')),
     h('div', { class: `verdict ${trade ? 'y' : 'n'}` }, trade ? 'Trade' : 'Walk away'),
     h('p', { class: 'why' }, why),
-    h('ul', { class: 'checks' }, v.passed.map((p) => h('li', { class: 'y' }, p)), v.failed.map((p) => h('li', { class: 'n' }, p))),
+    h('ul', { class: 'checks' }, v.passed.map((p) => h('li', { class: 'y' }, p)), v.failed.map((p) => h('li', { class: 'n' }, p)), (v.notes ?? []).map((p) => h('li', { class: 'i' }, p))),
   );
   const idp = v.owner_identity?.providers?.map((p) => `${p.name} (${p.id})`).join(', ');
   const rows = [
     ['Owner', acct(v.owner)],
     ['Identity provider', idp ? h('span', {}, idp, v.owner_identity.business ? ' · business' : ' · personal') : '—'],
+    ...(v.operated_by ? [['Operated by', `${v.operated_by.legal_name} · ${v.operated_by.country}${v.operated_by.registration_authority ? ' · ' + v.operated_by.registration_authority : ''}`]] : []),
     ['Payments go to', v.pays_to_identity ? h('span', {}, acct(v.pays_to), v.pays_to_identity.business ? ' · business ID' : ' · personal ID') : acct(v.pays_to)],
     ['Badge', v.badge ? h('span', { class: 'mono' }, v.badge) : '—'],
     ['Card', v.agent_uri ? h('a', { href: v.agent_uri, target: '_blank', rel: 'noopener noreferrer' }, new URL(v.agent_uri).host + '…') : '—'],
