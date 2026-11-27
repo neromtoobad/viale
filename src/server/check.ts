@@ -49,10 +49,17 @@ export function verdictView(v: ShopVerdict) {
   };
 }
 
+/** The caller's address. Railway's proxy appends the address it saw to X-Forwarded-For, so the last hop is
+ *  the one to trust; earlier values can be set by the client. */
+export function clientAddress(req: http.IncomingMessage): string {
+  const hops = String(req.headers['x-forwarded-for'] ?? '').split(',').map((h) => h.trim()).filter(Boolean);
+  return hops.at(-1) ?? req.socket.remoteAddress ?? '';
+}
+
 const hits = new Map<string, number[]>();
 /** True when this address has asked for more than 30 checks in the last minute. */
 export function overLimit(req: http.IncomingMessage): boolean {
-  const ip = String(req.headers['x-forwarded-for'] ?? req.socket.remoteAddress ?? '').split(',')[0].trim();
+  const ip = clientAddress(req);
   const now = Date.now();
   const recent = (hits.get(ip) ?? []).filter((t) => now - t < 60_000);
   recent.push(now);

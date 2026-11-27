@@ -11,7 +11,7 @@ import { CONCORDIUM_TESTNET_CAIP2 } from '@x402/concordium';
 import { HTTPFacilitatorClient, decodePaymentSignatureHeader, encodePaymentRequiredHeader, encodePaymentResponseHeader } from '@x402/core/http';
 import type { PaymentRequired, PaymentRequirements } from '@x402/core/types';
 import { client, withRetry } from '../chain/chain.ts';
-import { requirementsExtra } from '../pay/facilitator.ts';
+import { expectSettlement, requirementsExtra } from '../pay/facilitator.ts';
 import { agentOf } from '../registry/mcp.ts';
 import { shopOwnerWallet, sponsorWallet, type Wallet } from '../chain/keys.ts';
 import { CATALOG, type Item } from './catalog.ts';
@@ -153,6 +153,7 @@ export async function buy(tokenId: string, signed: SignedQuote | undefined, paym
   const fac = new HTTPFacilitatorClient({ url: facilitatorUrl });
   const v = await fac.verify(payload, accepted).catch((e: any) => ({ isValid: false, invalidReason: e?.invalidReason ?? e?.message }));
   if (!v.isValid) return required(`facilitator refused the payment: ${v.invalidReason}`);
+  expectSettlement(accepted.payTo, accepted.amount);
   const s: any = await fac.settle(payload, accepted).catch((e: any) => ({ success: false, errorReason: e?.errorReason ?? e?.message }));
   if (!s.success) return required(`settlement failed: ${s.errorReason}`);
   paidQuotes.set(t.quote_id, s.transaction);

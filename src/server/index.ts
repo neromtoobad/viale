@@ -194,6 +194,7 @@ export function startServer(): Promise<http.Server> {
       if (parts[0] === 'x402' && parts[1] === 'facilitator') {
         if (req.method === 'GET' && parts[2] === 'supported') return send(res, 200, supported());
         if (req.method === 'POST' && (parts[2] === 'verify' || parts[2] === 'settle')) {
+          if (overLimit(req)) return send(res, 429, { error: 'too many facilitator calls from this address; try again in a minute' });
           const r = await facilitate(parts[2], await body(req), await streetWallets());
           return send(res, r.status, r.body);
         }
