@@ -1,15 +1,15 @@
 // The errand agent's check on a price quote before it may pay:
-//  1. the signature is valid for the shop OWNER's account keys, read from the chain (not from the quote),
+//  1. the signature is valid for the shop OWNER's account keys, read from the chain (not from the quote);
+//     for a shop opened by an outside owner, the quote carries the owner's signed price list instead, and the
+//     item and price must be on it (src/street/open-shops.ts, priceListProblems),
 //  2. the quote is for the shop that passed check_shop, from that shop's registered owner,
 //  3. it asks for payment to the wallet the Agent Registry holds for that shop,
 //  4. it has not expired and its price is a positive amount.
 // Only a quote that passes every point can be paid, and only for exactly its price.
-import { AccountAddress, verifyMessageSignature } from '@concordium/web-sdk';
-import { client, withRetry } from '../chain/chain.ts';
 import type { ShopVerdict } from './shop-check.ts';
-import type { QuoteTerms, SignedQuote } from '../street/shop-agent.ts';
+import { quoteSignatureProblems, type QuoteTerms, type SignedQuote } from '../street/shop-agent.ts';
 
-export type VerifiedQuote = QuoteTerms & { verified: true };
+export type VerifiedQuote = QuoteTerms & { verified: true; signed_as?: 'quote' | 'price_list' };
 export type QuoteCheck = { ok: true; quote: VerifiedQuote } | { ok: false; reasons: string[] };
 
 /** Field checks that need no chain access (kept separate so tests can run them offline). */
@@ -29,8 +29,6 @@ export async function checkQuote(q: SignedQuote, shop: ShopVerdict | undefined, 
   let terms: QuoteTerms;
   try { terms = JSON.parse(q.message); } catch { return { ok: false, reasons: ['quote is not readable'] }; }
   const reasons = quoteTermsProblems(terms, shop, now);
-  const ownerInfo = await withRetry(() => client().getAccountInfo(AccountAddress.fromBase58(shop.owner!)));
-  const signed = await verifyMessageSignature(q.message, q.signature, ownerInfo).catch(() => false);
-  if (!signed) reasons.unshift("signature does not match the shop owner's keys on chain");
-  return reasons.length ? { ok: false, reasons } : { ok: true, quote: { ...terms, verified: true } };
+  reasons.unshift(...(await quoteSignatureProblems(q, terms, shop.owner, now)));
+  return reasons.length ? { ok: false, reasons } : { ok: true, quote: { ...terms, verified: true, signed_as: q.price_list ? 'price_list' : 'quote' } };
 }

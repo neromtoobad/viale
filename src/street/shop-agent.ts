@@ -2,7 +2,9 @@
 // A quote is signed with the shop OWNER's Concordium account key (Concordium's account message signing),
 // so an errand agent can check, against the owner's keys on chain, that the price really came from
 // the account that owns the shop in the Agent Registry, and pay exactly that price to the registered wallet.
-// For the demo all shop agents run inside Viale's server, each with its own owner's key.
+// Viale's own street shops run inside Viale's server, each with its own owner's key. Shops opened by outside
+// owners (src/street/open-shops.ts) have no key here: their quotes carry the price list the owner signed in
+// their own wallet, and the agent checks the quoted item and price against that list and the owner's keys.
 import crypto from 'node:crypto';
 import { AccountAddress, signMessage, verifyMessageSignature, type AccountTransactionSignature } from '@concordium/web-sdk';
 import { CONCORDIUM_TESTNET_CAIP2 } from '@x402/concordium';
@@ -13,6 +15,7 @@ import { requirementsExtra } from '../pay/facilitator.ts';
 import { agentOf } from '../registry/mcp.ts';
 import { shopOwnerWallet, sponsorWallet, type Wallet } from '../chain/keys.ts';
 import { CATALOG, type Item } from './catalog.ts';
+import { liveOpenShops, openMenu, priceList, priceListProblems, signedPriceList, type SignedPriceList } from './open-shops.ts';
 
 export const QUOTE_MINUTES = 10;
 
@@ -29,7 +32,9 @@ export type QuoteTerms = {
   price_eur: number;
   expires_at: string;
 };
-export type SignedQuote = { message: string; signature: AccountTransactionSignature };
+/** A quote from a Viale street shop is signed by its owner. A quote from an outside shop has no signature of
+ *  its own; it carries the owner's signed price list, which must contain this exact item and price. */
+export type SignedQuote = { message: string; signature: AccountTransactionSignature | null; price_list?: SignedPriceList };
 
 function ownerSigner(owner: string): Wallet {
   for (const w of [shopOwnerWallet(), sponsorWallet()]) if (w.address.address === owner) return w;
@@ -37,7 +42,7 @@ function ownerSigner(owner: string): Wallet {
 }
 
 export function menu(tokenId: string): Item[] {
-  const items = CATALOG[tokenId];
+  const items = CATALOG[tokenId] ?? openMenu(tokenId);
   if (!items) throw new Error(`shop #${tokenId} has no menu`);
   return items;
 }
@@ -60,6 +65,8 @@ export async function quote(tokenId: string, sku: string, now = new Date()): Pro
     expires_at: new Date(now.getTime() + QUOTE_MINUTES * 60_000).toISOString(),
   };
   const message = JSON.stringify(terms);
+  const list = !CATALOG[tokenId] ? signedPriceList(tokenId) : undefined;
+  if (list) return { message, signature: null, price_list: list };
   const w = ownerSigner(agent.owner_account);
   return { message, signature: await signMessage(w.address, message, w.signer) };
 }
@@ -86,7 +93,27 @@ export async function streetWallets(): Promise<Set<string>> {
     if (a) set.add(a.agent_wallet ?? a.owner_account);
   }
   payable = { at: Date.now(), set };
-  return set;
+  return withOpenShops(set);
+}
+function withOpenShops(set: Set<string>) {
+  const all = new Set(set);
+  for (const s of liveOpenShops()) { const pay = priceList(s.token_id)?.pay_to; if (pay) all.add(pay); }
+  return all;
+}
+
+/** Is this quote backed by the owner's signature, either on the quote or on the price list it carries? */
+export async function quoteSignatureProblems(signed: SignedQuote, t: QuoteTerms, owner: string, now = new Date()): Promise<string[]> {
+  if (signed.price_list) {
+    const r = await priceListProblems(signed.price_list, t.shop_token_id, now);
+    let list: any = {};
+    try { list = JSON.parse(signed.price_list.message); } catch { /* reported above */ }
+    if (list.owner !== owner) r.push('price list is signed for another owner');
+    if (!list.items?.some((i: any) => i.sku === t.sku && i.name === t.item && i.price_eur === t.price_eur)) r.push(`"${t.item}" at €${t.price_eur} is not on the price list the owner signed`);
+    if (list.pay_to !== t.pay_to) r.push('quote pays to a different wallet than the signed price list');
+    return r;
+  }
+  const info = await withRetry(() => client().getAccountInfo(AccountAddress.fromBase58(owner)));
+  return (await verifyMessageSignature(signed.message, signed.signature as AccountTransactionSignature, info).catch(() => false)) ? [] : ["quote signature does not match the shop owner's keys on chain"];
 }
 
 export async function buy(tokenId: string, signed: SignedQuote | undefined, paymentHeader: string | undefined, resourceUrl: string, facilitatorUrl: string, now = new Date()): Promise<Sale> {
@@ -97,8 +124,8 @@ export async function buy(tokenId: string, signed: SignedQuote | undefined, paym
   if (!(new Date(t.expires_at) > now)) return { status: 410, body: { error: `quote expired at ${t.expires_at}` } };
   const agent = await agentOf(tokenId);
   if (!agent || t.shop_owner !== agent.owner_account || t.pay_to !== (agent.agent_wallet ?? agent.owner_account)) return { status: 400, body: { error: "quote does not match this shop's registry record" } };
-  const ownerInfo = await withRetry(() => client().getAccountInfo(AccountAddress.fromBase58(t.shop_owner)));
-  if (!(await verifyMessageSignature(signed!.message, signed!.signature, ownerInfo).catch(() => false))) return { status: 400, body: { error: "quote signature does not match the shop owner's keys on chain" } };
+  const sig = await quoteSignatureProblems(signed!, t, t.shop_owner, now);
+  if (sig.length) return { status: 400, body: { error: sig.join('; ') } };
   if (paidQuotes.has(t.quote_id)) return { status: 409, body: { error: 'this quote is already paid', transaction: paidQuotes.get(t.quote_id) } };
 
   // 2. The price, as x402 payment requirements: exact amount, in EUDemo, to the shop's registered wallet.
