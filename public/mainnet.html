@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Path to mainnet · Viale</title>
+<meta name="description" content="What Viale runs on Concordium testnet today, what Concordium already runs on mainnet, and the steps from here to real shops and real buyers.">
+<link rel="icon" href="/brand/viale-favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/brand/viale-favicon-32.png" type="image/png" sizes="32x32">
+<meta name="theme-color" content="#1E2B4A">
+<meta property="og:title" content="Path to mainnet · Viale">
+<meta property="og:description" content="What Viale runs on Concordium testnet today, what Concordium already runs on mainnet, and the steps from here to real shops and real buyers.">
+<meta property="og:image" content="https://viale.nerom.site/brand/viale-og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/site.css">
+<style>
+.steps2{counter-reset:s;list-style:none;padding:0;margin:0}
+.steps2>li{counter-increment:s;display:grid;grid-template-columns:44px 1fr 150px;gap:16px;padding:20px 0;border-top:1px solid var(--line);align-items:start}
+.steps2>li:before{content:counter(s,decimal-leading-zero);font:500 13px 'Geist Mono',monospace;color:var(--brass2);padding-top:3px}
+.steps2 b{font-size:17px;font-weight:600}.steps2 p{margin:4px 0 0;color:var(--muted);font-size:14.5px}
+.steps2 .st{text-align:right}
+.who h3{margin:6px 0;font-size:18px}.who ul{margin:8px 0 0;padding-left:18px;color:var(--muted);font-size:14px}
+@media (max-width:760px){.steps2>li{grid-template-columns:34px 1fr}.steps2 .st{grid-column:2;text-align:left}}
+</style>
+</head>
+<body data-page="mainnet">
+<header data-nav></header>
+<main class="wrap">
+  <div class="pagehead">
+    <span class="lab">Path to mainnet</span>
+    <h1>From a testnet street to real shops and real buyers</h1>
+    <p class="sub">Every piece Viale relies on already exists on Concordium mainnet. The work left is moving to it, letting shops run themselves, and putting the spending limits on chain.</p>
+  </div>
+  <div class="grid2">
+    <div class="card"><span class="lab">On testnet today (Viale)</span>
+      <div class="kv"><span>Registry</span><span>CIS-8004 <span class="mono">&lt;12802,0&gt;</span>, 3 shop agents</span></div>
+      <div class="kv"><span>Business identity</span><span>Global FinReg Testnet on the shop owner</span></div>
+      <div class="kv"><span>Money</span><span>EUDemo, a test euro PLT</span></div>
+      <div class="kv"><span>Payments</span><span>x402 v2 over HTTP, Viale’s facilitator pays the fee</span></div>
+      <div class="kv"><span>Mandates</span><span>Signed in the visitor’s wallet, enforced in Viale’s code</span></div>
+      <div class="kv"><span>18+ proof</span><span>Written, can’t be finished on testnet (the ID app is mainnet-only)</span></div></div>
+    <div class="card dark"><span class="lab">Already on Concordium mainnet</span>
+      <div class="kv"><span>Registry</span><span>CIS-8004 <span class="mono">&lt;10082,0&gt;</span></span></div>
+      <div class="kv"><span>Business identity</span><span>Global FinReg identity provider</span></div>
+      <div class="kv"><span>Money</span><span>Protocol-level tokens (PLTs) with allow-lists</span></div>
+      <div class="kv"><span>Fees</span><span>Sponsored transactions, so buyers need no CCD</span></div>
+      <div class="kv"><span>Wallets</span><span>Concordium Browser Wallet and ID app</span></div>
+      <div class="kv"><span>Age and identity proofs</span><span>Verify &amp; Access with the ID app</span></div></div>
+  </div>
+
+  <section class="sec">
+    <span class="lab">The steps</span><h2>What’s left, in order</h2>
+    <ol class="steps2">
+      <li><div><b>Point the checks at mainnet</b><p>Switch the registry to <span class="mono">&lt;10082,0&gt;</span> and read owner identities from a mainnet node. The checks themselves don’t change.</p></div><span class="st"><span class="chip ok">Code ready</span></span></li>
+      <li><div><b>Shops open and run their own agents</b><p>An owner connects a wallet, registers the agent and signs a price list. Next, they host the menu and quote endpoints on their own server with their own key; Viale stays the directory and the errand agent.</p></div><span class="st"><span class="chip wait">Started: <a href="/open">/open</a></span></span></li>
+      <li><div><b>A regulated euro</b><p>Pay in a mainnet euro PLT. A shop with a business identity gets onto the allow-list and takes payment at its own account, so no separate till.</p></div><span class="st"><span class="chip line">Needs an issuer</span></span></li>
+      <li><div><b>Limits on chain</b><p>The human already signs budget, cap, shops and expiry. Next, a contract holds the agent’s funds and enforces those signed numbers, so not even Viale’s server can overspend.</p></div><span class="st"><span class="chip line">Design</span></span></li>
+      <li><div><b>18+ goods</b><p>The Verify &amp; Access flow is written. The ID app is a mainnet app, so it should work there as is.</p></div><span class="st"><span class="chip ok">Code ready</span></span></li>
+      <li><div><b>Who pays</b><p>Shops pay a small fee per errand; agent platforms pay for checks beyond a free tier. Viale keeps paying transaction fees through sponsored transactions.</p></div><span class="st"><span class="chip line">Model</span></span></li>
+    </ol>
+  </section>
+
+  <section class="sec who" style="padding-top:0">
+    <span class="lab">Who needs what</span><h2>Each party’s part</h2>
+    <div class="grid3">
+      <div class="card"><span class="lab">A shop</span><h3>A business identity and a wallet</h3><ul><li>Business identity from Global FinReg</li><li>An account on the euro PLT’s allow-list</li><li>Its agent registered in <span class="mono">&lt;10082,0&gt;</span></li><li>A signed price list</li></ul></div>
+      <div class="card"><span class="lab">A buyer</span><h3>A wallet, nothing else</h3><ul><li>Concordium Browser Wallet with an identity</li><li>Euros in the PLT</li><li>No CCD: fees are sponsored</li><li>The ID app, only for 18+ shops</li></ul></div>
+      <div class="card"><span class="lab">Another agent platform</span><h3>One call before paying</h3><ul><li><a href="/developers#mcp">MCP</a>, <a href="/developers#a2a">A2A</a> or <a href="/developers#rest">REST</a></li><li>Only the registry address changes on mainnet</li><li>No key needed for checks</li></ul></div>
+    </div>
+  </section>
+</main>
+<footer data-foot></footer>
+<script src="/site.js"></script>
+</body>
+</html>
