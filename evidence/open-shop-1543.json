@@ -1,0 +1,31 @@
+{
+  "what": "Shop opened through the public /open API by tools/open-shop.ts, signing with the till test account (personal identity) instead of a browser wallet.",
+  "site": "https://viale.nerom.site",
+  "owner": "3HNiUGKvauG2NZXSabcsQ5eaYRbtqWYfYVUkGtzxJ37kfj64ji",
+  "token_id": "1543",
+  "register_tx": "fbbfd2f680741dd4078a5a1eee624ba45f68d91d6734ffff5b82719267acff7f",
+  "set_agent_uri_tx": "e392a6c8b7d7e1d9b450255cbe76ddbf80d045a0773f68be1620ce0d2cdc5d65",
+  "card_url": "https://viale.nerom.site/agents/1543.json",
+  "card_sha256": "7ff24a44f59165b700868498f577b9d8237a924b5890f8dd8159042e8f760549",
+  "price_list": {
+    "message": "{\"v\":1,\"kind\":\"viale-pricelist\",\"owner\":\"3HNiUGKvauG2NZXSabcsQ5eaYRbtqWYfYVUkGtzxJ37kfj64ji\",\"token_id\":\"1543\",\"name\":\"Corner Kiosk\",\"description\":\"Opened through the /open flow by an account with a personal identity only.\",\"items\":[{\"sku\":\"newspaper-1\",\"name\":\"Newspaper\",\"price_eur\":0.5},{\"sku\":\"gum-2\",\"name\":\"Gum\",\"price_eur\":0.3}],\"pay_to\":\"3HNiUGKvauG2NZXSabcsQ5eaYRbtqWYfYVUkGtzxJ37kfj64ji\",\"issued_at\":\"2026-11-27T06:08:01.290Z\",\"expires_at\":\"2026-12-27T06:08:01.290Z\"}",
+    "signature": {
+      "0": {
+        "0": "f351bb710787bb9493ca3d04d81c5816afd75a72df4499003f058a1012a35288ef4c252c73f71875cbef4be8774d04dfc307f61b0a3298e97b9a3393cd62f40c"
+      }
+    }
+  },
+  "street_check": {
+    "trade": false,
+    "failed": [
+      "owner 3HNiUG\u2026 holds only a personal identity, not a business one"
+    ],
+    "passed_badge": true
+  },
+  "tamper_test": {
+    "quote_price_changed_to": 0.05,
+    "buy_response": "\"Newspaper\" at \u20ac0.05 is not on the price list the owner signed"
+  },
+  "note": "The first finish call failed on the entry-point name (set_agent_uri vs setAgentURI); fixed in src/street/open-shops.ts and finished with the same transaction.",
+  "at": "2026-11-27"
+}
