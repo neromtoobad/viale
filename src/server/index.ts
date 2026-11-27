@@ -6,10 +6,13 @@ import path from 'node:path';
 import { setting } from '../chain/keys.ts';
 import { createRequest, getProof, publicView, verifyPresentation } from '../proof/age.ts';
 import { buy, menu, quote, streetWallets } from '../street/shop-agent.ts';
+import { SHOPS } from '../street/shops.ts';
 import { facilitate, supported } from '../pay/facilitator.ts';
 import { followErrand, errandLimits, latestErrand, mandateDraft, startErrand, street } from './errands.ts';
 import { EXPLORER } from '../chain/chain.ts';
-import { checkAgent, handleMcp, overLimit, registry, verdictView } from './check.ts';
+import { checkAgent, handleMcp, overLimit, registry, registryHistory, verdictView } from './check.ts';
+import { list as errandList, record as errandRecord, stats, verifySeal, verifySignature } from './history.ts';
+import { latestProof, scheduleProof } from './proof.ts';
 
 export const PORT = Number(process.env.PORT ?? 3000);
 export const PUBLIC_URL = process.env.VIALE_PUBLIC_URL ?? `http://localhost:${PORT}`;
@@ -82,17 +85,51 @@ export function startServer(): Promise<http.Server> {
       if (url.pathname === '/api/errands/latest') return send(res, 200, latestErrand());
       // A mandate for the visitor's wallet to sign (Concordium Browser Wallet signMessage).
       if (url.pathname === '/api/mandates/draft' && req.method === 'POST') {
-        const { task, human } = await body(req);
-        const r = mandateDraft(task, human);
+        const { task, human, options } = await body(req);
+        const r = mandateDraft(task, human, options);
         return send(res, r.error ? 400 : 200, r);
       }
       // Start an errand: { mandate: { message, signature } } signed by the visitor, or { task } for the demo signer.
       if (url.pathname === '/api/errands' && req.method === 'POST') {
-        const { task, mandate } = await body(req);
-        const r = await startErrand({ task, mandate });
+        const { task, mandate, options } = await body(req);
+        const r = await startErrand({ task, mandate, options });
         return send(res, r.error ? (r.status ?? 400) : 200, r.error ? { error: r.error } : { id: r.id });
       }
       if (parts[0] === 'api' && parts[1] === 'errands' && parts[2] && parts[3] === 'events') return followErrand(parts[2], res);
+      // Errand history: every errand this server ran (data/errands, kept on a volume) plus the committed runs.
+      if (url.pathname === '/api/errands' && req.method === 'GET') {
+        const outcome = url.searchParams.get('outcome');
+        const all = errandList();
+        return send(res, 200, { errands: outcome ? all.filter((e) => e.outcome === outcome) : all, total: all.length });
+      }
+      if (parts[0] === 'api' && parts[1] === 'errands' && parts[2] && !parts[3]) {
+        const r = errandRecord(parts[2]);
+        return r ? send(res, 200, r) : send(res, 404, { error: 'No errand with that id' });
+      }
+      if (url.pathname === '/api/stats') {
+        const reg = await registry();
+        return send(res, 200, { ...stats(), registry: { active: reg.active_agents, business: reg.agents_owned_by_business_identity, owner_accounts: reg.owner_accounts, measured_at: reg.measured_at }, shops: SHOPS.filter((s) => s.tokenId).length });
+      }
+      if (url.pathname === '/api/registry/history') return send(res, 200, { points: registryHistory() });
+      if (url.pathname === '/api/proof') return send(res, 200, latestProof());
+      // Audit desk: anyone can re-check a seal or a signature against the chain.
+      if (url.pathname === '/api/verify/seal' && req.method === 'POST') {
+        if (overLimit(req)) return send(res, 429, { error: 'Too many checks from this address. Try again in a minute.' });
+        return send(res, 200, await verifySeal(await body(req)));
+      }
+      if (url.pathname === '/api/verify/signature' && req.method === 'POST') {
+        if (overLimit(req)) return send(res, 429, { error: 'Too many checks from this address. Try again in a minute.' });
+        return send(res, 200, await verifySignature(await body(req)));
+      }
+      if (parts[0] === 'api' && parts[1] === 'shops' && /^\d{1,10}$/.test(parts[2] ?? '') && !parts[3]) {
+        const shop = (await street()).find((s: any) => s.token_id === parts[2]);
+        const sales = errandList().flatMap((e) => e.payments.filter((p) => p.token_id === parts[2]).map((p) => ({ ...p, errand: e.id, at: e.at })));
+        const visits = errandList().filter((e) => e.shops_checked.some((c) => c.token_id === parts[2])).length;
+        const card = (() => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, 'public/agents', `${parts[2]}.json`), 'utf8')); } catch { return null; } })();
+        const meta = SHOPS.find((s) => s.tokenId === parts[2]);
+        if (!shop && !card) return send(res, 404, { error: 'Not a shop on this street. Use /check/<id> for any registry agent.' });
+        return send(res, 200, { shop: shop ?? null, card, impostor: !!meta?.impostor, description: meta?.description ?? null, sales, visits });
+      }
       // Shop agents: GET /shops/<tokenId>/menu, POST /shops/<tokenId>/quote {sku} -> quote signed by the shop owner.
       if (parts[0] === 'shops' && /^\d+$/.test(parts[1] ?? '')) {
         if (req.method === 'GET' && parts[2] === 'menu') return send(res, 200, { shop_token_id: parts[1], items: menu(parts[1]) });
@@ -118,6 +155,11 @@ export function startServer(): Promise<http.Server> {
         }
         return send(res, 404, { error: 'not found' });
       }
+      // Pages (clean URLs). /shops/<id> with nothing after it is the shop's page; its APIs are below it.
+      const PAGES: Record<string, string> = { errands: 'errands', shops: 'shops', verify: 'verify', developers: 'developers', registry: 'registry', mainnet: 'mainnet', proof: 'proof', account: 'account', open: 'open' };
+      if (req.method === 'GET' && parts.length === 1 && PAGES[parts[0]]) return file(res, path.join(ROOT, `public/${PAGES[parts[0]]}.html`));
+      if (req.method === 'GET' && parts.length === 2 && parts[0] === 'errands') return file(res, path.join(ROOT, 'public/errand.html'));
+      if (req.method === 'GET' && parts.length === 2 && parts[0] === 'shops' && /^\d+$/.test(parts[1])) return file(res, path.join(ROOT, 'public/shop.html'));
       if (parts[0] === 'prove' && parts[1] === 'app.js') return file(res, path.join(ROOT, 'dist/prove/app.js'));
       if (parts[0] === 'prove' && parts[1] === 'app.css') return file(res, path.join(ROOT, 'dist/prove/app.css'));
       if (parts[0] === 'prove' && parts[1]) return file(res, path.join(ROOT, 'web/prove.html'));
@@ -139,4 +181,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   console.log(`Viale server on ${PUBLIC_URL}`);
   // First live registry count, after the street's first check has had the node to itself.
   setTimeout(() => registry().catch((err) => console.error('registry count failed:', err.message)), 30_000);
+  // Keeps the census fresh (registry() recounts when the last count is 6 hours old) and runs the live checker.
+  setInterval(() => registry().catch(() => {}), 3600_000);
+  if (process.env.VIALE_PROOF_RUNS !== 'off' && !PUBLIC_URL.includes('localhost')) scheduleProof(PUBLIC_URL);
 }
