@@ -25,19 +25,36 @@ const vialeHeld = () => new Set([sponsorWallet(), shopOwnerWallet()].map((w) => 
 const HELD_BY_VIALE = "That is one of Viale's own accounts: its key is on Viale's server, so its signature can't stand for you. Pick or create an account of your own in your wallet.";
 let starting = false;
 
-/** The mandate a visitor's wallet signs: their task, this agent, the street's limits, 15 minutes. */
-export function mandateDraft(task: unknown, human: unknown): { message?: string; error?: string } {
+/** The limits a visitor picked for one errand, kept inside the street's limits. */
+export type ErrandOptions = { budgetEur?: unknown; maxPaymentEur?: unknown; minutes?: unknown; allowedShops?: unknown };
+function pickLimits(o: ErrandOptions = {}): { budgetEur: number; maxPaymentEur: number; minutes: number; allowedShops?: string[]; error?: string } {
+  const num = (v: unknown, d: number) => (v == null || v === '' ? d : Number(v));
+  const budgetEur = Math.round(num(o.budgetEur, LIMITS.budgetEur) * 100) / 100;
+  const maxPaymentEur = Math.round(num(o.maxPaymentEur, LIMITS.maxPaymentEur) * 100) / 100;
+  const minutes = Math.round(num(o.minutes, MANDATE_MINUTES));
+  const allowed = Array.isArray(o.allowedShops) ? o.allowedShops.map((x) => String(x).slice(0, 80)).filter(Boolean).slice(0, 10) : undefined;
+  if (!(budgetEur > 0 && budgetEur <= LIMITS.budgetEur)) return { budgetEur, maxPaymentEur, minutes, error: `Budget must be between €0.01 and €${LIMITS.budgetEur} on this street.` };
+  if (!(maxPaymentEur > 0 && maxPaymentEur <= LIMITS.maxPaymentEur)) return { budgetEur, maxPaymentEur, minutes, error: `The cap per payment must be between €0.01 and €${LIMITS.maxPaymentEur}.` };
+  if (maxPaymentEur > budgetEur) return { budgetEur, maxPaymentEur, minutes, error: 'The cap per payment cannot be more than the budget.' };
+  if (!(minutes >= 5 && minutes <= MANDATE_LIMITS.maxMinutes)) return { budgetEur, maxPaymentEur, minutes, error: `The mandate must last between 5 and ${MANDATE_LIMITS.maxMinutes} minutes.` };
+  return { budgetEur, maxPaymentEur, minutes, ...(allowed?.length ? { allowedShops: allowed } : {}) };
+}
+
+/** The mandate a visitor's wallet signs: their task, this agent, and limits they picked inside the street's. */
+export function mandateDraft(task: unknown, human: unknown, options?: ErrandOptions): { message?: string; error?: string } {
   const t = String(task ?? '').trim().slice(0, 300);
   if (!t) return { error: 'Tell the agent what to buy.' };
+  const lim = pickLimits(options);
+  if (lim.error) return { error: lim.error };
   try { AccountAddress.fromBase58(String(human)); } catch { return { error: 'That is not a Concordium account address.' }; }
   if (vialeHeld().has(String(human))) return { error: HELD_BY_VIALE };
   if (String(human) === agentWallet().address.address) return { error: "That is the errand agent's own account. Pick another account in your wallet: the agent can't sign its own limits." };
-  const terms = draftMandate({ task: t, human: String(human), agent: agentWallet().address.address, budgetEur: LIMITS.budgetEur, maxPaymentEur: LIMITS.maxPaymentEur, minutes: MANDATE_MINUTES });
+  const terms = draftMandate({ task: t, human: String(human), agent: agentWallet().address.address, budgetEur: lim.budgetEur, maxPaymentEur: lim.maxPaymentEur, minutes: lim.minutes, allowedShops: lim.allowedShops });
   return { message: JSON.stringify(terms) };
 }
 
 type Signer = { human: string; mandate_id: string; demo: boolean };
-type Live = { id: string; task: string; signer: Signer; steps: any[]; done: boolean; listeners: Set<http.ServerResponse> };
+type Live = { id: string; task: string; signer: Signer; limits: { budgetEur: number; maxPaymentEur: number; allowedShops?: string[]; expiresAt: string }; steps: any[]; done: boolean; listeners: Set<http.ServerResponse> };
 const errands = new Map<string, Live>();
 const started: number[] = [];
 let running: Live | undefined;
@@ -45,7 +62,7 @@ let running: Live | undefined;
 /** Starts an errand under a mandate signed in the visitor's wallet, or, with only a task, under a mandate
  *  signed by Viale's demo account (for visitors without a Concordium wallet). Either way the signature is
  *  checked against the signer's keys on chain before anything runs, and each mandate runs once. */
-export async function startErrand(input: { task?: unknown; mandate?: SignedMandate }): Promise<{ id?: string; error?: string; status?: number }> {
+export async function startErrand(input: { task?: unknown; mandate?: SignedMandate; options?: ErrandOptions }): Promise<{ id?: string; error?: string; status?: number }> {
   if ((running && !running.done) || starting) return { error: 'Another errand is running. Watch it, then try again.', status: 429 };
   const hourAgo = Date.now() - 3600_000;
   while (started.length && started[0] < hourAgo) started.shift();
@@ -59,8 +76,10 @@ export async function startErrand(input: { task?: unknown; mandate?: SignedManda
     if (!signed) {
       const task = String(input.task ?? '').trim().slice(0, 300);
       if (!task) return { error: 'Tell the agent what to buy.', status: 400 };
+      const lim = pickLimits(input.options);
+      if (lim.error) return { error: lim.error, status: 400 };
       const viale = sponsorWallet();
-      signed = await signMandate(draftMandate({ task, human: viale.address.address, agent, budgetEur: LIMITS.budgetEur, maxPaymentEur: LIMITS.maxPaymentEur, minutes: MANDATE_MINUTES }), viale);
+      signed = await signMandate(draftMandate({ task, human: viale.address.address, agent, budgetEur: lim.budgetEur, maxPaymentEur: lim.maxPaymentEur, minutes: lim.minutes, allowedShops: lim.allowedShops }), viale);
     }
     const check = await verifyMandate(signed, { agent, limits: MANDATE_LIMITS });
     if (!check.ok) return { error: `Mandate refused: ${check.reasons.join('; ')}`, status: 400 };
@@ -77,7 +96,7 @@ export async function startErrand(input: { task?: unknown; mandate?: SignedManda
 
 function launch(mandate: import('../errand/guards.ts').Mandate, signer: Signer): string {
   const task = mandate.task;
-  const live: Live = { id: crypto.randomBytes(6).toString('hex'), task, signer, steps: [], done: false, listeners: new Set() };
+  const live: Live = { id: crypto.randomBytes(6).toString('hex'), task, signer, limits: { budgetEur: mandate.budgetEur, maxPaymentEur: mandate.maxPaymentEur, allowedShops: mandate.allowedShops, expiresAt: mandate.expiresAt }, steps: [], done: false, listeners: new Set() };
   errands.set(live.id, live);
   running = live;
   const push = (e: any) => {
@@ -100,7 +119,7 @@ export function followErrand(id: string, res: http.ServerResponse) {
   const live = errands.get(id);
   if (!live) { res.writeHead(404).end(); return; }
   res.writeHead(200, { 'content-type': 'text/event-stream', 'cache-control': 'no-store', connection: 'keep-alive' });
-  res.write(`data: ${JSON.stringify({ step: 'task', task: live.task, limits: LIMITS, signer: live.signer })}\n\n`);
+  res.write(`data: ${JSON.stringify({ step: 'task', task: live.task, limits: live.limits, signer: live.signer })}\n\n`);
   for (const e of live.steps) res.write(`data: ${JSON.stringify(e)}\n\n`);
   if (live.done) return res.end();
   live.listeners.add(res);
