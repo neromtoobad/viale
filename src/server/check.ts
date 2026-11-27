@@ -69,6 +69,30 @@ function committedCount(): RegistryOwners | undefined {
   return d.business_agents && d.newest_agents ? d : undefined;
 }
 
+// Each live count is kept (data/registry, on the volume) so the census can show the trend over time.
+const SNAP_DIR = path.resolve(import.meta.dirname, '../../data/registry');
+type Point = { at: string; active: number; business: number; owner_accounts: number; business_owner_accounts: number; by_idp: Record<string, number> };
+const point = (d: RegistryOwners): Point => ({ at: d.measured_at, active: d.active_agents, business: d.agents_owned_by_business_identity, owner_accounts: d.owner_accounts, business_owner_accounts: d.business_owner_accounts, by_idp: d.agents_by_owner_identity_provider });
+function saveSnapshot(d: RegistryOwners) {
+  try {
+    fs.mkdirSync(SNAP_DIR, { recursive: true });
+    fs.writeFileSync(path.join(SNAP_DIR, `${d.measured_at.replace(/[:.]/g, '-')}.json`), JSON.stringify(point(d)));
+  } catch (err: any) { console.error('registry snapshot not saved:', err.message); }
+}
+/** Every registry count: the ones committed in evidence/ and every live count this server has made. */
+export function registryHistory(): Point[] {
+  const pts: Point[] = [];
+  const ev = path.resolve(import.meta.dirname, '../../evidence');
+  for (const f of fs.readdirSync(ev).filter((n) => /^registry-owners-.*\.json$/.test(n))) {
+    try { const d = JSON.parse(fs.readFileSync(path.join(ev, f), 'utf8')); if (d.measured_at) pts.push(point(d)); } catch {}
+  }
+  if (fs.existsSync(SNAP_DIR)) for (const f of fs.readdirSync(SNAP_DIR)) {
+    try { pts.push(JSON.parse(fs.readFileSync(path.join(SNAP_DIR, f), 'utf8'))); } catch {}
+  }
+  const seen = new Set<string>();
+  return pts.filter((p) => !seen.has(p.at) && seen.add(p.at)).sort((a, b) => a.at.localeCompare(b.at));
+}
+
 let owners: { data?: RegistryOwners; live?: boolean; running?: Promise<RegistryOwners> } = {};
 /** Registry owners. Counted live in the background every 6 hours (a count takes a few minutes, because the
  *  public node limits requests); until the first live count is done, the newest committed count is served. */
@@ -76,7 +100,7 @@ export function registry(): Promise<RegistryOwners & { source: string }> {
   const stale = !owners.live || Date.now() - Date.parse(owners.data!.measured_at) > 6 * 3600_000;
   if (stale && !owners.running) {
     owners.running = registryOwners()
-      .then((d) => { owners.data = d; owners.live = true; return d; })
+      .then((d) => { owners.data = d; owners.live = true; saveSnapshot(d); return d; })
       .finally(() => (owners.running = undefined));
     owners.running.catch((err) => console.error('registry count failed:', err.message));
   }
