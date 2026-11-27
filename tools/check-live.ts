@@ -267,7 +267,7 @@ await claim('C14', 'Shops sell over HTTP x402: an unpaid POST /buy gets 402 with
     `requirements ${JSON.stringify(req)} do not match the quote (€${terms.price_eur} to ${terms.pay_to.slice(0, 8)}…)`);
   const forged = await fetch(`${SITE}/shops/1527/buy`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ quote: { ...quote, message: JSON.stringify({ ...terms, price_eur: 0.01 }) } }) });
   must(forged.status === 400, `a quote with a changed price got HTTP ${forged.status}`);
-  const e = evidence.find((x) => x.file.includes('x402-http'));
+  const e = evidence.find((x) => x.file.startsWith('evidence/x402-http-'));
   must(e, 'no x402-http evidence file');
   const t = (await txSummary(e!.data.tx)).events?.find((x: any) => x.tag === 'TokenTransfer');
   must(t?.tokenId === 'EUDemo' && String(t.amount.value) === e!.data.payment_required.amount && t.to.address === e!.data.payment_required.payTo, 'the recorded x402 payment does not match its requirements on chain');
