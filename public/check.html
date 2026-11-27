@@ -15,82 +15,50 @@
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/site.css">
 <style>
-:root{--paper:#F6F1E7;--ink:#1E2B4A;--muted:#6b7385;--line:#e6dfd1;--brass:#C9A14A;--sky:#7FAEE3;--ok:#2f7d55;--okbg:#e6f2ea;--bad:#b0412e;--badbg:#f8e6e1}
-*{box-sizing:border-box}
-body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 Geist,system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
-a{color:#2a4d8f}
-.mono{font-family:'Geist Mono',ui-monospace,monospace}
-.lab{font:500 11px/1.2 'Geist Mono',ui-monospace,monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:99px;font-size:12.5px;font-weight:500;white-space:nowrap}
-.ok{background:var(--okbg);color:var(--ok)}.bad{background:var(--badbg);color:var(--bad)}
-
-
-.top{text-align:center;padding:6px 48px 26px}
-h1{font-size:48px;line-height:1.05;letter-spacing:-.03em;font-weight:600;margin:14px auto 12px;max-width:820px}
-.sub{color:var(--muted);font-size:17px;margin:0 auto 24px;max-width:640px}
-form.q{display:flex;gap:8px;background:#fff;border:1px solid var(--line);border-radius:99px;padding:6px 6px 6px 18px;align-items:center;max-width:520px;margin:0 auto}
-form.q span{color:var(--muted);font-weight:500}
-form.q input{flex:1;min-width:0;border:0;outline:0;font:15px 'Geist Mono',ui-monospace,monospace;background:transparent;color:var(--ink)}
-.btn{background:var(--ink);color:#fff;border:0;border-radius:99px;padding:12px 20px;font:600 14px Geist,system-ui,sans-serif;cursor:pointer;white-space:nowrap}
-.btn:disabled{opacity:.45;cursor:default}
-.ideas{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px}
-.ideas button,.ids button{border:1px solid var(--line);background:transparent;border-radius:99px;padding:6px 12px;font:13px Geist,system-ui,sans-serif;color:var(--muted);cursor:pointer}
-.ideas button:hover,.ids button:hover{background:#fff;color:var(--ink)}
-
-main>*,.split>*{min-width:0}
-main{margin:0 48px 28px;display:grid;grid-template-columns:1.3fr 1fr;gap:20px;align-items:start}
-.card{background:#fff;border:1px solid var(--line);border-radius:24px;padding:26px 28px}
+.pagehead form.q{display:flex;gap:8px;background:#fff;border-radius:99px;padding:6px 6px 6px 20px;align-items:center;max-width:520px;margin:28px 0 0;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.pagehead form.q #go{background:var(--ink);color:#fff}
+.pagehead form.q span{color:var(--muted);font-weight:500}
+.pagehead form.q input{flex:1;min-width:0;border:0;outline:0;font:15px 'Geist Mono',ui-monospace,monospace;background:transparent;color:var(--ink);padding:0;box-shadow:none}
+.ideas{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.ideas button,.ids button{border:0;background:rgba(255,255,255,.1);border-radius:99px;padding:7px 13px;font:500 13px Geist,system-ui,sans-serif;color:#dfe4ef;cursor:pointer;transition:background .15s}
+.ideas button:hover{background:rgba(255,255,255,.18);color:#fff}
+.ids button{background:var(--paper);color:var(--ink2);box-shadow:inset 0 0 0 1px var(--line)}.ids button:hover{background:#fff}
+.ids button.biz{color:var(--ok);box-shadow:inset 0 0 0 1px #bfdcc9}
+.grid{display:grid;grid-template-columns:1.3fr 1fr;gap:20px;align-items:start}
+.grid>*{min-width:0}
 .card .head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 6px}
-.verdict{font-size:30px;font-weight:600;letter-spacing:-.02em;margin:2px 0 4px}
+.verdict{font-size:32px;font-weight:600;letter-spacing:-.025em;margin:2px 0 4px}
 .verdict.y{color:var(--ok)}.verdict.n{color:var(--bad)}
 .why{color:var(--muted);margin:0 0 18px;font-size:14.5px}
-.checks{list-style:none;margin:0;padding:0}
-.checks li{padding:11px 0 11px 30px;position:relative;border-top:1px solid var(--line);font-size:14.5px}
-.checks li:before{position:absolute;left:2px;top:10px;font-weight:600}
-.checks li.y:before{content:"✓";color:var(--ok)}.checks li.n:before{content:"✗";color:var(--bad)}
-.empty{color:var(--muted);font-size:14.5px}
-.loading{color:var(--muted)}.loading:after{content:"…";animation:dots 1.2s steps(3) infinite}
-@keyframes dots{0%{content:""}33%{content:"."}66%{content:".."}}
-
-.facts{background:var(--ink);color:#fff;border:0}
-.facts .lab{color:#aeb6c8}
-.facts .row{display:flex;justify-content:space-between;gap:16px;padding:11px 0;border-top:1px solid rgba(255,255,255,.12);font-size:14px}
+#result .checks li{padding:11px 0 11px 30px;border-top:1px solid var(--line);font-size:14.5px}
+#result .checks li:before{left:2px;top:10px;font-weight:600}
+.facts .row{display:flex;justify-content:space-between;gap:16px;padding:12px 0;border-top:1px solid rgba(255,255,255,.1);font-size:14px}
 .facts .row:first-of-type{border-top:0}
-.facts .row span:first-child{color:#aeb6c8;flex:none}.facts .row span:last-child{text-align:right;overflow-wrap:anywhere}
-.facts a{color:#cfe0ff}
-
-section.wide{margin:0 48px 28px}
-.split{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-.big{font-size:44px;font-weight:300;letter-spacing:-.03em;margin:6px 0 2px}
-.bar{display:flex;height:12px;border-radius:99px;overflow:hidden;background:var(--line);margin:14px 0 10px}
-.bar i{display:block;height:100%}
-.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted)}
-.legend b{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px}
+.facts .row span:first-child{color:#9fa9c1;flex:none}.facts .row span:last-child{text-align:right;overflow-wrap:anywhere}
+.big{font-size:48px;font-weight:300;letter-spacing:-.04em;margin:10px 0 4px;line-height:1}
+.ibar{display:flex;height:12px;border-radius:99px;overflow:hidden;background:var(--paper2);margin:16px 0 12px}
+.ibar i{display:block;height:100%}
+.ilegend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted)}
+.ilegend b{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px}
 .ids{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-.ids button.biz{border-color:#bfdcc9;color:var(--ok)}
-pre{background:var(--paper);border-radius:12px;padding:12px 14px;font:12.5px/1.5 'Geist Mono',ui-monospace,monospace;overflow-x:auto;margin:8px 0 14px;white-space:pre}
-h2{font-size:22px;letter-spacing:-.02em;margin:4px 0 8px;font-weight:600}
+#mcp h2{font-size:22px;letter-spacing:-.02em;margin:10px 0 8px;font-weight:600}
+#mcp pre{margin:8px 0 14px}
 p.note{color:var(--muted);font-size:14px;margin:6px 0 0}
-
-@media (max-width:860px){
-  .top{padding:4px 16px 20px}h1{font-size:34px}.sub{font-size:16px}
-  main{grid-template-columns:1fr;margin:0 16px 20px}
-  section.wide{margin:0 16px 20px}.split{grid-template-columns:1fr}
-  .card{padding:20px}
-}
+@media (max-width:860px){.grid,.split{grid-template-columns:1fr}}
 </style>
 </head>
 <body data-page="check">
 <header data-nav></header>
 
-<section class="top">
-  <span class="lab">Concordium Agent Registry · testnet</span>
+<div class="wrap">
+<section class="pagehead">
+  <span class="eyebrow">Concordium Agent Registry · testnet</span>
   <h1>Check any agent before you pay it</h1>
   <p class="sub">The same checks Viale's errand agent runs before every payment: is the agent registered, is its badge valid, and is it owned by a verified business or by a personal account?</p>
   <form class="q" id="q">
     <span>#</span>
     <input id="id" inputmode="numeric" autocomplete="off" placeholder="Agent token id, e.g. 1527" aria-label="Agent token id">
-    <button class="btn" id="go">Check</button>
+    <button class="btn" id="go">Check <span class="arr">→</span></button>
   </form>
   <div class="ideas">
     <button type="button" data-id="1527">#1527 Viale Flowers</button>
@@ -99,9 +67,10 @@ p.note{color:var(--muted);font-size:14px;margin:6px 0 0}
   </div>
 </section>
 
-<main>
-  <div class="card" id="result"><p class="empty">Enter a token id, or pick one of the agents below. Every check runs live against the registry and the chain.</p></div>
-  <div class="card facts" id="facts">
+<section class="sec" style="padding-top:0">
+<div class="grid">
+  <div class="card" id="result"><p class="empty">Enter a token id, or pick one of the agents above. Every check runs live against the registry and the chain.</p></div>
+  <div class="card dark facts" id="facts">
     <span class="lab">What it checks</span>
     <div class="row" style="margin-top:8px"><span>Registry</span><span>Registered and Active in CIS-8004 &lt;12802,0&gt;</span></div>
     <div class="row"><span>Badge</span><span>Verified by Concordium: card hash matches the chain</span></div>
@@ -109,9 +78,10 @@ p.note{color:var(--muted);font-size:14px;margin:6px 0 0}
     <div class="row"><span>Card</span><span>Readable at the URL the owner registered</span></div>
     <div class="row"><span>Payments</span><span>The wallet the registry holds for the agent</span></div>
   </div>
-</main>
+</div>
+</section>
 
-<section class="wide split">
+<section class="sec split" style="padding-top:0">
   <div class="card" id="reg">
     <span class="lab">Who owns the registry's agents</span>
     <p class="loading">Counting every agent in the registry</p>
@@ -120,14 +90,15 @@ p.note{color:var(--muted);font-size:14px;margin:6px 0 0}
     <span class="lab">For agents</span>
     <h2>Check before you pay, from your own agent</h2>
     <p class="note">Viale runs an MCP server with one job: <span class="mono">check_agent</span> returns <span class="mono">trade</span> only if every check passes, else <span class="mono">walk_away</span> with the reasons. Add it to Claude Code:</p>
-    <pre>claude mcp add --transport http viale https://viale.nerom.site/mcp</pre>
+    <pre class="code">claude mcp add --transport http viale https://viale.nerom.site/mcp</pre>
     <p class="note">Or call it over HTTP:</p>
-    <pre>curl https://viale.nerom.site/api/check/1527</pre>
+    <pre class="code">curl https://viale.nerom.site/api/check/1527</pre>
     <p class="note">Read-only, no keys or sign-in. Up to 30 checks a minute per address; each result is at most five minutes old.</p>
   </div>
 </section>
 
-<p class="wrap note" style="margin-bottom:0">Concordium testnet. Checks read Concordium's Agent Registry (through its hosted MCP server) and a testnet node. A "trade" verdict means the owner is a verified business, not that the business is good. <a href="https://github.com/neromtoobad/viale/blob/main/src/errand/shop-check.ts">The check's code</a> · <a href="/registry">Full registry census →</a> · <a href="/developers">MCP, A2A and REST →</a></p>
+<p class="note">Concordium testnet. Checks read Concordium's Agent Registry (through its hosted MCP server) and a testnet node. A "trade" verdict means the owner is a verified business, not that the business is good. <a href="https://github.com/neromtoobad/viale/blob/main/src/errand/shop-check.ts">The check's code</a> · <a href="/registry">Full registry census →</a> · <a href="/developers">MCP, A2A and REST →</a></p>
+</div>
 <footer data-foot></footer>
 <script src="/site.js"></script>
 
@@ -200,8 +171,8 @@ async function registry() {
       h('span', { class: 'lab' }, "Who owns the registry's agents"),
       h('div', { class: 'big' }, `${r.agents_owned_by_business_identity.toLocaleString()} of ${total.toLocaleString()}`),
       h('p', { class: 'note', style: 'margin-top:0' }, `active agents are owned by a business identity (${r.business_owner_accounts} of ${r.owner_accounts} owner accounts). The rest are owned by personal accounts.`),
-      h('div', { class: 'bar' }, groups.map(([, n], i) => h('i', { style: `width:${(100 * n / total).toFixed(2)}%;background:${/Global FinReg/.test(groups[i][0]) ? COLORS[0] : COLORS[1 + (i % 4)]}` }))),
-      h('div', { class: 'legend' }, groups.map(([k, n], i) => h('span', {}, h('b', { style: `background:${/Global FinReg/.test(k) ? COLORS[0] : COLORS[1 + (i % 4)]}` }), `${k.replace(/^\d+\s*/, '')}: ${n.toLocaleString()}`))),
+      h('div', { class: 'ibar' }, groups.map(([, n], i) => h('i', { style: `width:${(100 * n / total).toFixed(2)}%;background:${/Global FinReg/.test(groups[i][0]) ? COLORS[0] : COLORS[1 + (i % 4)]}` }))),
+      h('div', { class: 'ilegend' }, groups.map(([k, n], i) => h('span', {}, h('b', { style: `background:${/Global FinReg/.test(k) ? COLORS[0] : COLORS[1 + (i % 4)]}` }), `${k.replace(/^\d+\s*/, '')}: ${n.toLocaleString()}`))),
       h('p', { class: 'lab', style: 'margin:18px 0 0' }, 'Owned by a business'),
       h('div', { class: 'ids' }, r.business_agents.map((a) => idButton(a, true))),
       h('p', { class: 'lab', style: 'margin:16px 0 0' }, 'Newest in the registry'),

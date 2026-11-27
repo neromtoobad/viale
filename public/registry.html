@@ -16,12 +16,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/site.css">
 <style>
-.bar{display:grid;grid-template-columns:200px 1fr 70px;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line);font-size:14px}
-.bar .track{height:12px;background:var(--paper2);border-radius:99px;overflow:hidden}.bar .fill{height:100%;background:var(--ink);border-radius:99px}
-.bar.biz .fill{background:var(--ok)}
-.bar .n{text-align:right;font-family:'Geist Mono',monospace}
+.rbar{display:grid;grid-template-columns:200px 1fr 70px;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line);font-size:14px}
+.rbar .track{height:12px;background:var(--paper2);border-radius:99px;overflow:hidden}.rbar .fill{height:100%;background:var(--ink);border-radius:99px}
+.rbar.biz .fill{background:var(--ok)}
+.rbar .n{text-align:right;font-family:'Geist Mono',monospace}
 svg text{font:11px 'Geist Mono',monospace;fill:var(--muted)}
-@media (max-width:760px){.bar{grid-template-columns:1fr 60px}.bar .track{grid-column:1/-1;order:3}}
+@media (max-width:760px){.rbar{grid-template-columns:1fr 60px}.rbar .track{grid-column:1/-1;order:3}}
 </style>
 </head>
 <body data-page="registry">
@@ -61,7 +61,7 @@ const host = (u) => { try { return new URL(u).host; } catch { return u ?? '—';
     h('div', { class: 'stat' }, h('span', { class: 'lab' }, 'Business owners'), h('b', {}, r.business_owner_accounts), h('small', {}, 'accounts with a business identity')));
   const entries = Object.entries(r.agents_by_owner_identity_provider).sort((a, b) => b[1] - a[1]);
   const max = Math.max(...entries.map(([, n]) => n));
-  $('bars').replaceChildren(...entries.map(([k, n]) => h('div', { class: `bar${/FinReg/.test(k) ? ' biz' : ''}` }, h('span', {}, k.replace(/^\d+ /, ''), /FinReg/.test(k) ? h('span', { class: 'chip ok', style: 'margin-left:6px' }, 'business') : null), h('div', { class: 'track' }, h('div', { class: 'fill', style: `width:${Math.max(1, (n / max) * 100)}%` })), h('span', { class: 'n' }, n))));
+  $('bars').replaceChildren(...entries.map(([k, n]) => h('div', { class: `rbar${/FinReg/.test(k) ? ' biz' : ''}` }, h('span', {}, k.replace(/^\d+ /, ''), /FinReg/.test(k) ? h('span', { class: 'chip ok', style: 'margin-left:6px' }, 'business') : null), h('div', { class: 'track' }, h('div', { class: 'fill', style: `width:${Math.max(1, (n / max) * 100)}%` })), h('span', { class: 'n' }, n))));
   $('src').textContent = `Source: ${r.source}. Counted with the Registry MCP’s list_agents and each owner’s credentials on chain.`;
   const pts = hist.points;
   if (pts.length >= 2) {
