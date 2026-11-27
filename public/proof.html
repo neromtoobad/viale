@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proof · Viale</title>
+<meta name="description" content="Every claim Viale makes, checked against the live site and Concordium testnet by a script, with the latest PASS or FAIL.">
+<link rel="icon" href="/brand/viale-favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/brand/viale-favicon-32.png" type="image/png" sizes="32x32">
+<meta name="theme-color" content="#1E2B4A">
+<meta property="og:title" content="Proof · Viale">
+<meta property="og:description" content="Every claim Viale makes, checked against the live site and Concordium testnet by a script, with the latest PASS or FAIL.">
+<meta property="og:image" content="https://viale.nerom.site/brand/viale-og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/site.css">
+<style>
+.claim{display:grid;grid-template-columns:70px 1fr 90px;gap:14px;padding:14px 0;border-top:1px solid var(--line);align-items:start}
+.claim .d{color:var(--muted);font-size:13.5px;margin-top:3px;overflow-wrap:anywhere}
+.claim .ms{text-align:right;font:12px 'Geist Mono',monospace;color:var(--muted)}
+@media (max-width:760px){.claim{grid-template-columns:60px 1fr}.claim .ms{display:none}}
+</style>
+</head>
+<body data-page="proof">
+<header data-nav></header>
+<main class="wrap">
+  <div class="pagehead">
+    <span class="lab">Proof</span>
+    <h1>Every claim, checked by a script</h1>
+    <p class="sub"><code>tools/check-live.ts</code> tests each claim in the README against the live site and the chain, and prints PASS or FAIL. This server runs it on itself every 6 hours; the latest run is below. Run it yourself with <code>npm run check:live</code>.</p>
+  </div>
+  <div class="grid4" id="stats"></div>
+  <section class="sec" style="padding-top:28px"><div class="card" id="list"><p class="loading">Loading the latest run</p></div></section>
+</main>
+<footer data-foot></footer>
+<script src="/site.js"></script>
+<script>
+const { $, h, when, ago } = V;
+(async () => {
+  const p = await V.getJSON('/api/proof');
+  if (p.none) { $('list').replaceChildren(h('p', { class: 'empty' }, 'No run yet. The first one starts ten minutes after the server starts.')); return; }
+  $('stats').replaceChildren(
+    h('div', { class: 'stat' }, h('span', { class: 'lab' }, 'Passed'), h('b', { style: 'color:var(--ok)' }, p.passed), h('small', {}, `of ${p.results.length} claims`)),
+    h('div', { class: 'stat' }, h('span', { class: 'lab' }, 'Failed'), h('b', { style: `color:${p.failed ? 'var(--bad)' : 'inherit'}` }, p.failed), h('small', {}, p.failed ? 'see the red rows' : 'none')),
+    h('div', { class: 'stat' }, h('span', { class: 'lab' }, 'Last run'), h('b', { style: 'font-size:22px' }, ago(p.ran_at)), h('small', {}, when(p.ran_at))),
+    h('div', { class: 'stat' }, h('span', { class: 'lab' }, 'Against'), h('b', { style: 'font-size:18px;overflow-wrap:anywhere' }, p.site.replace('https://', '')), h('small', {}, p.running ? 'a new run is going now' : p.source)));
+  $('list').replaceChildren(...p.results.map((r) => h('div', { class: 'claim' }, h('span', { class: `chip ${r.pass ? 'ok' : 'bad'}` }, r.pass ? 'PASS' : 'FAIL'), h('div', {}, h('b', {}, `${r.id} · ${r.claim}`), h('div', { class: 'd' }, r.detail)), h('span', { class: 'ms' }, `${(r.ms / 1000).toFixed(1)} s`))));
+})().catch((e) => $('list').replaceChildren(h('p', { class: 'empty' }, e.message)));
+</script>
+</body>
+</html>
