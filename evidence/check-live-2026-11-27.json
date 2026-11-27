@@ -1,64 +1,64 @@
 {
   "site": "https://viale.nerom.site",
-  "ran_at": "2026-11-27T05:53:38.083Z",
-  "passed": 14,
+  "ran_at": "2026-11-27T06:12:36.429Z",
+  "passed": 15,
   "failed": 0,
   "results": [
     {
       "id": "C1",
       "claim": "Every shop on the street is an Active agent in the CIS-8004 Agent Registry <12802,0>",
       "pass": true,
-      "detail": "agents #1406, #1526, #1527 are Active in the registry",
-      "ms": 3599
+      "detail": "agents #1406, #1526, #1527, #1543 are Active in the registry (1 opened by outside owners)",
+      "ms": 2418
     },
     {
       "id": "C2",
       "claim": "Each shop's Agent Card, served by the site, hashes to the metadata hash pinned on chain",
       "pass": true,
-      "detail": "#1406 2b74e6ff06b7…, #1526 70db32a318fb…, #1527 4b08f0358d7d…",
-      "ms": 1650
+      "detail": "#1406 2b74e6ff06b7…, #1526 70db32a318fb…, #1527 4b08f0358d7d…, #1543 7ff24a44f591…",
+      "ms": 2711
     },
     {
       "id": "C3",
       "claim": "The honest shops are owned by a Global FinReg business identity; the impostor by a personal one",
       "pass": true,
       "detail": "#1526 owner 4UVsGd… idp 4 (business); #1527 owner 4UVsGd… idp 4 (business); #1406 owner 3bV1C2… idp 0 (personal)",
-      "ms": 1357
+      "ms": 1565
     },
     {
       "id": "C4",
       "claim": "The live street trades with the two honest shops and walks away from the impostor",
       "pass": true,
       "detail": "#1526 and #1527 TRADE; #1406 WALK AWAY (\"owner 3bV1C2… holds only a personal identity, not a business one\")",
-      "ms": 498
+      "ms": 406
     },
     {
       "id": "C5",
       "claim": "A shop's price quote is signed by its owner's account key and names the registry's wallet",
       "pass": true,
       "detail": "Small bouquet €1.8 verifies against 4UVsGd…'s keys; a halved price does not",
-      "ms": 1906
+      "ms": 1989
     },
     {
       "id": "C6",
       "claim": "Every transaction recorded in evidence/ is finalized on testnet and succeeded",
       "pass": true,
-      "detail": "29 transactions finalized and successful",
-      "ms": 3980
+      "detail": "31 transactions finalized and successful",
+      "ms": 4122
     },
     {
       "id": "C7",
       "claim": "Each paid errand paid exactly its signed quote, in EUDemo, to the shop's till, with fees paid by Viale",
       "pass": true,
       "detail": "€1.8 Small bouquet (159c5899…), €1.8 Small bouquet (51b425b5…), €1.8 Small bouquet (d5cb6cf4…), €1.8 Small bouquet (03c19209…), €1.8 Small bouquet (bf43ee0b…), €2.6 Ten tulips (8ce06ffd…)",
-      "ms": 1575
+      "ms": 1588
     },
     {
       "id": "C8",
       "claim": "Each errand log is sealed on chain: sha256(receipt || nonce) recomputed from the log matches the anchor",
       "pass": true,
       "detail": "7 logs match their anchors: errand-bouquet-signed-mandate-2026-11-26, errand-bouquet-wallet-signed-2026-11-26, errand-bouquet-x402-http-2026-11-27, errand-flowers-paid-2026-11-26, errand-flowers-quoted-2026-11-26, errand-impostor-2026-11-23, errand-tulips-from-page-2026-11-26",
-      "ms": 885
+      "ms": 907
     },
     {
       "id": "C9",
@@ -72,35 +72,42 @@
       "claim": "The payment guard tests pass (budget, cap, expiry, checked shop, quoted price, 18+)",
       "pass": true,
       "detail": "15 tests pass",
-      "ms": 603
+      "ms": 1476
     },
     {
       "id": "C11",
       "claim": "Check any agent: the same check runs on any registry agent, and its owner verdict matches the chain",
       "pass": true,
       "detail": "#1010 walk_away (personal owner), #600 trade (business owner), #1406 walk_away (personal owner), unknown #99999999 walk_away",
-      "ms": 6372
+      "ms": 2902
     },
     {
       "id": "C12",
       "claim": "Viale serves the check as an MCP server: tools/list and check_agent over JSON-RPC at /mcp",
       "pass": true,
       "detail": "tools check_agent, registry_owners; check_agent #1406 walk_away, #1527 trade",
-      "ms": 2621
+      "ms": 1666
     },
     {
       "id": "C13",
       "claim": "Errands run under a mandate signed by a human's own Concordium account; forged, over-limit or self-signed mandates are refused",
       "pass": true,
       "detail": "evidence/errand-bouquet-wallet-signed-2026-11-26.json: signed in a wallet by 3BLLTUG1… (no Viale key), verifies on chain, paid ≤ €3 cap; live site refused a wrong signature, a €50 budget and the agent signing for itself",
-      "ms": 1979
+      "ms": 1967
     },
     {
       "id": "C14",
       "claim": "Shops sell over HTTP x402: an unpaid POST /buy gets 402 with requirements matching the signed quote; the paid run settled on chain",
       "pass": true,
       "detail": "402 asks €1.8 EUDemo to 3HNiUGKv… with fee payer 3bV1C2T7…; changed price refused; evidence/x402-http-2026-11-27.json settled e7843e01… on chain",
-      "ms": 2739
+      "ms": 2999
+    },
+    {
+      "id": "C15",
+      "claim": "Open a shop: each shop opened by an outside owner carries a price list signed by its registry owner, and a quote off that list is refused",
+      "pass": true,
+      "detail": "#1543 \"Corner Kiosk\" list signed by 3HNiUG… (Walk away); off-list price refused",
+      "ms": 3767
     }
   ]
 }

@@ -76,17 +76,19 @@ console.log(`Checking ${SITE} and Concordium testnet\n`);
 await claim('C1', 'Every shop on the street is an Active agent in the CIS-8004 Agent Registry ' + REGISTRY, async () => {
   const street = await json(`${SITE}/api/street`);
   const ids = street.shops.map((s: any) => s.token_id).sort();
-  must(JSON.stringify(ids) === JSON.stringify([IMPOSTOR, ...HONEST].sort()), `street lists ${ids.join(', ')}`);
+  const own = street.shops.filter((s: any) => !s.outside).map((s: any) => s.token_id).sort();
+  must(JSON.stringify(own) === JSON.stringify([IMPOSTOR, ...HONEST].sort()), `Viale's own shops on the street are ${own.join(', ')}`);
   for (const id of ids) {
     const a = await agentOf(id);
     must(a?.status === 'Active', `agent #${id} is ${a?.status ?? 'missing'}`);
   }
-  return `agents #${ids.join(', #')} are Active in the registry`;
+  return `agents #${ids.join(', #')} are Active in the registry (${ids.length - own.length} opened by outside owners)`;
 });
 
 await claim('C2', "Each shop's Agent Card, served by the site, hashes to the metadata hash pinned on chain", async () => {
   const out: string[] = [];
-  for (const id of [IMPOSTOR, ...HONEST]) {
+  const outside = (await json(`${SITE}/api/open/shops`)).shops.map((s: any) => s.token_id);
+  for (const id of [IMPOSTOR, ...HONEST, ...outside]) {
     const a = await agentOf(id);
     must(a?.agent_uri === `${SITE}/agents/${id}.json` || !process.env.VIALE_SITE, `agent #${id} points at ${a?.agent_uri}`);
     const r = await fetch(a!.agent_uri!);
@@ -276,6 +278,28 @@ await claim('C14', 'Shops sell over HTTP x402: an unpaid POST /buy gets 402 with
   const t = (await txSummary(e!.data.tx)).events?.find((x: any) => x.tag === 'TokenTransfer');
   must(t?.tokenId === 'EUDemo' && String(t.amount.value) === e!.data.payment_required.amount && t.to.address === e!.data.payment_required.payTo, 'the recorded x402 payment does not match its requirements on chain');
   return `402 asks €${terms.price_eur} EUDemo to ${terms.pay_to.slice(0, 8)}… with fee payer ${kind.extra.feePayer.slice(0, 8)}…; changed price refused; ${e!.file} settled ${e!.data.tx.slice(0, 8)}… on chain`;
+});
+
+await claim('C15', "Open a shop: each shop opened by an outside owner carries a price list signed by its registry owner, and a quote off that list is refused", async () => {
+  const { shops } = await json(`${SITE}/api/open/shops`);
+  must(shops.length, 'no shops opened by outside owners yet');
+  const out: string[] = [];
+  for (const s of shops) {
+    const a = await agentOf(s.token_id);
+    const quote = await json(`${SITE}/shops/${s.token_id}/quote`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ sku: s.menu[0].sku }) });
+    must(quote.price_list, `quote from #${s.token_id} carries no price list`);
+    const list = JSON.parse(quote.price_list.message);
+    must(list.owner === a!.owner_account && list.token_id === s.token_id, `price list of #${s.token_id} names owner ${list.owner?.slice(0, 6)}…, registry says ${a!.owner_account.slice(0, 6)}…`);
+    const info = await grpc.getAccountInfo(AccountAddress.fromBase58(a!.owner_account));
+    must(await verifyMessageSignature(quote.price_list.message, quote.price_list.signature, info), `price list of #${s.token_id} is not signed by its owner's keys`);
+    const terms = JSON.parse(quote.message);
+    const r = await fetch(`${SITE}/shops/${s.token_id}/buy`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ quote }) });
+    must(r.status === 402, `unpaid buy from #${s.token_id} answered HTTP ${r.status}, not 402`);
+    const forged = await fetch(`${SITE}/shops/${s.token_id}/buy`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ quote: { ...quote, message: JSON.stringify({ ...terms, price_eur: 0.01 }) } }) });
+    must(forged.status === 400, `a quote off the price list got HTTP ${forged.status}`);
+    out.push(`#${s.token_id} "${s.name}" list signed by ${a!.owner_account.slice(0, 6)}… (${s.trade ? 'Trade' : 'Walk away'}); off-list price refused`);
+  }
+  return out.join('; ');
 });
 
 console.log(failed ? `\n${failed} claim(s) failed` : '\nAll claims pass');
