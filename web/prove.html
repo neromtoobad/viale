@@ -21,6 +21,9 @@
   .facts b { color:var(--text); font-weight:600; }
   button { appearance:none; border:0; border-radius:10px; background:var(--text); color:#fff; font:600 16px/1 inherit; padding:16px 20px; width:100%; cursor:pointer; }
   button:hover { background:#2a3a60; }
+  button.alt { background:transparent; color:var(--text); box-shadow:inset 0 0 0 1px var(--line); margin-top:10px; font-weight:550; }
+  button.alt:hover { background:#efe9dc; }
+  button[disabled] { opacity:.6; cursor:default; }
   #status { margin-top:20px; color:var(--text); min-height:1.5em; }
   body[data-state=verified] #status { color:var(--ok); font-weight:600; }
   body[data-state=failed] #status { color:var(--bad); }
@@ -35,10 +38,11 @@
   <h1 id="question">The shop asks: is the person behind this agent 18 or older?</h1>
   <ul class="facts">
     <li><b>What the shop learns:</b> yes, you are 18 or older. Not your birthday, name or ID number.</li>
-    <li><b>How:</b> your Concordium ID app makes a zero-knowledge proof on your phone. You approve it there.</li>
-    <li><b>Record:</b> the request and the result are each written to Concordium testnet, so the shop can show it checked.</li>
+    <li><b>How:</b> your Concordium wallet makes a zero-knowledge proof from your identity, for this request only. You approve it there.</li>
+    <li><b>Checked by:</b> Viale, against your identity credential on Concordium testnet. If you signed this errand with your wallet, the proof must come from that same account.</li>
   </ul>
-  <button id="go" type="button">Prove with Concordium ID</button>
+  <button id="wallet" type="button">Prove with Concordium Wallet</button>
+  <button id="go" class="alt" type="button">Use the Concordium ID app instead</button>
   <p id="status" role="status" aria-live="polite"></p>
   <div id="links"></div>
 </main>
