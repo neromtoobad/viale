@@ -20,7 +20,7 @@
 <link rel="stylesheet" href="/site.css">
 <style>
 /* Hero: one night-sky card holding the ask and the street */
-.hero{position:relative;max-width:var(--max);margin:4px auto 0;background:var(--night);border-radius:32px;overflow:hidden;color:#fff;box-shadow:var(--sh2)}
+.hero{position:relative;max-width:var(--max);margin:4px auto 0;background:var(--night);border-radius:32px;overflow:hidden;overflow:clip;color:#fff;box-shadow:var(--sh2)}
 .hero .top{position:relative;z-index:2;display:grid;grid-template-columns:1.05fr 1fr;gap:48px;padding:64px 64px 36px;align-items:end}
 .hero .top:before{content:"";position:absolute;inset:-120px -10% auto auto;width:640px;height:420px;background:radial-gradient(closest-side,rgba(194,154,75,.22),transparent);pointer-events:none}
 .hero h1{font-size:60px;line-height:1;letter-spacing:-.045em;font-weight:600;margin:18px 0 18px;max-width:600px}
@@ -644,7 +644,7 @@ drawLong();
 document.querySelectorAll('[data-icon]').forEach((d) => d.append(V.icon(d.dataset.icon)));
 $('taskInput').addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('task').requestSubmit(); } });
 { const t = new URLSearchParams(location.search).get('task'); if (t) { $('taskInput').value = t.slice(0, 300); $('presetnote').classList.toggle('on', /bottle shop/i.test(t)); } }
-document.querySelectorAll('.ideas button').forEach((b) => (b.onclick = () => { $('taskInput').value = b.dataset.task; $('presetnote').classList.toggle('on', b.dataset.note === 'bottle'); $('taskInput').focus(); }));
+document.querySelectorAll('.ideas button').forEach((b) => (b.onclick = () => { $('taskInput').value = b.dataset.task; $('presetnote').classList.toggle('on', b.dataset.note === 'bottle'); $('taskInput').focus({ preventScroll: true }); }));
 start();
 </script>
 </body>
