@@ -1,0 +1,36 @@
+{
+  "what": "18+ proof from the Concordium Browser Wallet, checked by src/proof/age.ts",
+  "id": "SsGmlzWl6j4z",
+  "shop_token_id": "try",
+  "expires_at": "2026-11-27T10:44:31.295Z",
+  "state": "verified",
+  "proved": {
+    "by": "wallet",
+    "account": "3bfc6N7NivEQmvyMWeei1eBYv4mD21FzKfLA5nAtjhuWXHNwhZ",
+    "credId": "afcce4ec3ed1aedaf3974babde9e7d206f558fd527f4b7c1fb2b9282e489bba890045a8039b937bdadb15c199107e084",
+    "issuer": "did:ccd:testnet:idp:0",
+    "presentation": "{\"presentationContext\":\"20b0f1917b2c8a75301b5dc463db6c21ef0ed02e0fa557a4eaa607e4dc5a0a7c\",\"proof\":{\"created\":\"2026-11-27T10:15:30.508Z\",\"proofValue\":[],\"type\":\"ConcordiumWeakLinkingProofV1\"},\"type\":\"VerifiablePresentation\",\"verifiableCredential\":[{\"credentialSubject\":{\"id\":\"did:ccd:testnet:cred:afcce4ec3ed1aedaf3974babde9e7d206f558fd527f4b7c1fb2b9282e489bba890045a8039b937bdadb15c199107e084\",\"proof\":{\"created\":\"2026-11-27T10:15:30.508Z\",\"proofValue\":[{\"proof\":\"8bf48f079c5d08f18b5d90193e866dbcba1ac6b43091d76217b3332941d69d044bada04798e9e7122beaaa23ff9eae18b3d8ae5dd32df033e3352ecd2009ec17448f79f6060be7faee0143e80118fc97cedd160f4e705eb92cb4d638339289d8a619e996b0c89f7161cf12ed901b046cf632f93f856a68e59944b8483bf27b77e39df3dfd1c2f1af27669f539dbce08c8816ed00c75b594a2aa69871c1f706beda866f384fa024c0d78a4157704d2744c3d5e6dbbb2dbd1706039363c6359888159cb71f634bf282f7ade2268673783fcd56fec60732f6c32accacde039832c431e3ac9bf7d488f6446ccdf70bddeb95c6298bd2d7d2a4ebf4bcc8032de48bb3491437de6372d907c1ae56d01c4233745c4cfc0e7f14528700ac85cdca82a3f600000007a0436abaf83f7ebce8ee611f979e36e266e0ec67260b0d2d264e09f5f9545c9b0f9e968a4bafa91dd4a5a228cb3e76b7b9a88803b2556e0dcd66e4c922425ac65261f0478ad84e40361e45888ed22e2480362992bf5a9a8216f445fa35cfd5ee841121d31bfd8624f1cd294beb4e4e95cf0c8d219f318d5ec3158cf5831c80332348053e13cf803619a0774682f91a4e8aaeb0c70f258c946ef270125097452c9f612bb81834650f7abdaeb6b39cfb52012bdb5aa96265a16d25c5a365dbbffc8081d8795ace24fef9eb55c799e71952aacfc3fe79576237d0a077e28a8bf65c998c2a47cc1ecbd8c91d67d86d7248c7a501625a436a3ac0bb58c5a60f47b1d47b87b48198f4e2191538f4dc21f1b19cfb5740b4641500b93f551e9d7ef5ee3cafcfc15537f7ff5ea40a1bb798536b6f915737804430702810d711f27300cb1825afb20b9c1f34a896034b8aa6123785b4ef97d3a676aa598497bea2c223f77d5a2312181e5992f25074b115dd121f247e91e178148586d2fad7611835c26c8080f8e5c7e9cdca94485c0920c53090c86ae7e5f3a1800b708cd9d519f19c56a3137c6fb211ef1aa476ebff8114fc4191a5b241a2fa6eb88d247bac78fd82e5d34ffd9110b8b482063df2189800f8b1c72cf376fdcbf840317a9f41a37613d9d589d805e56cf30b0db54b6588b4cba3fea7882384c016a27148437250ddbc5ac6d2c5ff28a2eb3dba3ce28e37616a1ee9921e62e84880ddaf9c17866362d0bba0f79b11533e66621b0001450680c14cb4e0eccf8c0039cb179441daaad71bf024a0b485b187bfc577e9f4d95db71dfcf2a433b74ea4dc5898b9a01f1e493b38e46e836316f6a9111f9617293c49e03622998dfcf22aa4c7d01054050e360398e6f76b4bf13b6cf19eaa65775fb97fcbac54699cb7c1139c4778d40a33c81114f37269295b6e3e874d04c78a527d2e8c08d2b04a933d9a3e76e3b487d0b44ab964185098dca4a62c59530f9f8fe810fbfa7bf133abcd72b66e944b76af5a783df2\",\"type\":\"AttributeInRange\"}],\"type\":\"ConcordiumZKProofV3\"},\"statement\":[{\"attributeTag\":\"dob\",\"lower\":\"18000101\",\"type\":\"AttributeInRange\",\"upper\":\"20081128\"}]},\"issuer\":\"did:ccd:testnet:idp:0\",\"type\":[\"VerifiableCredential\",\"ConcordiumVerifiableCredential\"]}]}"
+  },
+  "challenge": "20b0f1917b2c8a75301b5dc463db6c21ef0ed02e0fa557a4eaa607e4dc5a0a7c",
+  "statement": [
+    {
+      "idQualifier": {
+        "type": "cred",
+        "issuers": [
+          0,
+          1,
+          3,
+          5
+        ]
+      },
+      "statement": [
+        {
+          "type": "AttributeInRange",
+          "attributeTag": "dob",
+          "lower": "18000101",
+          "upper": "20081128"
+        }
+      ]
+    }
+  ]
+}

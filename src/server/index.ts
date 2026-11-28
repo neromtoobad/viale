@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
 import { setting } from '../chain/keys.ts';
-import { createRequest, getProof, publicView, verifyPresentation } from '../proof/age.ts';
+import { createRequest, getProof, publicView, verifyPresentation, verifyWalletPresentation, walletRequest } from '../proof/age.ts';
 import { buy, menu, quote, streetWallets } from '../street/shop-agent.ts';
 import { SHOPS } from '../street/shops.ts';
 import * as open from '../street/open-shops.ts';
@@ -62,6 +62,13 @@ export function startServer(): Promise<http.Server> {
           const { connectionId } = await body(req);
           if (typeof connectionId !== 'string' || !connectionId) return send(res, 400, { error: 'connectionId missing' });
           return send(res, 200, await createRequest(p.id, connectionId));
+        }
+        // Browser wallet: get the statement and challenge, then send back the wallet's presentation.
+        if (req.method === 'POST' && parts[3] === 'wallet' && !parts[4]) return send(res, 200, await walletRequest(p.id));
+        if (req.method === 'POST' && parts[3] === 'wallet' && parts[4] === 'verify') {
+          const { presentation } = await body(req);
+          if (typeof presentation !== 'string' || presentation.length > 64_000) return send(res, 400, { error: 'presentation must be the wallet proof as a JSON string' });
+          return send(res, 200, await verifyWalletPresentation(p.id, presentation));
         }
         if (req.method === 'POST' && parts[3] === 'verify') {
           const { presentation } = await body(req);
