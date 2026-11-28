@@ -19,7 +19,7 @@ import {
   verifyPresentation,
   type AtomicStatementV2,
 } from '@concordium/web-sdk';
-import { client, withRetry } from '../chain/chain.ts';
+import { client, cryptoParams, withRetry } from '../chain/chain.ts';
 
 export const REGISTRY = '<12802,0>';
 /** The attributes a business proof reveals. The legal name and country must be set; Global FinReg's test flow
@@ -51,17 +51,9 @@ export async function proveBusiness(input: {
   const commitment = createAccountCommitmentInputWithHdWallet(statement, input.identityProvider, input.attributes, wallet, input.identityIndex, input.credIndex);
   return getVerifiablePresentation({
     request: { challenge: businessChallenge(input.tokenId, input.owner), credentialStatements: [{ id: `did:ccd:testnet:cred:${credId}`, statement }] },
-    globalContext: await grpc.getCryptographicParameters(),
+    globalContext: await cryptoParams(),
     commitmentInputs: [commitment],
   });
-}
-
-let ctx: ReturnType<ReturnType<typeof client>['getCryptographicParameters']> | undefined;
-/** The chain's cryptographic parameters (fixed for a network), read once. */
-function globalContext() {
-  ctx ??= withRetry(() => client().getCryptographicParameters());
-  ctx.catch(() => { ctx = undefined; });
-  return ctx;
 }
 
 /** Checks a business proof for an agent and its owner, against the chain. Never throws. */
@@ -81,7 +73,7 @@ export async function verifyBusinessProof(json: string, tokenId: string, owner: 
     // Verify the zero-knowledge proof against the credential's commitments on chain.
     const pub = await withRetry(() => getPublicData(grpc, 'Testnet', p));
     if (pub.some((c) => Number(c.status) !== ACTIVE)) return { ok: false, reason: 'the credential behind the business proof is not active' };
-    const request = verifyPresentation(p, await globalContext(), pub.map((c) => c.inputs));
+    const request = verifyPresentation(p, await cryptoParams(), pub.map((c) => c.inputs));
     if (request.challenge !== want) return { ok: false, reason: 'business proof does not verify for this challenge' };
     const values = revealedValues(vc);
     for (const k of REVEALED) if (!(k in values)) return { ok: false, reason: `business proof does not reveal ${k}` };

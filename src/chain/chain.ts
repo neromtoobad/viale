@@ -19,3 +19,11 @@ export async function withRetry<T>(read: () => Promise<T>, tries = 6): Promise<T
     }
   }
 }
+
+let params: ReturnType<ReturnType<typeof client>['getCryptographicParameters']> | undefined;
+/** The chain's cryptographic parameters (the "global context" proofs are checked against), read once. */
+export function cryptoParams() {
+  params ??= withRetry(() => client().getCryptographicParameters());
+  params.catch(() => { params = undefined; });
+  return params;
+}
