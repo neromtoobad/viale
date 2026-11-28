@@ -77,6 +77,7 @@ npm run check:live
 - C14: a fresh quote's unpaid `/buy` answers 402 with `PAYMENT-REQUIRED` asking exactly the quoted price to the shop's wallet, a quote with a changed price is refused, and the recorded HTTP x402 payment matches its requirements on chain
 - C15: each opened shop's quote carries a price list signed by the shop's registry owner (checked against the owner's keys on chain), its unpaid `/buy` answers 402, and a quote off the list is refused
 - C16: each honest shop's business-name proof, fetched from next to its card, verifies against the chain, names the operator the street shows, and fails when checked for the impostor
+- C17: an 18+ proof made in the Concordium Browser Wallet verifies against the chain; a copy with a swapped challenge does not
 
 ## The five things to look at in the code
 
@@ -89,4 +90,4 @@ npm run check:live
 
 ## What doesn't work yet
 
-The 18+ proof (Concordium Verify & Access) is written but can't be finished on testnet: the App Store ID app is a mainnet app and fails at WalletConnect. See the README's *Not built yet* section and [feedback.md](feedback.md).
+The 18+ proof works through the Concordium Browser Wallet: a zero-knowledge proof from the human's identity, checked by Viale against the chain ([saved proof](evidence/age-proof-wallet-2026-11-27.json), C17). On Nov 27 a wallet-signed Bottle Shop errand asked for it live; the proof came from a different account than the one that signed the mandate, so the agent refused to pay and sealed the log ([record](evidence/errand-bottle-age-wrong-account-2026-11-27.json)). A paid 18+ errand isn't in the evidence: in our test wallet the agent's own account is the wallet's default prover, which a real customer's wallet wouldn't have. The ID-app route (Verify & Access) is written but can't be finished on testnet: the App Store ID app is a mainnet app and fails at WalletConnect ([feedback.md](feedback.md)).
