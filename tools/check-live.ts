@@ -228,8 +228,9 @@ await claim('C12', 'Viale serves the check as an MCP server: tools/list and chec
 await claim('C13', "Errands run under a mandate signed by a human's own Concordium account; forged, over-limit or self-signed mandates are refused", async () => {
   // Accounts whose keys Viale's server holds: a wallet mandate must come from none of them.
   const vialeHeld = ['3bfc6N7NivEQmvyMWeei1eBYv4mD21FzKfLA5nAtjhuWXHNwhZ', '3bV1C2T7j8oNGPfZsMSP51KCgdzuTuUMjDcHFak3rHM43i46zX', '4UVsGdSyYk43E2m99Vy3M38u92yknjBUoY7xKQHGSDXZAUiWw5', TILL];
-  const e = evidence.find((x) => x.data.mandate?.signed && !vialeHeld.includes(x.data.mandate.signed.human))!;
-  must(e, 'no evidence errand carries a mandate signed by an account outside Viale');
+  // A wallet-signed errand that paid (a refused one, like the 18+ walk-away, has nothing to check against the cap).
+  const e = evidence.find((x) => x.data.mandate?.signed && !vialeHeld.includes(x.data.mandate.signed.human) && steps(x.data).some((s) => s.step === 'payment'))!;
+  must(e, 'no evidence errand that paid carries a mandate signed by an account outside Viale');
   const { message, signature, human } = e.data.mandate.signed;
   const terms = JSON.parse(message);
   const info = await grpc.getAccountInfo(AccountAddress.fromBase58(human));
