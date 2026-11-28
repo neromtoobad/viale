@@ -10,6 +10,7 @@ import { AccountAddress, TransactionHash, verifyMessageSignature } from '@concor
 import { client } from '../src/chain/chain.ts';
 import { agentOf } from '../src/registry/mcp.ts';
 import { verifyBusinessProof } from '../src/identity/business-proof.ts';
+import { checkWalletProof } from '../src/proof/age.ts';
 
 const SITE = process.env.VIALE_SITE ?? 'https://viale.nerom.site';
 const TESTNET_GENESIS = '4221332d34e1694168c2a0c0b3fd0f27';
@@ -319,6 +320,20 @@ await claim('C16', "Each honest shop's owner proves which business it is: the pr
     out.push(`#${id} proves ${r.business.legal_name} (${r.business.country}); copy to #${IMPOSTOR} refused`);
   }
   return out.join('; ');
+});
+
+await claim('C17', 'An 18+ proof made in the Concordium Browser Wallet verifies against the chain, and an edited copy does not', async () => {
+  const f = fs.readdirSync(path.join(ROOT, 'evidence')).filter((n) => /^age-proof-wallet-.*\.json$/.test(n)).sort().at(-1);
+  must(f, 'no saved wallet proof in evidence/');
+  const saved = JSON.parse(fs.readFileSync(path.join(ROOT, 'evidence', f!), 'utf8'));
+  const want = { challenge: saved.challenge, statements: saved.statement };
+  const r = await checkWalletProof(saved.proved.presentation, want);
+  must(r.ok, `evidence/${f}: ${r.ok ? '' : r.reason}`);
+  const edited = JSON.parse(saved.proved.presentation);
+  edited.presentationContext = 'ff'.repeat(32);
+  const e = await checkWalletProof(JSON.stringify(edited), { ...want, challenge: 'ff'.repeat(32) });
+  must(!e.ok, 'a proof with a swapped challenge still verifies');
+  return `evidence/${f}: 18+ proved from ${r.ok ? r.account.slice(0, 6) : ''}… (${saved.proved.issuer}); swapped challenge refused`;
 });
 
 console.log(failed ? `\n${failed} claim(s) failed` : '\nAll claims pass');
