@@ -20,7 +20,7 @@ import { anchorReceipt } from '../chain/anchor.ts';
 import { txUrl } from '../chain/chain.ts';
 import { agentWallet, loadAnthropicKey, sponsorWallet } from '../chain/keys.ts';
 import { draftMandate, signMandate, verifyMandate } from '../errand/mandate.ts';
-import { startAgeProof, waitForProof } from '../proof/age.ts';
+import { proofRecord, startAgeProof, waitForProof } from '../proof/age.ts';
 import { PUBLIC_URL, startServer } from '../server/index.ts';
 
 export const MODEL = 'claude-opus-5-5';
@@ -179,18 +179,20 @@ export async function runErrand(mandate: Mandate, opts: { onStep?: (e: LogEntry)
   const proveAge = betaZodTool({
     name: 'prove_age',
     description:
-      "For a shop that sells 18+ goods: ask your human to prove in their Concordium ID app that they are 18 or older. Zero-knowledge: the shop learns only yes or no. Waits until the human approves, refuses, or the request expires.",
+      "For a shop that sells 18+ goods: ask your human to prove with their Concordium wallet (or ID app) that they are 18 or older. Zero-knowledge: the shop learns only yes or no. Waits until the human approves, refuses, or the request expires.",
     inputSchema: z.object({ token_id: z.string().describe('Token id of a shop that passed check_shop') }),
     run: async ({ token_id }) => {
       const shop = checked.get(token_id);
       // Never show the human's proof to a shop that failed its check.
       if (!shop?.ok) return JSON.stringify({ proven: false, reason: 'check_shop has not passed for this shop, so no proof is shared with it' });
-      const p = startAgeProof(token_id, shop.name ?? `shop #${token_id}`, AGE_PROOF_MINUTES);
+      // A human who signed the mandate with their own wallet must also be the one who proves their age.
+      const human = mandate.signed!.human === sponsorWallet().address.address ? undefined : mandate.signed!.human;
+      const p = startAgeProof(token_id, shop.name ?? `shop #${token_id}`, AGE_PROOF_MINUTES, { human });
       const url = `${PUBLIC_URL}/prove/${p.id}`;
-      note('age_proof_requested', { token_id, shop: shop.name, url, minutes: AGE_PROOF_MINUTES });
+      note('age_proof_requested', { token_id, shop: shop.name, url, minutes: AGE_PROOF_MINUTES, must_be_account: human ?? null });
       const done = await waitForProof(p.id);
       if (done.state === 'verified') ageProven.add(token_id);
-      note('age_proof_result', { token_id, state: done.state, requestTx: done.requestTx, verifyTx: done.verifyTx, error: done.error });
+      note('age_proof_result', { token_id, state: done.state, requestTx: done.requestTx, verifyTx: done.verifyTx, error: done.error, proof: proofRecord(done) });
       return JSON.stringify({ proven: done.state === 'verified', state: done.state, error: done.error, request_tx: done.requestTx, verify_tx: done.verifyTx });
     },
   });

@@ -242,7 +242,7 @@ form.task textarea:focus{box-shadow:inset 0 0 0 1.5px var(--ink)}
         </div>
         <div class="field" style="margin:10px 0 0"><label>Shops it may pay</label><div class="shopsel" id="oShops"><span class="note">Loading shops…</span></div><small>Untick a shop and the code refuses to pay it, whatever the model decides.</small></div>
       </div>
-      <p class="presetnote" id="presetnote">This errand shows the walk-away: the agent meets the fake Bottle Shop and refuses it. The real Bottle Shop sells only to adults and asks for an 18+ proof from the Concordium ID app, which works only on mainnet today, so on testnet the errand waits 2 minutes at the 18+ check and stops with nothing paid.</p>
+      <p class="presetnote" id="presetnote">This errand shows the walk-away: the agent meets the fake Bottle Shop and refuses it. The real Bottle Shop sells only to adults, so it then asks you for a zero-knowledge 18+ proof from your Concordium wallet (it waits 5 minutes). If you signed with your wallet, prove from that same account. With no proof, nothing is paid.</p>
       <p class="signer" id="signer">Signed by Viale's demo account, because no Concordium wallet is connected. <button type="button" id="wallet">Sign with my Concordium wallet</button></p>
       <p class="msg" id="msg" role="status"></p>
     </div>
@@ -335,7 +335,7 @@ form.task textarea:focus{box-shadow:inset 0 0 0 1.5px var(--ink)}
       <details open><summary>Is any of this real money?</summary><p>No. Payments are in EUDemo, a test euro token on Concordium testnet. The checks, signatures, payments and seals are real testnet transactions you can open on the explorer.</p></details>
       <details><summary>Do I need a wallet?</summary><p>No. Without one, Viale’s demo account signs the mandate and the log says so. With the Concordium Browser Wallet on testnet, your own account signs, and the agent can only do what you signed.</p></details>
       <details><summary>Why did the agent walk away from a Bottle Shop?</summary><p>The street has a planted fake: an agent named “The Bottle Shop” with a valid badge, owned by an account with only a personal identity. Check 3 fails, so the agent refuses to pay it.</p></details>
-      <details><summary>Why does the bottle errand stop?</summary><p>The real Bottle Shop sells only to adults, so it asks for a zero-knowledge 18+ proof from the Concordium ID app; the shop learns only yes or no. The ID app is a mainnet app and we could not finish a proof on testnet, so the errand waits 2 minutes, then stops with nothing paid. The code for the proof is written and in the repository.</p></details>
+      <details><summary>How does the 18+ check work?</summary><p>The real Bottle Shop sells only to adults, so before paying it the agent asks you for a zero-knowledge proof that you are 18 or older. Your Concordium Browser Wallet makes it from your identity; the shop learns only yes or no, never your birthday. Viale checks the proof against the chain, and if you signed the errand with your wallet, it must come from that same account. Without a proof the agent pays nothing.</p></details>
       <details><summary>What if the model tries to overspend?</summary><p>It can’t. The limits are checked in code before every payment, outside the model. A payment over the cap or budget, after expiry, or to a shop you did not allow is refused and logged.</p></details>
       <details><summary>How do I know a log wasn’t edited?</summary><p>Each log’s SHA-256 hash is registered on chain when the errand ends. Paste a log into the <a href="/verify">audit desk</a> and it recomputes the hash and compares it with the transaction.</p></details>
       <details><summary>Can my business be on the street?</summary><p>Yes. <a href="/open">Open a shop</a> with your Concordium wallet: you register your own agent, sign your price list, and the errand agent checks you like any other shop.</p></details>
@@ -349,7 +349,7 @@ form.task textarea:focus{box-shadow:inset 0 0 0 1.5px var(--ink)}
 <script>
 // Where each shop stands in the street picture (the art is drawn for these three registered shops).
 const SPOT = { '1526': { x: 21.3, plate: 'dark', w: 18, name: 'The Bottle Shop' }, '1406': { x: 48, plate: 'dark', w: 15, tilt: -2, name: 'The Bottle Shop' }, '1527': { x: 80.4, plate: '', w: 22, name: 'Viale Flowers' } };
-const { $, h, short, shortTx, eur, wallet } = V;
+const { $, h, short, shortTx, eur, wallet, acct } = V;
 let explorer = V.EXPLORER;
 const txLink = (t) => h('a', { href: `${explorer}/transaction/${t}`, target: '_blank', rel: 'noopener', class: 'mono' }, `${shortTx(t)} ↗`);
 
@@ -471,10 +471,12 @@ function onStep(e) {
   } else if (s === 'quote_rejected' || s === 'quote_failed') {
     addStep('bad', `Refused a quote from ${shopName(e.token_id)}`, h('ul', { class: 'checks' }, (e.reasons ?? [e.error]).map((r) => h('li', { class: 'n' }, r))));
   } else if (s === 'age_proof_requested') {
-    addStep('wait', `${e.shop} asks you to prove you are 18+`, h('p', {}, 'Zero-knowledge: the shop learns only yes or no. ', h('a', { href: e.url, target: '_blank', rel: 'noopener' }, 'Open the proof page ↗'), ` (needs the Concordium ID app on testnet; the request expires in ${e.minutes ?? 10} minutes).`));
+    addStep('wait', `${e.shop} asks you to prove you are 18+`, h('p', {}, 'Zero-knowledge: the shop learns only yes or no. ', h('a', { href: e.url, target: '_blank', rel: 'noopener' }, 'Open the proof page ↗'), ` Prove with your Concordium wallet${e.must_be_account ? ` from ${short(e.must_be_account)}, the account that signed your mandate` : ''}, or the ID app. Expires in ${e.minutes ?? 10} minutes.`));
     moveAgent(e.token_id, 'Waiting for your 18+ proof');
   } else if (s === 'age_proof_result') {
-    addStep(e.state === 'verified' ? 'ok' : 'bad', e.state === 'verified' ? 'Age proof verified on chain' : `No age proof (${e.state})`, e.verifyTx ? h('p', {}, txLink(e.verifyTx)) : e.error ? h('p', {}, e.error) : null);
+    const by = e.proof?.proved?.account;
+    addStep(e.state === 'verified' ? 'ok' : 'bad', e.state === 'verified' ? 'Age proof verified against the chain' : `No age proof (${e.state})`,
+      e.verifyTx ? h('p', {}, txLink(e.verifyTx)) : by ? h('p', {}, 'Proved from ', acct(by), ' with a zero-knowledge proof from its identity. The shop learned only “18 or older”.') : e.error ? h('p', {}, e.error) : null);
   } else if (s === 'payment_refused') {
     state.refused.push((e.reasons ?? []).join('; '));
     addStep('bad', `Payment of ${eur(e.amount_eur)} refused by your limits`, h('ul', { class: 'checks' }, (e.reasons ?? []).map((r) => h('li', { class: 'n' }, r))));
